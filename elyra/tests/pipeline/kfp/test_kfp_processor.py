@@ -87,10 +87,6 @@ def test_WorkflowEngineType_get_instance_by_value():
     assert WorkflowEngineType.get_instance_by_value("ARGO") == WorkflowEngineType.ARGO
     assert WorkflowEngineType.get_instance_by_value("aRGo") == WorkflowEngineType.ARGO
     assert WorkflowEngineType.get_instance_by_value("Argo") == WorkflowEngineType.ARGO
-    assert WorkflowEngineType.get_instance_by_value("tekton") == WorkflowEngineType.TEKTON
-    assert WorkflowEngineType.get_instance_by_value("TEKTON") == WorkflowEngineType.TEKTON
-    assert WorkflowEngineType.get_instance_by_value("tEKtOn") == WorkflowEngineType.TEKTON
-    assert WorkflowEngineType.get_instance_by_value("Tekton") == WorkflowEngineType.TEKTON
     # test invalid inputs
     with pytest.raises(KeyError):
         WorkflowEngineType.get_instance_by_value(None)  # there is no default
@@ -539,16 +535,6 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_workflow_engine_test(
         pipeline_instance_id=pipeline_instance_id,
         experiment_name=experiment_name,
     )
-
-    # Check the workflow engine specific code in the generated DSL
-    if workflow_engine == WorkflowEngineType.TEKTON:
-        assert "from kfp_tekton import compiler" in generated_dsl, f"engine: {workflow_engine}\ndsl: {generated_dsl}"
-        assert "compiler.TektonCompiler().compile(" in generated_dsl
-        assert "kfp.compiler.Compiler().compile(" not in generated_dsl
-    else:
-        assert "from kfp_tekton import compiler" not in generated_dsl
-        assert "compiler.TektonCompiler().compile(" not in generated_dsl
-        assert "kfp.compiler.Compiler().compile(" in generated_dsl
 
     # Compile the generated Python DSL
     processor._compile_pipeline_dsl(

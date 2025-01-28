@@ -83,7 +83,6 @@ class WorkflowEngineType(Enum):
     """
 
     ARGO = "argo"
-    TEKTON = "tekton"
 
     @staticmethod
     def get_instance_by_value(value: str) -> "WorkflowEngineType":
@@ -879,12 +878,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # Generate unique ELYRA_RUN_NAME value, which gets exposed as an environment
                 # variable
-                if workflow_engine == WorkflowEngineType.TEKTON:
-                    # Value is derived from an existing annotation; use dummy value
-                    workflow_task["task_modifiers"]["set_run_name"] = "dummy value"
-                else:
-                    # Use Kubeflow Pipelines provided RUN_ID_PLACEHOLDER as run name
-                    workflow_task["task_modifiers"]["set_run_name"] = RUN_ID_PLACEHOLDER
+                # Use Kubeflow Pipelines provided RUN_ID_PLACEHOLDER as run name
+                workflow_task["task_modifiers"]["set_run_name"] = RUN_ID_PLACEHOLDER
 
                 # Upload dependencies to cloud storage
                 self._upload_dependencies_to_object_store(

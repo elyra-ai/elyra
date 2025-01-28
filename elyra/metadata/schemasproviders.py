@@ -92,13 +92,6 @@ class RuntimesSchemas(ElyraSchemasProvider):
                 )
 
         if kfp_schema_present:  # Update the kfp engine enum to reflect current packages...
-            for schema in runtime_schemas:
-                if schema["name"] == "kfp":
-                    engine_enum: list = schema["properties"]["metadata"]["properties"]["engine"]["enum"]
-                    if "Tekton" in engine_enum:
-                        engine_enum.remove("Tekton")
-                        schema["properties"]["metadata"]["properties"]["engine"]["enum"] = engine_enum
-
             # For KFP schemas replace placeholders:
             # - properties.metadata.properties.auth_type.enum ({AUTH_PROVIDER_PLACEHOLDERS})
             # - properties.metadata.properties.auth_type.default ({DEFAULT_AUTH_PROVIDER_PLACEHOLDER})
