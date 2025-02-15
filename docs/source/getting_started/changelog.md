@@ -2,6 +2,24 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 4.0.0rc1 - 02/15/2025
+
+- Add codecov token to upload reports github action - [#3283](https://github.com/elyra-ai/elyra/pull/3283)
+- Fix references to KF_PIPELINES_SSL_SA_CERTS - [#3284](https://github.com/elyra-ai/elyra/pull/3284)
+- Fix main icon replacement - [#3285](https://github.com/elyra-ai/elyra/pull/3285)
+- Update ToolbarButton widget library - [#3282](https://github.com/elyra-ai/elyra/pull/3282)
+- Add missing props and files for Code Viewer, R Editor and Scala Editor extensions - [#3280](https://github.com/elyra-ai/elyra/pull/3280)
+- Add test coverage support through CodeCov - [#3281](https://github.com/elyra-ai/elyra/pull/3281)
+- Add ELYRA_GITHUB_REPO env var - [#3278](https://github.com/elyra-ai/elyra/pull/3278)
+- Replace 'any' with correct types in typescript code - [#85](https://github.com/elyra-ai/elyra/pull/85)
+- Remove Python 3.8 support as it reached EOL - [#3277](https://github.com/elyra-ai/elyra/pull/3277)
+- Upgrade Cypress v6 -> v13 - [#3275](https://github.com/elyra-ai/elyra/pull/3275)
+- Bump Node.js version to 22 LTS - [#3276](https://github.com/elyra-ai/elyra/pull/3276)
+- Update yarn.lock after release candidate updates - [#3274](https://github.com/elyra-ai/elyra/pull/3274)
+- Allow production builds for UI packages - [#3269](https://github.com/elyra-ai/elyra/pull/3269)
+- Fix properties not being added in the Pipeline Properties tab - [#3270](https://github.com/elyra-ai/elyra/pull/3270)
+- Extract common code and fail build if lock is modified - [#3272](https://github.com/elyra-ai/elyra/pull/3272)
+
 ## Release 4.0.0rc0 - 01/03/2025
 
 Our 4.0.0 release candidate 0 includes the following high-level changes
