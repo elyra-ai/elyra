@@ -528,7 +528,7 @@ const PipelineWrapper: React.FC<
                       enabled in your environment. Complete the setup
                       instructions in{' '}
                       <a
-                        href="https://elyra.readthedocs.io/en/v4.0.0rc1/user_guide/pipeline-components.html#example-custom-components"
+                        href="https://elyra.readthedocs.io/en/latest/user_guide/pipeline-components.html#example-custom-components"
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -692,7 +692,7 @@ const PipelineWrapper: React.FC<
               <br />
               <br />
               <a
-                href="https://elyra.readthedocs.io/en/v4.0.0rc1/user_guide/best-practices-custom-pipeline-components.html#troubleshooting-missing-pipeline-components"
+                href="https://elyra.readthedocs.io/en/latest/user_guide/best-practices-custom-pipeline-components.html#troubleshooting-missing-pipeline-components"
                 target="_blank"
                 rel="noreferrer"
               >
