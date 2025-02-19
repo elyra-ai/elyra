@@ -24,7 +24,7 @@ on:
 env:
   FORCE_COLOR: true
   NODE_VERSION: 22
-  YARN_VERSION: 3.5.0
+  YARN_VERSION: 3.6.0
   PYTHON_VERSION: 3.11
   NODE_OPTIONS: '--max_old_space_size=4096'
 
