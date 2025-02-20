@@ -36,7 +36,7 @@ Please review the [_Best practices for file-based pipeline nodes_ topic in the _
 
 Elyra pipelines support three runtime platforms:
 - Local/JupyterLab
-- [Kubeflow Pipelines](https://www.kubeflow.org/docs/components/pipelines/) (with Argo or [Tekton](https://github.com/kubeflow/kfp-tekton/) workflow engines)
+- [Kubeflow Pipelines](https://www.kubeflow.org/docs/components/pipelines/) (with Argo workflow engine)
 - [Apache Airflow](https://airflow.apache.org/)
 
 #### Generic pipelines
@@ -373,7 +373,7 @@ Use the [`elyra-pipeline`](command-line-interface.html#working-with-pipelines) `
 
 ```bash
 $ elyra-pipeline submit elyra-pipelines/a-kubeflow.pipeline \
-      --runtime-config kfp-shared-tekton
+      --runtime-config kfp
 ```
 
 For Kubeflow Pipelines the `--monitor` option is supported. If specified, the pipeline execution status is monitored for up to `--monitor-timeout` minutes (default: 60) and the `elyra-pipeline submit` command terminates as follows:

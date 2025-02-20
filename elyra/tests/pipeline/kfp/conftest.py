@@ -29,7 +29,6 @@ from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.metadata.storage import FileMetadataStore
-from elyra.pipeline.kfp.kfp_processor import WorkflowEngineType
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
@@ -158,7 +157,7 @@ def metadata_dependencies(metadata_managers, request):
      - "pipeline_file": existing pipeline filename
     Optional inputs:
         - "with_cos_object_prefix": bool (default: False)
-        - "workflow_engine": WorkflowEngineType.ARGO or WorkflowEngineType.TEKTON
+        - "workflow_engine": WorkflowEngineType.ARGO
         - "use_cos_credentials_secret": bool (default: False)
         - "require_pull_secret": bool (default: False)
     The fixture yields a dictionary with the following keys:
@@ -250,10 +249,7 @@ def create_runtime_config(rt_metadata_manager: MetadataManager, customization_op
         },
     }
 
-    if customization_options.get("workflow_engine") == WorkflowEngineType.TEKTON:
-        kfp_runtime_config["metadata"]["engine"] = "Tekton"
-    else:
-        kfp_runtime_config["metadata"]["engine"] = "Argo"
+    kfp_runtime_config["metadata"]["engine"] = "Argo"
 
     if customization_options.get("use_cos_credentials_secret"):
         kfp_runtime_config["metadata"]["cos_auth_type"] = "KUBERNETES_SECRET"
