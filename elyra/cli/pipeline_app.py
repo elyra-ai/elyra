@@ -428,8 +428,7 @@ def _monitor_kfp_submission(runtime_config: dict, runtime_config_name: str, run_
         raise click.ClickException(f"Kubeflow authentication failed: {ae}")
 
     try:
-        # Create a Kubeflow Pipelines client. There is no need to use a Tekton client,
-        # because the monitoring API is agnostic.
+        # Create a Kubeflow Pipelines client.
         client = ArgoClient(
             host=runtime_config.metadata["api_endpoint"].rstrip("/"),
             cookies=auth_info.get("cookies", None),
