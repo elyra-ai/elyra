@@ -2,6 +2,26 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 4.0.0rc2 - 03/17/2025
+
+Our 4.0.0 release candidate 2 includes the following high-level changes
+
+- Update JupyterLab version compatibility all way to 4.3.x  - [#3293](https://github.com/elyra-ai/elyra/pull/3293)
+- Switch from elyra-code-viewer to jupyterlab-code-viewer - [#3265](https://github.com/elyra-ai/elyra/pull/3265)
+
+See the full changelog below:
+
+- Switch from elyra-code-viewer to jupyterlab-code-viewer - [#3265](https://github.com/elyra-ai/elyra/pull/3265)
+- Bump express from 4.18.1 to 4.21.2 - [#3297](https://github.com/elyra-ai/elyra/pull/3297)
+- Bump @babel/runtime-corejs3 from 7.19.1 to 7.26.10 - [#3296](https://github.com/elyra-ai/elyra/pull/3296)
+- Bump elliptic from 6.5.4 to 6.6.1 - [#3286](https://github.com/elyra-ai/elyra/pull/3286)
+- Bump axios from 1.7.5 to 1.8.3 - [#3295](https://github.com/elyra-ai/elyra/pull/3295)
+- Bump jinja2 from 3.1.5 to 3.1.6 in /etc/generic - [#3294](https://github.com/elyra-ai/elyra/pull/3294)
+- Pin Yarn version - [#3292](https://github.com/elyra-ai/elyra/pull/3292)
+- Updates Jupyterlab version compatibility to <4.4 - [#3293](https://github.com/elyra-ai/elyra/pull/3293)
+- Fix yarn.lock after release - [#3289](https://github.com/elyra-ai/elyra/pull/3289)
+- Update yarn.lock after release - [#3287](https://github.com/elyra-ai/elyra/pull/3287)
+
 ## Release 4.0.0rc1 - 02/15/2025
 
 - Add codecov token to upload reports github action - [#3283](https://github.com/elyra-ai/elyra/pull/3283)
