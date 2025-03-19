@@ -3,7 +3,7 @@
   "metadata": {
     "api_endpoint": "http://localhost:30809",
     "cos_endpoint": "http://localhost:31128",
-    "cos_bucket": "tester",
+    "cos_bucket": "tester"
   },
   "schema_name": "airflow"
 }
