@@ -721,8 +721,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # - verify that cloud storage can be accessed
             self._verify_cos_connectivity(runtime_configuration)
             # - collect runtime configuration information
-            cos_username = runtime_configuration.metadata.get("cos_username")
-            cos_password = runtime_configuration.metadata.get("cos_password")
             cos_secret = runtime_configuration.metadata.get("cos_secret")
             cos_endpoint = runtime_configuration.metadata["cos_endpoint"]
             cos_bucket = runtime_configuration.metadata.get("cos_bucket")
@@ -815,7 +813,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # attach environment variables
                 workflow_task["task_modifiers"]["env_variables"] = self._collect_envs(
-                    operation, cos_secret=cos_secret, cos_username=cos_username, cos_password=cos_password
+                    operation, cos_secret=cos_secret
                 )
 
                 # hack only: since we don't use the ContainerOp constructor anymore

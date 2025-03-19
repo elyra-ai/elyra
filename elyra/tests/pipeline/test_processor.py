@@ -178,11 +178,12 @@ def test_collect_envs(processor: KfpPipelineProcessor):
         elyra_props={"env_vars": converted_envs},
     )
 
-    envs = processor._collect_envs(test_operation, cos_secret=None, cos_username="Alice", cos_password="secret")
+    # Test with None secret - ensure user and password envs are present in form env env vars AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY 
+    envs = processor._collect_envs(test_operation, cos_secret=None)
 
     assert envs["ELYRA_RUNTIME_ENV"] == "kfp"
-    assert envs["AWS_ACCESS_KEY_ID"] == "Alice"
-    assert envs["AWS_SECRET_ACCESS_KEY"] == "secret"
+    assert envs["AWS_ACCESS_KEY_ID"] == "bogus_key"
+    assert envs["AWS_SECRET_ACCESS_KEY"] == "bogus_secret"
     assert envs["ELYRA_ENABLE_PIPELINE_INFO"] == "True"
     assert envs["ELYRA_WRITABLE_CONTAINER_DIR"] == "/tmp"
     assert "USER_EMPTY_VALUE" not in envs
@@ -190,7 +191,7 @@ def test_collect_envs(processor: KfpPipelineProcessor):
     assert "USER_NO_VALUE" not in envs
 
     # Repeat with non-None secret - ensure user and password envs are not present, but others are
-    envs = processor._collect_envs(test_operation, cos_secret="secret", cos_username="Alice", cos_password="secret")
+    envs = processor._collect_envs(test_operation, cos_secret="secret")
 
     assert envs["ELYRA_RUNTIME_ENV"] == "kfp"
     assert "AWS_ACCESS_KEY_ID" not in envs

@@ -246,8 +246,6 @@ be fully qualified (i.e., prefixed with their package names).
         )
 
         cos_endpoint = runtime_configuration.metadata.get("cos_endpoint")
-        cos_username = runtime_configuration.metadata.get("cos_username")
-        cos_password = runtime_configuration.metadata.get("cos_password")
         cos_secret = runtime_configuration.metadata.get("cos_secret")
         cos_bucket = runtime_configuration.metadata.get("cos_bucket")
 
@@ -296,7 +294,7 @@ be fully qualified (i.e., prefixed with their package names).
 
                 # Collect env variables
                 pipeline_envs = self._collect_envs(
-                    operation, cos_secret=cos_secret, cos_username=cos_username, cos_password=cos_password
+                    operation, cos_secret=cos_secret
                 )
 
                 # Generate unique ELYRA_RUN_NAME value and expose it as an

@@ -38,16 +38,16 @@ class AirflowMetadata(RuntimesMetadata):
 
         if self.metadata.get("cos_auth_type") is None:
             # Inject cos_auth_type property for metadata persisted using Elyra < 3.4:
-            # - cos_username and cos_password must be present
+            # In Elyra < 4, cos_username and cos_password were still allowed to be specified in clear-text directly.
+            # Since Elyra 4, this will only be allowed via setting of env vars AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, respectively
+            # - cos_username and cos_password may still be present from older pipeline configs
             # - cos_secret may be present (above statement also applies in this case)
             if self.metadata.get("cos_username") and self.metadata.get("cos_password"):
-                if len(self.metadata.get("cos_secret", "")) == 0:
+                if len(self.metadata.get("cos_secret", "").strip()) == 0:
                     self.metadata["cos_auth_type"] = "USER_CREDENTIALS"
                 else:
                     self.metadata["cos_auth_type"] = "KUBERNETES_SECRET"
-                update_required = True
 
-        if update_required:
             # save changes
             MetadataManager(schemaspace="runtimes").update(self.name, self, for_migration=True)
 

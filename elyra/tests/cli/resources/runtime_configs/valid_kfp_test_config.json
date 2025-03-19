@@ -4,8 +4,6 @@
     "api_endpoint": "http://kfphost/pipeline",
     "description": "KFP test instance",
     "cos_endpoint": "http://miniohost:12345",
-    "cos_username": "minio",
-    "cos_password": "minio123",
     "cos_bucket": "kfp-test-bucket",
     "tags": ["dev"],
     "runtime_type": "KUBEFLOW_PIPELINES",

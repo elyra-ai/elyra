@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+import os
 from typing import Any
 
 from elyra.metadata.manager import MetadataManager
@@ -43,7 +44,9 @@ class KfpMetadata(RuntimesMetadata):
 
         if self.metadata.get("cos_auth_type") is None:
             # Inject cos_auth_type property for metadata persisted using Elyra < 3.4:
-            # - cos_username and cos_password must be present
+            # In Elyra < 4, cos_username and cos_password were still allowed to be specified in clear-text directly.
+            # Since Elyra 4, this will only be allowed via setting of env vars AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, respectively
+            # - cos_username and cos_password may still be present from older pipeline configs 
             # - cos_secret may be present (above statement also applies in this case)
             if self.metadata.get("cos_username") and self.metadata.get("cos_password"):
                 if len(self.metadata.get("cos_secret", "").strip()) == 0:
@@ -118,12 +121,10 @@ class KfpMetadata(RuntimesMetadata):
             return
 
         if self.metadata["cos_auth_type"] == "USER_CREDENTIALS":
-            if (
-                len(self.metadata.get("cos_username", "").strip()) == 0
-                or len(self.metadata.get("cos_password", "").strip()) == 0
-            ):
+            if "AWS_ACCESS_KEY_ID" not in os.environ or "AWS_SECRET_ACCESS_KEY" not in os.environ:
                 raise ValueError(
-                    "A username and password are required " "for the selected Object Storage authentication type."
+                    "A username and password are required " "in the form of env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY" 
+                    "for the selected Object Storage authentication type."
                 )
             if len(self.metadata.get("cos_secret", "").strip()) > 0:
                 raise ValueError(
@@ -131,12 +132,12 @@ class KfpMetadata(RuntimesMetadata):
                 )
         elif self.metadata["cos_auth_type"] == "KUBERNETES_SECRET":
             if (
-                len(self.metadata.get("cos_username", "").strip()) == 0
-                or len(self.metadata.get("cos_password", "").strip()) == 0
+                "AWS_ACCESS_KEY_ID" not in os.environ
+                or "AWS_SECRET_ACCESS_KEY" not in os.environ
                 or len(self.metadata.get("cos_secret", "").strip()) == 0
             ):
                 raise ValueError(
-                    "Username, password, and Kubernetes secret are required "
+                    "env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, and Kubernetes secret name are required "
                     "for the selected Object Storage authentication type."
                 )
         elif self.metadata["cos_auth_type"] == "AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS":

@@ -164,24 +164,6 @@
             "category": "Cloud Object Storage"
           }
         },
-        "cos_username": {
-          "title": "Cloud Object Storage Username",
-          "description": "The Cloud Object Storage username. This property is required for authentication type USER_CREDENTIALS and KUBERNETES_SECRET.",
-          "type": "string",
-          "uihints": {
-            "category": "Cloud Object Storage"
-          }
-        },
-        "cos_password": {
-          "title": "Cloud Object Storage Password",
-          "description": "The Cloud Object Storage password. This property is required for authentication type USER_CREDENTIALS and KUBERNETES_SECRET.",
-          "type": "string",
-          "minLength": 8,
-          "uihints": {
-            "ui:field": "@elyra/metadata-extension:plugin.password",
-            "category": "Cloud Object Storage"
-          }
-        },
         "tags": {
           "title": "Tags",
           "description": "Tags for categorizing Kubeflow pipelines",

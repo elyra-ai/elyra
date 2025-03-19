@@ -32,55 +32,63 @@ class CosClient(LoggingConfigurable):
 
     client = None
 
-    def __init__(self, config=None, endpoint=None, access_key=None, secret_key=None, bucket=None, **kwargs):
+    def __init__(self, config=None, endpoint=None, bucket=None, **kwargs):
         super().__init__(**kwargs)
 
         cred_provider = None
         if config is None:
             # The client was invoked by an entity that does not utilize
             # runtime configurations.
-            if access_key is None or secret_key is None:
-                # use env variables for authentication
-                if (
-                    len(os.environ.get("AWS_ACCESS_KEY_ID", "").strip()) == 0
-                    or len(os.environ.get("AWS_SECRET_ACCESS_KEY", "").strip()) == 0
-                ):
-                    raise RuntimeError(
-                        "Cannot connect to object storage. No credentials "
-                        " were provided and environment variables "
-                        " AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are not "
-                        " properly defined."
-                    )
-                else:
-                    cred_provider = providers.EnvAWSProvider()
-            else:
-                # use provided username and password for authentication
-                cred_provider = providers.StaticProvider(
-                    access_key=access_key,
-                    secret_key=secret_key,
+            # use env variables for authentication
+            if (
+                len(os.environ.get("AWS_ACCESS_KEY_ID", "").strip()) == 0
+                or len(os.environ.get("AWS_SECRET_ACCESS_KEY", "").strip()) == 0
+            ):
+                raise RuntimeError(
+                    "Cannot connect to S3-compatible object storage. No credentials "
+                    " were provided via environment variables "
+                    " AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY that are not "
+                    " properly defined."
                 )
+            else:
+                cred_provider = providers.EnvAWSProvider()
             self.endpoint = endpoint
             self.bucket = bucket
         else:
             auth_type = config.metadata["cos_auth_type"]
             self.endpoint = urlparse(config.metadata["cos_endpoint"])
             self.bucket = config.metadata["cos_bucket"]
-            if auth_type in ["USER_CREDENTIALS", "KUBERNETES_SECRET"]:
-                cred_provider = providers.StaticProvider(
-                    access_key=config.metadata["cos_username"],
-                    secret_key=config.metadata["cos_password"],
-                )
+            if auth_type == "USER_CREDENTIALS":
+                 if "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ:
+                     cred_provider = providers.EnvAWSProvider()
+                 else:
+                     raise RuntimeError(
+                         "Cannot connect to S3-compatible object storage. No credentials "
+                         " were provided via environment variables "
+                         " AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY that are not "
+                         " properly defined."
+                     )
+            elif auth_type == "KUBERNETES_SECRET":
+                 if "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ:
+                     cred_provider = providers.EnvAWSProvider()
+                 else:
+                     raise RuntimeError(
+                         "Cannot connect to S3-compatible object storage. No credentials "
+                         " were provided via environment variables "
+                         " AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY that are not "
+                         " properly defined."
+                     )
             elif auth_type == "AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS":
                 if os.environ.get("AWS_ROLE_ARN") is None or os.environ.get("AWS_WEB_IDENTITY_TOKEN_FILE") is None:
                     raise RuntimeError(
-                        "Cannot connect to object storage. "
+                        "Cannot connect to S3-compatible object storage. "
                         f"Authentication provider '{auth_type}' requires "
                         "environment variables AWS_ROLE_ARN and AWS_WEB_IDENTITY_TOKEN_FILE."
                     )
                 # Verify that AWS_WEB_IDENTITY_TOKEN_FILE exists
                 if Path(os.environ["AWS_WEB_IDENTITY_TOKEN_FILE"]).is_file() is False:
                     raise RuntimeError(
-                        "Cannot connect to object storage. The value of environment "
+                        "Cannot connect to S3-compatible object storage. The value of environment "
                         "variable AWS_WEB_IDENTITY_TOKEN_FILE references "
                         f"'{os.environ['AWS_WEB_IDENTITY_TOKEN_FILE']}', which is not a valid file."
                     )

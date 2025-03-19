@@ -73,8 +73,6 @@ def sample_metadata():
             "github_branch": "test",
             "api_endpoint": "http://test.example.com:30000/",
             "cos_endpoint": "http://test.example.com:30001/",
-            "cos_username": "test",
-            "cos_password": "test-password",
             "cos_bucket": "test-bucket",
             "tags": [],
             "user_namespace": "default",
@@ -84,6 +82,16 @@ def sample_metadata():
         "resource": "/User/test_directory/airflow_test.json",
     }
 
+@pytest.fixture()
+def setenvvar(monkeypatch):
+    with mock.patch.dict(os.environ, clear=True):
+        envvars = {
+            "AWS_ACCESS_KEY_ID": "s3alice",
+            "AWS_SECRET_ACCESS_KEY": "s3alicewonderland",
+        }
+        for k, v in envvars.items():
+            monkeypatch.setenv(k, v)
+        yield # This is the magical bit which restore the environment after
 
 @pytest.fixture
 def sample_image_metadata():
@@ -170,6 +178,10 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
         name="test-metadata", display_name="test", schema_name="airflow", metadata=sample_metadata["metadata"]
     )
 
+    # taken from mock test env fixture setenvvar(monkeypatch) at top of this file
+    cos_username = os.getenv("AWS_ACCESS_KEY_ID")
+    cos_password = os.getenv("AWS_SECRET_ACCESS_KEY")
+
     monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y, z: parsed_ordered_dict)
@@ -236,12 +248,12 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                                 for env_line in file_as_lines[start_env:]:
                                     if "AWS_ACCESS_KEY_ID" in env_line:
                                         assert (
-                                            sample_metadata["metadata"]["cos_username"]
+                                            cos_username
                                             == read_key_pair(env_line, sep=":")["value"]
                                         )
                                     elif "AWS_SECRET_ACCESS_KEY" in env_line:
                                         assert (
-                                            sample_metadata["metadata"]["cos_password"]
+                                            cos_password
                                             == read_key_pair(env_line, sep=":")["value"]
                                         )
                                     elif var in env_line:
@@ -452,11 +464,11 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
                     assert ordered_dict[key]["pipeline_envs"][var] == value
                 assert (
                     ordered_dict[key]["pipeline_envs"]["AWS_ACCESS_KEY_ID"]
-                    == sample_metadata["metadata"]["cos_username"]
+                    == cos_username
                 )
                 assert (
                     ordered_dict[key]["pipeline_envs"]["AWS_SECRET_ACCESS_KEY"]
-                    == sample_metadata["metadata"]["cos_password"]
+                    == cos_password
                 )
                 for arg in ["inputs", "outputs"]:
                     if node["app_data"].get(arg):
@@ -467,6 +479,10 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
 def test_collect_envs(processor):
     pipelines_test_file = "elyra/pipeline/tests/resources/archive/test.ipynb"
 
+    # taken from mock test env fixture setenvvar(monkeypatch) at top of this file
+    cos_username = os.getenv("AWS_ACCESS_KEY_ID")
+    cos_password = os.getenv("AWS_SECRET_ACCESS_KEY")
+    
     # add system-owned envs with bogus values to ensure they get set to system-derived values,
     # and include some user-provided edge cases
     operation_envs = [
@@ -489,20 +505,21 @@ def test_collect_envs(processor):
         component_props={"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"},
         elyra_props={"env_vars": converted_envs},
     )
-
-    envs = processor._collect_envs(test_operation, cos_secret=None, cos_username="Alice", cos_password="secret")
+  
+    # test AWS / COS Env var values from mock env vars when Cloud Object Storage Authentication Type (cos_auth_type) is USER_CREDENTIALS for S3 COS Credentials
+    envs = processor._collect_envs(test_operation, cos_secret=None)
 
     assert envs["ELYRA_RUNTIME_ENV"] == "airflow"
-    assert envs["AWS_ACCESS_KEY_ID"] == "Alice"
-    assert envs["AWS_SECRET_ACCESS_KEY"] == "secret"
+    assert envs["AWS_ACCESS_KEY_ID"] == cos_username
+    assert envs["AWS_SECRET_ACCESS_KEY"] == cos_password
     assert envs["ELYRA_ENABLE_PIPELINE_INFO"] == "True"
     assert "ELYRA_WRITABLE_CONTAINER_DIR" not in envs
     assert "USER_EMPTY_VALUE" not in envs
     assert envs["USER_TWO_EQUALS"] == "KEY=value"
     assert "USER_NO_VALUE" not in envs
 
-    # Repeat with non-None secret - ensure user and password envs are not present, but others are
-    envs = processor._collect_envs(test_operation, cos_secret="secret", cos_username="Alice", cos_password="secret")
+    # Repeat with non-None secret - when Cloud Object Storage Authentication Type (cos_auth_type) is KUBERNETES_SECRET, ensure user and password envs are not present, but others are
+    envs = processor._collect_envs(test_operation, cos_secret="secret")
 
     assert envs["ELYRA_RUNTIME_ENV"] == "airflow"
     assert "AWS_ACCESS_KEY_ID" not in envs

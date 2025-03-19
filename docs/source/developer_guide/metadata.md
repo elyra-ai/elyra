@@ -88,14 +88,15 @@ And each metadata file contains information similar to the following (note the r
     "api_username": "username@email.com",
     "api_password": "mypassword",
     "cos_endpoint": "http://weakish1.fyre.ibm.com:30427",
-    "cos_username": "minio",
-    "cos_password": "minio123",
     "cos_bucket": "test-bucket",
     "tags": [
       "kfp", "v1.1"
     ]
   }
 }
+
+S3-compatible object storage (e.g. IBM COS) username and password are not stored in the metadata file, but taken from env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, respectively.
+
 ```
 
 #### Metadata Service REST API
@@ -151,8 +152,6 @@ api_endpoint = runtime_configuration.metadata['api_endpoint']
 api_username = runtime_configuration.metadata['api_username']
 api_password = runtime_configuration.metadata['api_password']
 cos_endpoint = runtime_configuration.metadata['cos_endpoint']
-cos_username = runtime_configuration.metadata['cos_username']
-cos_password = runtime_configuration.metadata['cos_password']
 bucket_name = runtime_configuration.metadata['cos_bucket']
 tags = runtime_configuration.metadata['tags']
 

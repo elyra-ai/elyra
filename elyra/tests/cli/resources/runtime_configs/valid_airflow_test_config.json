@@ -7,8 +7,6 @@
     "github_repo_token": "test-token",
     "cos_endpoint": "http://miniohost:3333",
     "cos_bucket": "test-bucket-name",
-    "cos_username": "minio",
-    "cos_password": "minio123",
     "user_namespace": "default",
     "git_type": "GITHUB",
     "github_api_endpoint": "https://api.github.com",

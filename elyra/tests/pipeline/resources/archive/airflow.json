@@ -4,9 +4,6 @@
     "api_endpoint": "http://localhost:30809",
     "cos_endpoint": "http://localhost:31128",
     "cos_bucket": "tester",
-    "cos_username": "minio",
-    "cos_password": "minio123",
-    "cos_dag_bucket": "airflow"
   },
   "schema_name": "airflow"
 }
