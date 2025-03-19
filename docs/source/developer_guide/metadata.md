@@ -94,10 +94,9 @@ And each metadata file contains information similar to the following (note the r
     ]
   }
 }
+```
 
 S3-compatible object storage (e.g. IBM COS) username and password are not stored in the metadata file, but taken from env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, respectively.
-
-```
 
 #### Metadata Service REST API
 
