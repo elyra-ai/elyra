@@ -29,17 +29,14 @@ class AirflowMetadata(RuntimesMetadata):
     def on_load(self, **kwargs: Any) -> None:
         super().on_load(**kwargs)
 
-        update_required = False
-
         if self.metadata.get("git_type") is None:
             # Inject git_type property for metadata persisted using Elyra < 3.5:
             self.metadata["git_type"] = SupportedGitTypes.GITHUB.name
-            update_required = True
 
         if self.metadata.get("cos_auth_type") is None:
             # Inject cos_auth_type property for metadata persisted using Elyra < 3.4:
             # In Elyra < 4, cos_username and cos_password were still allowed to be specified in clear-text directly.
-            # Since Elyra 4, this will only be allowed via setting of env vars AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, respectively
+            # Since Elyra 4, only allowed to set env vars AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, respectively
             # - cos_username and cos_password may still be present from older pipeline configs
             # - cos_secret may be present (above statement also applies in this case)
             if self.metadata.get("cos_username") and self.metadata.get("cos_password"):

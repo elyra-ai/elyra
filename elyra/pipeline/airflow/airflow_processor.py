@@ -293,9 +293,7 @@ be fully qualified (i.e., prefixed with their package names).
                 self.log.debug(f"Creating pipeline component:\n {operation} archive : {operation_artifact_archive}")
 
                 # Collect env variables
-                pipeline_envs = self._collect_envs(
-                    operation, cos_secret=cos_secret
-                )
+                pipeline_envs = self._collect_envs(operation, cos_secret=cos_secret)
 
                 # Generate unique ELYRA_RUN_NAME value and expose it as an
                 # environment variable in the container.

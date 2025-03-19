@@ -21,12 +21,12 @@ from pathlib import Path
 import re
 from typing import Any
 from typing import Dict
+from unittest import mock
 
 from kfp.dsl import RUN_ID_PLACEHOLDER
 import pytest
 import yaml
 
-from unittest import mock
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.component import Component
 from elyra.pipeline.kfp.kfp_processor import CRIO_VOL_DEF_MEDIUM
@@ -63,8 +63,9 @@ from elyra.util.kubernetes import sanitize_label_value
 
 PIPELINE_FILE_COMPLEX = str((Path("resources") / "sample_pipelines" / "pipeline_dependency_complex.json").as_posix())
 
+
 @pytest.fixture()
-def setenvvar(monkeypatch):  
+def setenvvar(monkeypatch):
     with mock.patch.dict(os.environ, clear=True):
         envvars = {
             "AWS_ACCESS_KEY_ID": "s3alice",
@@ -72,7 +73,8 @@ def setenvvar(monkeypatch):
         }
         for k, v in envvars.items():
             monkeypatch.setenv(k, v)
-        yield # This is the magical bit which restore the environment after
+        yield  # This is the magical bit which restore the environment after
+
 
 @pytest.fixture
 def processor() -> KfpPipelineProcessor:
@@ -680,7 +682,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     # taken from mock test env fixture setenvvar(monkeypatch) at top of this file
     cos_username = os.getenv("AWS_ACCESS_KEY_ID")
     cos_password = os.getenv("AWS_SECRET_ACCESS_KEY")
-    
+
     # Obtain artifacts from metadata_dependencies fixture
     test_pipeline_file = metadata_dependencies["pipeline_file"]
     pipeline = metadata_dependencies["pipeline_object"]

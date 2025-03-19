@@ -178,7 +178,8 @@ def test_collect_envs(processor: KfpPipelineProcessor):
         elyra_props={"env_vars": converted_envs},
     )
 
-    # Test with None secret - ensure user and password envs are present in form env env vars AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY 
+    # Test with None secret - ensure user and password envs are present in form env env vars
+    # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
     envs = processor._collect_envs(test_operation, cos_secret=None)
 
     assert envs["ELYRA_RUNTIME_ENV"] == "kfp"

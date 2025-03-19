@@ -479,7 +479,8 @@ class RuntimePipelineProcessor(PipelineProcessor):
 
         # set environment variables for Minio/S3 access, in the following order of precedence:
         #  1. use `cos_secret`
-        #  2. use system-level env vars AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY for pipeline env var direct specification (not recommended, better use K8S secrets) 
+        #  2. use system-level env vars AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY for pipeline env var
+        #     direct specification (not recommended, better use K8S secrets)
         if "cos_secret" in kwargs and kwargs["cos_secret"]:
             # ensure the AWS_ACCESS_* envs are NOT set
             envs.pop("AWS_ACCESS_KEY_ID", None)

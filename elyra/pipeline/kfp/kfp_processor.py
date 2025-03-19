@@ -812,9 +812,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 workflow_task["component_definition_hash"] = hashlib.sha256(component_definition.encode()).hexdigest()
 
                 # attach environment variables
-                workflow_task["task_modifiers"]["env_variables"] = self._collect_envs(
-                    operation, cos_secret=cos_secret
-                )
+                workflow_task["task_modifiers"]["env_variables"] = self._collect_envs(operation, cos_secret=cos_secret)
 
                 # hack only: since we don't use the ContainerOp constructor anymore
                 # we cannot use the file_outputs parameter to provide the information
