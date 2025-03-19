@@ -119,12 +119,10 @@ $ elyra-metadata create runtimes \
        --engine Argo \
        --cos_endpoint http://minio-service.kubeflow:9000 \
        --cos_auth_type "USER_CREDENTIALS" \
-       --cos_username minio \
-       --cos_password minio123 \
        --cos_bucket test-bucket \
        --tags "['kfp', 'v1.0']"
 ```
-
+S3-compatible object storage (e.g. IBM COS) username and password are not stored in the metadata file, but taken from env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, respectively.
 Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters.
 
 #### Modifying a runtime configuration
@@ -342,21 +340,21 @@ Example: `test-bucket`
 
 > If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main)
 and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
-Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_password`, respectively.
+Specify `access_key_id` and `secret_access_key` from the values of environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, respectively.
 
 ##### Cloud Object Storage Authentication Type (cos_auth_type)
 
-Authentication type Elyra uses to gain access to Cloud Object Storage. This setting is required. Supported types are:
-- Username and password (`USER_CREDENTIALS`). This authentication type requires a username and password. Caution: this authentication mechanism exposes the credentials in plain text. When running Elyra on Kubernetes, it is highly recommended to use the `KUBERNETES_SECRET` authentication type instead.
-- Username, password, and Kubernetes secret (`KUBERNETES_SECRET`). This authentication type requires a username, password, and the name of an existing Kubernetes secret in the target runtime environment. Refer to section [Cloud Object Storage Credentials Secret](#cloud-object-storage-credentials-secret) for details.
+Authentication type Elyra uses to gain access to S3-compatible Cloud Object Storage. This setting is required. Supported types are:
+- Username and password (`USER_CREDENTIALS`). This authentication type requires a username and password, set via system env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY. When running Elyra on Kubernetes, it is highly recommended to use the `KUBERNETES_SECRET` authentication type instead.
+- Kubernetes secret (`KUBERNETES_SECRET`). This authentication type requires the name of an existing Kubernetes secret in the target runtime environment. When running in context of Elyra and Jupyterlab, env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY must be set. Refer to section [Cloud Object Storage Credentials Secret](#cloud-object-storage-credentials-secret) for details.
 - IAM roles for service accounts (`AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS`). Supported for AWS only. Refer to the [AWS documentation](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) for details.
 
 ##### Cloud Object Storage Credentials Secret (cos_secret)
 
-Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.
+Kubernetes secret that's defined in the specified user namespace, containing the S3-compatible Cloud Object Storage username and password.
 If specified, this secret must exist on the Kubernetes cluster hosting your pipeline runtime in order to successfully
-execute pipelines. This setting is optional but is recommended for use in shared environments to avoid exposing a user's 
-Cloud Object Storage credentials. 
+execute pipelines. This setting is optional but is recommended for use in shared target environments (Airflow, KFP namespaces) to avoid exposing a user's
+Cloud Object Storage credentials. This setting still requires setting env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY for use within Elyra itself, either directly or via [Kubernetes envFrom secretRef](https://kubernetes.io/docs/tasks/inject-data-application/distribute-credentials-secure/#configure-all-key-value-pairs-in-a-secret-as-container-environment-variables)
 
 Example: `my-cos-secret`
 
@@ -374,19 +372,6 @@ data:
   AWS_ACCESS_KEY_ID: <BASE64_ENCODED_YOUR_AWS_ACCESS_KEY_ID>
   AWS_SECRET_ACCESS_KEY: <BASE64_ENCODED_YOUR_AWS_SECRET_ACCESS_KEY>
 ```
-
-##### Cloud Object Storage username (cos_username)
-
-Username used to connect to Object Storage, if credentials are required for the selected authentication type.
-
-Example: `minio`
-
-##### Cloud Object Storage password (cos_password)
-
-Password for cos_username, if credentials are required for the selected authentication type.
-
-Example: `minio123`
-
 
 ### Verifying runtime configurations
 

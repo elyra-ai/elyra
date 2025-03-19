@@ -29,8 +29,6 @@ Cypress.Commands.add('installRuntimeConfig', ({ type } = {}): void => {
   --display_name="KFP Test Runtime" \
   --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
   --cos_endpoint=http://0.0.0.0:9000 \
-  --cos_username=minioadmin \
-  --cos_password=minioadmin \
   --cos_bucket=test-bucket';
 
   const airflowRuntimeInstallCommand =
@@ -43,8 +41,6 @@ Cypress.Commands.add('installRuntimeConfig', ({ type } = {}): void => {
   --github_repo_token=xxxxxxxx \
   --github_api_endpoint=https://api.github.com \
   --cos_endpoint=http://0.0.0.0:9000 \
-  --cos_username=minioadmin \
-  --cos_password=minioadmin \
   --cos_bucket=test-bucket';
 
   cy.exec(
