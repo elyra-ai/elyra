@@ -484,15 +484,15 @@ def checkout_code() -> None:
 
     print("")
 
-def build_all():
+def update_yarn_lock():
     global config
 
     print("-----------------------------------------------------------------")
-    print("----------------------- Building (Prod)  ------------------------")
+    print("----------------------- Update Yarn lock ------------------------")
     print("-----------------------------------------------------------------")
 
     # Build wheels and source packages
-    check_run(["make", "install-prod"], cwd=config.source_dir, capture_output=False)
+    check_run(["make", "release"], cwd=config.source_dir, capture_output=False)
 
     print("")
 
@@ -798,7 +798,7 @@ def prepare_release() -> None:
     # back to development
     update_version_to_dev()
     # build packages to update yarn.lock
-    build_all()
+    update_yarn_lock()
     # commit
     check_run(["git", "commit", "-s", "-a", "-m", f"Prepare for next development iteration"], cwd=config.source_dir)
     # prepare extensions
