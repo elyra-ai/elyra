@@ -1286,4 +1286,3 @@ class KfpPipelineProcessorResponse(RuntimePipelineProcessorResponse):
         response = super().to_json()
         response["run_id"] = self.run_id
         return response
-

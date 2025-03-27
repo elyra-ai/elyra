@@ -349,4 +349,3 @@ Cypress.on('uncaught:exception', (err, _runnable) => {
   console.log('Uncaught exception:', err);
   return false; // Prevent Cypress from failing the test
 });
-

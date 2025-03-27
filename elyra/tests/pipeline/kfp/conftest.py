@@ -447,4 +447,3 @@ def sanitize_container_image_name(name: str) -> str:
     """
     safe_char = "-"
     return name.lower().replace(" ", safe_char).replace(":", safe_char).replace("/", safe_char).replace(".", safe_char)
-

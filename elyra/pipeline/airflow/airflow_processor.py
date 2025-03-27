@@ -787,4 +787,3 @@ class AirflowPipelineProcessorResponse(RuntimePipelineProcessorResponse):
         response = super().to_json()
         response["git_url"] = self.git_url
         return response
-

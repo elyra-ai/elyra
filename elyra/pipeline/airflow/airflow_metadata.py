@@ -93,4 +93,3 @@ class AirflowMetadata(RuntimesMetadata):
                     "Username, password, and Kubernetes secret are not supported "
                     "for the selected Object Storage authentication type."
                 )
-

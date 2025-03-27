@@ -587,4 +587,3 @@ class RuntimePipelineProcessor(PipelineProcessor):
     def add_kubernetes_toleration(self, instance: KubernetesToleration, execution_object: Any, **kwargs) -> None:
         """Add KubernetesToleration instance to the execution object for the given runtime processor"""
         pass
-

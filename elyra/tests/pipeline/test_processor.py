@@ -309,4 +309,3 @@ def test_processor_registry_filtering(expected_runtimes, processor_registry):
     assert len(runtimes) == len(expected_runtimes)
     for runtime in runtimes:
         assert runtime.name in expected_runtimes
-

@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+import os
 from typing import Any
 
 from elyra.metadata.manager import MetadataManager
@@ -149,4 +150,3 @@ class KfpMetadata(RuntimesMetadata):
                     "Username, password, and Kubernetes secret are not supported "
                     "for the selected Object Storage authentication type."
                 )
-

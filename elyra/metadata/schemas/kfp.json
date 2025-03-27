@@ -206,4 +206,3 @@
   },
   "required": ["schema_name", "display_name", "metadata"]
 }
-

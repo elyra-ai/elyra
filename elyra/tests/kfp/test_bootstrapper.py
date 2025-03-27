@@ -839,4 +839,3 @@ def _fileChecksum(filename):
             buf = afile.read(65536)
     checksum = hasher.hexdigest()
     return checksum
-

@@ -697,4 +697,3 @@ def test_scrub_invalid_characters():
 
     for character in valid_character_list_string:
         assert AirflowPipelineProcessor.scrub_invalid_characters(character) == character
-

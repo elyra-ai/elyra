@@ -1811,4 +1811,3 @@ def test_kfp_valid_pipeline_parameter_type():
         )
         assert parameter.name == "valid_param"
         assert parameter.input_type.base_type == valid_type
-
