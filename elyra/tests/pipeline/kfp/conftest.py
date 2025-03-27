@@ -257,8 +257,6 @@ def create_runtime_config(rt_metadata_manager: MetadataManager, customization_op
 
     if customization_options.get("use_cos_credentials_secret"):
         kfp_runtime_config["metadata"]["cos_auth_type"] = "KUBERNETES_SECRET"
-        kfp_runtime_config["metadata"]["cos_username"] = "my_name"
-        kfp_runtime_config["metadata"]["cos_password"] = "my_password"
         kfp_runtime_config["metadata"]["cos_secret"] = "secret-name"
     else:
         kfp_runtime_config["metadata"]["cos_auth_type"] = "USER_CREDENTIALS"
