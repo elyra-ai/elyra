@@ -160,10 +160,10 @@ def main_method_setup_execution(monkeypatch, s3_setup, tmpdir, argument_dict):
 
 
 def _get_operation_instance(monkeypatch, s3_setup):
-    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "minioadmin")
-    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "minioadmin")
     config = {
         "cos-endpoint": "http://" + MINIO_HOST_PORT,
+        "cos-user": "minioadmin",
+        "cos-password": "minioadmin",
         "cos-bucket": "test-bucket",
         "filepath": "untitled.ipynb",
     }
@@ -839,3 +839,4 @@ def _fileChecksum(filename):
             buf = afile.read(65536)
     checksum = hasher.hexdigest()
     return checksum
+

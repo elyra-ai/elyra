@@ -92,7 +92,12 @@ class FileOpBase(ABC):
         self.secure = self.cos_endpoint.scheme == "https"
 
         # get minio credentials provider
-        if "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ:
+        if "cos-user" in self.input_params and "cos-password" in self.input_params:
+            cred_provider = providers.StaticProvider(
+                access_key=self.input_params.get("cos-user"),
+                secret_key=self.input_params.get("cos-password"),
+            )
+        elif "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ:
             cred_provider = providers.EnvAWSProvider()
         elif "AWS_ROLE_ARN" in os.environ and "AWS_WEB_IDENTITY_TOKEN_FILE" in os.environ:
             cred_provider = providers.IamAwsProvider()
@@ -784,3 +789,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

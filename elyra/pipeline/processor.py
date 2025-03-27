@@ -479,22 +479,21 @@ class RuntimePipelineProcessor(PipelineProcessor):
 
         # set environment variables for Minio/S3 access, in the following order of precedence:
         #  1. use `cos_secret`
-        #  2. use system-level env vars AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY for pipeline env var
-        #     direct specification (not recommended, better use K8S secrets)
+        #  2. use `cos_username` and `cos_password`
         if "cos_secret" in kwargs and kwargs["cos_secret"]:
             # ensure the AWS_ACCESS_* envs are NOT set
             envs.pop("AWS_ACCESS_KEY_ID", None)
             envs.pop("AWS_SECRET_ACCESS_KEY", None)
         else:
-            # set AWS_ACCESS_KEY_ID, if defined at Elyra system level OS env variable
-            if "AWS_ACCESS_KEY_ID" in os.environ:
-                envs["AWS_ACCESS_KEY_ID"] = os.getenv("AWS_ACCESS_KEY_ID")
+            # set AWS_ACCESS_KEY_ID, if defined
+            if "cos_username" in kwargs and kwargs["cos_username"]:
+                envs["AWS_ACCESS_KEY_ID"] = kwargs["cos_username"]
             else:
                 envs.pop("AWS_ACCESS_KEY_ID", None)
 
-            # set AWS_SECRET_ACCESS_KEY, if defined, at Elyra system level OS env variable
-            if "AWS_SECRET_ACCESS_KEY" in os.environ:
-                envs["AWS_SECRET_ACCESS_KEY"] = os.getenv("AWS_SECRET_ACCESS_KEY")
+            # set AWS_SECRET_ACCESS_KEY, if defined
+            if "cos_password" in kwargs and kwargs["cos_password"]:
+                envs["AWS_SECRET_ACCESS_KEY"] = kwargs["cos_password"]
             else:
                 envs.pop("AWS_SECRET_ACCESS_KEY", None)
 
@@ -588,3 +587,4 @@ class RuntimePipelineProcessor(PipelineProcessor):
     def add_kubernetes_toleration(self, instance: KubernetesToleration, execution_object: Any, **kwargs) -> None:
         """Add KubernetesToleration instance to the execution object for the given runtime processor"""
         pass
+

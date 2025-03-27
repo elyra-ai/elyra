@@ -98,9 +98,10 @@ $ elyra-metadata create runtimes \
        --display_name "Kubeflow Pipeline (local)" \
        --api_endpoint http://localhost:31380/pipeline \
        --cos_endpoint http://minio-service.kubeflow.svc.cluster.local:9000 \
+       --cos_username minio \
+       --cos_password minio123 \
        --cos_bucket covid
 ```
-S3-compatible object storage (e.g. IBM COS) username and password are not stored in the metadata file, but taken from env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, respectively.
 
 ## Troubleshooting
 If the kubernetes cluster fails to start you may need to analyze the container logs to figure out which 
@@ -120,3 +121,4 @@ The output of these logs should hopefully assist with any issues you may encount
 ## Additional Resources and Documentation
 [Docker Desktop Installation Docs](https://docs.docker.com/get-started/)  
 [KubeFlow Installation Docs](https://www.kubeflow.org/docs/started/installing-kubeflow/)
+

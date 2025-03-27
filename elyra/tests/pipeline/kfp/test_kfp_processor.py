@@ -21,7 +21,6 @@ from pathlib import Path
 import re
 from typing import Any
 from typing import Dict
-from unittest import mock
 
 from kfp.dsl import RUN_ID_PLACEHOLDER
 import pytest
@@ -62,18 +61,6 @@ from elyra.util.cos import join_paths
 from elyra.util.kubernetes import sanitize_label_value
 
 PIPELINE_FILE_COMPLEX = str((Path("resources") / "sample_pipelines" / "pipeline_dependency_complex.json").as_posix())
-
-
-@pytest.fixture()
-def setenvvar(monkeypatch):
-    with mock.patch.dict(os.environ, clear=True):
-        envvars = {
-            "AWS_ACCESS_KEY_ID": "s3alice",
-            "AWS_SECRET_ACCESS_KEY": "s3alicewonderland",
-        }
-        for k, v in envvars.items():
-            monkeypatch.setenv(k, v)
-        yield  # This is the magical bit which restore the environment after
 
 
 @pytest.fixture
@@ -673,15 +660,10 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
      - the Argo workflow engine
      - runtime configurations that use cloud storage authentication types KUBERNETES_SECRET
        and USER_CREDENTIALS (the generated code varies depending on the selected type)
-     - USER_CREDENTIALS does not take COS username and password from runtime config, but rather from mocked env vars
 
     Other tests cover the scenarios where the user defined optional properties,
     such as environment variables, Kubernetes labels, or data volumes.
     """
-
-    # taken from mock test env fixture setenvvar(monkeypatch) at top of this file
-    cos_username = os.getenv("AWS_ACCESS_KEY_ID")
-    cos_password = os.getenv("AWS_SECRET_ACCESS_KEY")
 
     # Obtain artifacts from metadata_dependencies fixture
     test_pipeline_file = metadata_dependencies["pipeline_file"]
@@ -838,13 +820,13 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
                 assert env_var["valueFrom"]["secretKeyRef"]["key"] == "AWS_ACCESS_KEY_ID"
                 assert env_var["valueFrom"]["secretKeyRef"]["name"] == runtime_config.metadata["cos_secret"]
             else:
-                assert env_var["value"] == cos_username
+                assert env_var["value"] == runtime_config.metadata["cos_username"]
         elif env_var["name"] == "AWS_SECRET_ACCESS_KEY":
             if use_secret_for_cos_authentication:
                 assert env_var["valueFrom"]["secretKeyRef"]["key"] == "AWS_SECRET_ACCESS_KEY"
                 assert env_var["valueFrom"]["secretKeyRef"]["name"] == runtime_config.metadata["cos_secret"]
             else:
-                assert env_var["value"] == cos_password
+                assert env_var["value"] == runtime_config.metadata["cos_password"]
 
     # Verify that the mlpipeline specific outputs are declared
     assert node_template.get("outputs") is not None, node_template
@@ -1829,3 +1811,4 @@ def test_kfp_valid_pipeline_parameter_type():
         )
         assert parameter.name == "valid_param"
         assert parameter.input_type.base_type == valid_type
+

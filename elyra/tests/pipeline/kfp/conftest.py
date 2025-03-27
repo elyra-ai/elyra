@@ -260,6 +260,8 @@ def create_runtime_config(rt_metadata_manager: MetadataManager, customization_op
         kfp_runtime_config["metadata"]["cos_secret"] = "secret-name"
     else:
         kfp_runtime_config["metadata"]["cos_auth_type"] = "USER_CREDENTIALS"
+        kfp_runtime_config["metadata"]["cos_username"] = "my_name"
+        kfp_runtime_config["metadata"]["cos_password"] = "my_password"
 
     metadata = Metadata(
         name=customization_options.get("config_name", "test-config"),
@@ -445,3 +447,4 @@ def sanitize_container_image_name(name: str) -> str:
     """
     safe_char = "-"
     return name.lower().replace(" ", safe_char).replace(":", safe_char).replace("/", safe_char).replace(".", safe_char)
+
