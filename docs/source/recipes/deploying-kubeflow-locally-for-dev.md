@@ -121,4 +121,3 @@ The output of these logs should hopefully assist with any issues you may encount
 ## Additional Resources and Documentation
 [Docker Desktop Installation Docs](https://docs.docker.com/get-started/)  
 [KubeFlow Installation Docs](https://www.kubeflow.org/docs/started/installing-kubeflow/)
-

@@ -375,7 +375,7 @@ data:
   AWS_SECRET_ACCESS_KEY: <BASE64_ENCODED_YOUR_AWS_SECRET_ACCESS_KEY>
 ```
 
-It is important that this secret is present in the target runtime environment namespaces as well as in all namespaces that e.g. Kubeflow notebooks running Elyra are running in.
+It is important that this secret is present in the target runtime environment namespace as well as in all namespaces that e.g. Kubeflow notebooks running Elyra is running in.
 A very good, operations-oriented way to make the keys from the K8S secret available for the notebook container is via envFrom:
 https://kubernetes.io/docs/tasks/inject-data-application/distribute-credentials-secure/#configure-all-key-value-pairs-in-a-secret-as-container-environment-variables
 This makes all keys from our K8s secret available as env vars in the Kubeflow Notebook container.
@@ -429,4 +429,3 @@ Without this step complete, Elyra will not be able to create pipelines on the Ku
 
 - Ensure you've configured Kubeflow Pipelines credentials and that they are correct. When using Dex, the `api_username` is typically 
 your email address and `user_namespace` is your email shortname (e.g. `elyra` for `elyra@email.org`).
-
