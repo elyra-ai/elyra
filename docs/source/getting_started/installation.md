@@ -39,7 +39,6 @@ You can install elyra with all optional dependencies or with specific dependenci
 - `elyra[airflow]` - install the Elyra core features and support for [Apache Airflow pipelines](https://github.com/apache/airflow)
 - `elyra[airflow-gitlab]` - install the Elyra core features and GitLab support for [Apache Airflow pipelines](https://github.com/apache/airflow)
 - `elyra[kfp]` - install the Elyra core features and support for [Kubeflow Pipelines](https://github.com/kubeflow/pipelines)
-- `elyra[kfp-tekton]` - install the Elyra core features and support for [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton)
 - `elyra[kfp-examples]` - install the Elyra core features and [Kubeflow Pipelines custom component examples](https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/kfp-example-components-connector)
 
 
@@ -92,7 +91,7 @@ conda install -c conda-forge "elyra[all]"
 ```
 
 **NOTE:**
-The Elyra packaging process was changed in version 4.0. The [Apache Airflow pipelines](https://github.com/apache/airflow) or [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton) dependencies are no longer installed by default. To install this dependency, you must specify `elyra[all]`, `elyra[kfp]` or `elyra[kfp-tekton]`.
+The Elyra packaging process was changed in version 4.0. The [Apache Airflow pipelines](https://github.com/apache/airflow) or [Kubeflow Pipelines](https://github.com/kubeflow/pipelines) dependencies are no longer installed by default. To install this dependency, you must specify `elyra[all]` or `elyra[kfp]`.
 
 You can also install the Pipeline editor, Code Snippet, Code Viewer, or Script editor extensions individually:
 
