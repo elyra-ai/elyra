@@ -512,7 +512,7 @@ class OpUtil(object):
     def parse_arguments(cls, args) -> dict:
         import argparse
 
-        global pipeline_name, operation_name
+        global pipeline_name, operation_name  # noqa: F824
 
         logger.debug("Parsing Arguments.....")
         parser = argparse.ArgumentParser()
@@ -569,7 +569,7 @@ class OpUtil(object):
         :param action_clause: str representing the action that is being logged
         :param duration_secs: optional float value representing the duration of the action being logged
         """
-        global pipeline_name, operation_name
+        global pipeline_name, operation_name  # noqa: F824
         if enable_pipeline_info:
             duration_clause = f"({duration_secs:.3f} secs)" if duration_secs else ""
             logger.info(f"'{pipeline_name}':'{operation_name}' - {action_clause} {duration_clause}")
