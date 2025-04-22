@@ -881,6 +881,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Use Kubeflow Pipelines provided RUN_ID_PLACEHOLDER as run name
                 workflow_task["task_modifiers"]["set_run_name"] = RUN_ID_PLACEHOLDER
 
+                disable_node_caching = pipeline.pipeline_properties.get(pipeline_constants.DISABLE_NODE_CACHING)
+                if disable_node_caching:
+                    workflow_task["task_modifiers"]["disable_node_caching"] = disable_node_caching.selection
+
                 # Upload dependencies to cloud storage
                 self._upload_dependencies_to_object_store(
                     runtime_configuration, pipeline_name, operation, prefix=artifact_object_prefix

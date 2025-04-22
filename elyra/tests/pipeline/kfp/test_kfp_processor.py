@@ -564,6 +564,101 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_workflow_engine_test(
             / "kfp"
             / "kfp-one-node-generic.pipeline",
             "workflow_engine": WorkflowEngineType.ARGO,
+            "with_disable_node_caching": True,
+        },
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
+            "with_disable_node_caching": False,
+        },
+    ],
+    indirect=True,
+)
+def test_disable_node_caching_on_compiled_pipeline(
+    monkeypatch, processor: KfpPipelineProcessor, metadata_dependencies: Dict[str, Any], tmpdir
+):
+    """
+    This test validates the disable_node_caching option all the way to the compiled pipeline.
+    """
+
+    # Obtain artifacts from metadata_dependencies fixture
+    test_pipeline_file = metadata_dependencies["pipeline_file"]
+    pipeline = metadata_dependencies["pipeline_object"]
+    assert pipeline is not None
+    runtime_config = metadata_dependencies["runtime_config"]
+    assert runtime_config is not None
+    assert runtime_config.name == pipeline.runtime_config
+
+    disable_node_caching = metadata_dependencies["fixture_parameters"]["with_disable_node_caching"]
+
+    workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_config.metadata["engine"])
+
+    # Mock calls that require access to object storage, because their side effects
+    # have no bearing on the outcome of this test.
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
+    monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
+
+    compiled_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml").name
+    compiled_output_file_name = str(compiled_output_file.absolute())
+
+    # generate Python DSL for the specified workflow engine
+    pipeline_version = f"{pipeline.name}-test-0"
+    pipeline_instance_id = f"{pipeline.name}-{datetime.now().strftime('%m%d%H%M%S')}"
+    experiment_name = f"{pipeline.name}-test-0"
+    generated_dsl = processor._generate_pipeline_dsl(
+        pipeline=pipeline,
+        pipeline_name=pipeline.name,
+        workflow_engine=workflow_engine,
+        pipeline_version=pipeline_version,
+        pipeline_instance_id=pipeline_instance_id,
+        experiment_name=experiment_name,
+    )
+
+    if disable_node_caching:
+        assert "set_caching_options(enable_caching=False)" in generated_dsl
+    else:
+        # Default behavior is to enable node caching
+        assert "set_caching_options" not in generated_dsl
+
+    # Compile the generated Python DSL
+    processor._compile_pipeline_dsl(
+        dsl=generated_dsl,
+        workflow_engine=workflow_engine,
+        output_file=compiled_output_file_name,
+        pipeline_conf=None,
+    )
+
+    # Load compiled workflow
+    with open(compiled_output_file_name) as f:
+        workflow_spec_docs = list(yaml.safe_load_all(f.read()))
+
+    assert len(workflow_spec_docs) == 2
+    assert "components" in workflow_spec_docs[0]
+    assert "platforms" in workflow_spec_docs[1]
+
+    caching_options = workflow_spec_docs[0]["root"]["dag"]["tasks"]["run-a-file"]["cachingOptions"]
+    if disable_node_caching:
+        assert caching_options == {}
+    else:
+        assert caching_options["enableCache"] is True
+
+
+@pytest.mark.parametrize(
+    "metadata_dependencies",
+    [
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
         },
     ],
     indirect=True,

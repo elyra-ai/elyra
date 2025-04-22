@@ -31,7 +31,7 @@ from elyra.metadata.schemaspaces import Runtimes
 from elyra.metadata.storage import FileMetadataStore
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import Pipeline
-from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
+from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX, DISABLE_NODE_CACHING
 
 
 @pytest.fixture()
@@ -157,6 +157,7 @@ def metadata_dependencies(metadata_managers, request):
      - "pipeline_file": existing pipeline filename
     Optional inputs:
         - "with_cos_object_prefix": bool (default: False)
+        - "with_disable_node_caching": bool (default: False)
         - "workflow_engine": WorkflowEngineType.ARGO
         - "use_cos_credentials_secret": bool (default: False)
         - "require_pull_secret": bool (default: False)
@@ -178,6 +179,7 @@ def metadata_dependencies(metadata_managers, request):
     customization_options = {}
     for supported_option in [
         "with_cos_object_prefix",
+        "with_disable_node_caching",
         "resources_cpu",
         "resources_cpu_limit",
         "resources_gpu",
@@ -361,6 +363,7 @@ def get_pipeline_object(
     Creates a KFP Pipeline instance from pipeline_filename, taking into account the
     following optional customization options:
       - "with_cos_object_prefix" (True/False)
+      - "with_disable_node_caching" (True/False)
       - "resources_cpu" (number, applied to all generic nodes)
       - "resources_gpu" (number, applied to all generic nodes)
       - "resources_memory" (number, applied to all generic nodes)
@@ -405,6 +408,9 @@ def get_pipeline_object(
             # Remove the prefix, if one is already defined
             if app_data["properties"].get("pipeline_defaults") is not None:
                 app_data["properties"]["pipeline_defaults"].pop(COS_OBJECT_PREFIX, None)
+
+        if customization_options.get("with_disable_node_caching"):
+            app_data["properties"]["pipeline_defaults"][DISABLE_NODE_CACHING] = True
 
         #
         # Add resource customizations to every generic node
