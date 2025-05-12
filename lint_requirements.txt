@@ -1,5 +1,5 @@
 black[jupyter]>=22.8.0
-click>=8.0.0
+click==8.1.8  # 8.2.0 dropped support for Python 3.9
 flake8>=3.5.0
 flake8-import-order>=0.18.1
 flake8-pyproject>=1.2.0
