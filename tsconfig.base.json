@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2015",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "module": "commonjs",
+    "module": "Node16",
     "jsx": "react",
     "allowJs": true,
     "skipLibCheck": true,
@@ -21,7 +21,7 @@
     "isolatedModules": true,
 
     /* Module Resolution Options */
-    "moduleResolution": "node",
+    "moduleResolution": "Node16",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
 

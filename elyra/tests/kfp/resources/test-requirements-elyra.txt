@@ -13,7 +13,7 @@ nbformat==5.1.2
 papermill==2.3.4
 prompt-toolkit==3.0.5
 pyarrow==0.17.0
-pyzmq==19.0.1
+pyzmq==26.4.0
 requests==2.25.1
 tornado==6.1.0
 traitlets==4.3.3

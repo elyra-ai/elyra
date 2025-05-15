@@ -323,8 +323,8 @@ Cypress.Commands.add(
 
 // Open helloworld.* using file -> open from path
 Cypress.Commands.add('openHelloWorld', (fileExtension: string): void => {
-  cy.findByRole('menuitem', { name: /file/i }).click();
-  cy.findByText(/^open from path$/i).click({ force: true });
+  cy.findByRole('menuitem', { name: /^file$/i }).click();
+  cy.findByText(/^open from path…$/i).click({ force: true });
 
   // Search for helloworld file and open
   cy.get('input#jp-dialog-input-id')
