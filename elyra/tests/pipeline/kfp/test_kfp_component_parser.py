@@ -308,7 +308,7 @@ def test_parse_kfp_component_url():
     reader = UrlComponentCatalogConnector(kfp_supported_file_types)
 
     # Read contents of given path
-    url = "https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml"  # noqa: E501
+    url = "https://raw.githubusercontent.com/kubeflow/pipelines/sdk-2.9.0/components/contrib/notebooks/Run_notebook_using_papermill/component.yaml"  # noqa: E501
     catalog_entry_data = {"url": url}
 
     # Construct a catalog instance
@@ -458,7 +458,7 @@ async def test_parse_components_additional_metatypes():
     reader = UrlComponentCatalogConnector(kfp_supported_file_types)
 
     # Read contents of given path
-    url = "https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/keras/Train_classifier/from_CSV/component.yaml"  # noqa: E501
+    url = "https://raw.githubusercontent.com/kubeflow/pipelines/sdk-2.9.0/components/contrib/keras/Train_classifier/from_CSV/component.yaml"  # noqa: E501
     catalog_entry_data = {"url": url}
 
     # Construct a catalog instance
