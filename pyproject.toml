@@ -66,6 +66,8 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 dynamic = ['version']
 
@@ -280,7 +282,7 @@ import-order-style = "google"
 line-length = 120
 
 # Python versions that should be supported by the produced output
-target-version = ['py39', 'py310', 'py311']
+target-version = ['py39', 'py310', 'py311', 'py312', 'py313']
 
 # Migrate configurations from pytest.ini
 [tool.pytest.ini_options]

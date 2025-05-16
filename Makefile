@@ -35,7 +35,7 @@ CONTAINER_OUTPUT_OPTION?=--output=type=docker
 # Python execs
 PYTHON?=python3
 PYTHON_PIP=$(PYTHON) -m pip
-PYTHON_VERSION?=3.11
+PYTHON_VERSION?=3.13
 
 CONDA_ACTIVATE = source $$(conda info --base)/etc/profile.d/conda.sh ; conda activate
 

@@ -24,7 +24,7 @@ on:
 env:
   FORCE_COLOR: true
   NODE_VERSION: 22
-  PYTHON_VERSION: 3.11
+  PYTHON_VERSION: 3.13
   NODE_OPTIONS: '--max_old_space_size=4096'
 
 jobs:
@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9, '3.10', '3.11']
+        python-version: [3.9, '3.10', '3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -205,7 +205,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9, '3.10', '3.11']
+        python-version: [3.9, '3.10', '3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
       - name: Validate image environment
