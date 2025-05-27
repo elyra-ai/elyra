@@ -53,6 +53,7 @@ class UpdateVersionException(Exception):
 
 
 def check_run(args, cwd=os.getcwd(), capture_output=True, env=None, shell=False) -> subprocess.CompletedProcess:
+    """Run a command and return the response"""
     try:
         return subprocess.run(args, cwd=cwd, capture_output=capture_output, check=True, env=env, shell=shell)
     except subprocess.CalledProcessError as ex:
@@ -60,6 +61,7 @@ def check_run(args, cwd=os.getcwd(), capture_output=True, env=None, shell=False)
 
 
 def check_output(args, cwd=os.getcwd(), env=None, shell=False) -> str:
+    """Run a command and return its output"""
     response = check_run(args, cwd, capture_output=True, env=env, shell=shell)
     return response.stdout.decode("utf-8").replace("\n", "")
 
@@ -267,21 +269,21 @@ def update_version_to_release() -> None:
         # UI packages
         sed(
             _source("lerna.json"),
-            fr"{old_npm_version}",
+            rf"{old_npm_version}",
             rf"{new_npm_version}",
         )
         sed(
             _source("package.json"),
-            fr"{old_npm_version}",
+            rf"{old_npm_version}",
             rf"{new_npm_version}",
         )
 
         packages_dir = os.path.join(config.source_dir, "packages")
         for dir in os.listdir(packages_dir):
             file_path = os.path.join(packages_dir, dir, "package.json")
-            sed(file_path,fr"{old_npm_version}",rf"{new_npm_version}")
+            sed(file_path, rf"{old_npm_version}", rf"{new_npm_version}")
             file_path = os.path.join(packages_dir, dir, "install.json")
-            sed_remove(file_path, fr"packageManager")
+            sed_remove(file_path, rf"packageManager")
 
     except Exception as ex:
         raise UpdateVersionException from ex
@@ -437,22 +439,20 @@ def update_version_to_dev() -> None:
 
         sed(
             _source("lerna.json"),
-            fr"{new_npm_version}",
+            rf"{new_npm_version}",
             rf"{dev_npm_version}",
         )
 
         sed(
             _source("package.json"),
-            fr"{new_npm_version}",
+            rf"{new_npm_version}",
             rf"{dev_npm_version}",
         )
 
         packages_dir = os.path.join(config.source_dir, "packages")
         for dir in os.listdir(packages_dir):
             file_path = os.path.join(packages_dir, dir, "package.json")
-            sed(file_path,fr"{new_npm_version}",rf"{dev_npm_version}")
-
-
+            sed(file_path, rf"{new_npm_version}", rf"{dev_npm_version}")
 
     except Exception as ex:
         raise UpdateVersionException from ex
@@ -484,6 +484,7 @@ def checkout_code() -> None:
 
     print("")
 
+
 def update_yarn_lock():
     global config
 
@@ -495,6 +496,7 @@ def update_yarn_lock():
     check_run(["make", "release"], cwd=config.source_dir, capture_output=False)
 
     print("")
+
 
 def build_release():
     global config
@@ -560,7 +562,7 @@ def copy_extension_dir(extension: str, work_dir: str) -> None:
     global config
 
     extension = extension.replace("-", "_")
-    extension_package_source_dir = os.path.join(config.source_dir, f"labextensions/elyra_{extension}" )
+    extension_package_source_dir = os.path.join(config.source_dir, f"labextensions/elyra_{extension}")
     extension_package_dest_dir = os.path.join(work_dir, f"labextensions/elyra_{extension}")
     os.makedirs(os.path.dirname(extension_package_dest_dir), exist_ok=True)
     shutil.copytree(extension_package_source_dir, extension_package_dest_dir)
