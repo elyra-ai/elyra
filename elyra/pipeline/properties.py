@@ -29,10 +29,6 @@ from typing import Set
 from typing import TYPE_CHECKING
 from typing import Union
 
-# Prevent a circular reference by importing RuntimePipelineProcessor only during type-checking
-if TYPE_CHECKING:
-    from elyra.pipeline.processor import RuntimePipelineProcessor
-
 from elyra.pipeline.pipeline_constants import DISABLE_NODE_CACHING
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
@@ -49,6 +45,9 @@ from elyra.util.kubernetes import is_valid_kubernetes_key
 from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 from elyra.util.kubernetes import is_valid_label_key
 from elyra.util.kubernetes import is_valid_label_value
+
+if TYPE_CHECKING:  # Prevent a circular reference by importing RuntimePipelineProcessor only during type-checking
+    from elyra.pipeline.processor import RuntimePipelineProcessor
 
 
 class PropertyInputType:
