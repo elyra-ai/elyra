@@ -493,7 +493,8 @@ def update_yarn_lock():
     print("-----------------------------------------------------------------")
 
     # Build wheels and source packages
-    check_run(["make", "release"], cwd=config.source_dir, capture_output=False)
+    print(f">>> Updating yarn lock file in {config.source_dir}")
+    check_run(["yarn", "install"], cwd=config.source_dir, capture_output=False)
 
     print("")
 
@@ -506,6 +507,7 @@ def build_release():
     print("-----------------------------------------------------------------")
 
     # Build wheels and source packages
+    print(f">>> Building release in {config.source_dir}")
     check_run(["make", "release"], cwd=config.source_dir, capture_output=False)
 
     if not config.pre_release:
@@ -564,6 +566,7 @@ def copy_extension_dir(extension: str, work_dir: str) -> None:
     extension = extension.replace("-", "_")
     extension_package_source_dir = os.path.join(config.source_dir, f"labextensions/elyra_{extension}")
     extension_package_dest_dir = os.path.join(work_dir, f"labextensions/elyra_{extension}")
+    print(f">>>Copying extension package from {extension_package_source_dir} to {extension_package_dest_dir}")
     os.makedirs(os.path.dirname(extension_package_dest_dir), exist_ok=True)
     shutil.copytree(extension_package_source_dir, extension_package_dest_dir)
 
