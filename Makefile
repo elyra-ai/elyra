@@ -65,7 +65,6 @@ help:
 purge:
 	rm -rf build *.egg-info yarn-error.log
 	rm -rf node_modules lib dist
-	rm -rf $$(find labextensions -name labextension -type d)
 	rm -rf $$(find packages -name node_modules -type d -maxdepth 2)
 	rm -rf $$(find packages -name dist -type d)
 	rm -rf $$(find packages -name lib -type d)
