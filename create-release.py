@@ -85,29 +85,52 @@ def dependency_exists(command) -> bool:
 
 
 def sed(file: str, pattern: str, replace: str) -> None:
-    """Perform regex substitution on a given file"""
+    """Perform regex substitution on a given file using Python instead of shell commands"""
+    import re
     try:
-        if sys.platform in ["linux", "linux2"]:
-            check_run(["sed", "-i", "-e", f"s#{pattern}#{replace}#g", file], capture_output=False)
-        elif sys.platform == "darwin":
-            check_run(["sed", "-i", "", "-e", f"s#{pattern}#{replace}#g", file], capture_output=False)
-        else:  # windows, other
-            raise RuntimeError(f"Current operating system not supported for release publishing: {sys.platform}: ")
+        # Validate file path
+        if not os.path.exists(file):
+            raise RuntimeError(f"File does not exist: {file}")
+        
+        # Read file content
+        with open(file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Perform regex substitution
+        modified_content = re.sub(pattern, replace, content)
+        
+        # Write back only if content changed
+        if modified_content != content:
+            with open(file, 'w', encoding='utf-8') as f:
+                f.write(modified_content)
+                
     except Exception as ex:
-        raise RuntimeError(f"Error processing updated to file {file}: ") from ex
+        raise RuntimeError(f"Error processing file {file}: {str(ex)}") from ex
 
 
 def sed_remove(file: str, pattern: str) -> None:
-    """Perform regex substitution on a given file"""
+    """Remove lines matching pattern from a file using Python instead of shell commands"""
+    import re
     try:
-        if sys.platform in ["linux", "linux2"]:
-            check_run(["sed", "-i", "-e", f"/{pattern}/d", file], capture_output=False)
-        elif sys.platform == "darwin":
-            check_run(["sed", "-i", "", "-e", f"/{pattern}/d", file], capture_output=False)
-        else:  # windows, other
-            raise RuntimeError(f"Current operating system not supported for release publishing: {sys.platform}: ")
+        # Validate file path
+        if not os.path.exists(file):
+            # Silently return if file doesn't exist (common case for install.json)
+            return
+        
+        # Read file content
+        with open(file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        
+        # Filter out lines matching pattern
+        filtered_lines = [line for line in lines if not re.search(pattern, line)]
+        
+        # Write back only if content changed
+        if len(filtered_lines) != len(lines):
+            with open(file, 'w', encoding='utf-8') as f:
+                f.writelines(filtered_lines)
+                
     except Exception as ex:
-        raise RuntimeError(f"Error processing updated to file {file}: ") from ex
+        raise RuntimeError(f"Error processing file {file}: {str(ex)}") from ex
 
 
 def validate_dependencies() -> None:
@@ -476,9 +499,22 @@ def update_version_to_dev() -> None:
 
 
 def _source(file: str) -> str:
+    """Get absolute path for a file within the source directory with path validation"""
     global config
-
-    return os.path.join(config.source_dir, file)
+    
+    # Validate input
+    if not file or '..' in file or file.startswith('/'):
+        raise ValueError(f"Invalid file path: {file}")
+    
+    # Create absolute path
+    source_path = os.path.abspath(config.source_dir)
+    file_path = os.path.abspath(os.path.join(source_path, file))
+    
+    # Ensure the resolved path is within source directory (prevent path traversal)
+    if not file_path.startswith(source_path + os.sep) and file_path != source_path:
+        raise ValueError(f"Path traversal attempt detected: {file}")
+    
+    return file_path
 
 
 def checkout_code() -> None:
@@ -491,6 +527,10 @@ def checkout_code() -> None:
     print(f"Cloning repository: {config.git_url}")
     if os.path.exists(config.work_dir):
         print(f"Removing working directory: {config.work_dir}")
+        # Validate work_dir path to prevent accidental deletion
+        work_dir_abs = os.path.abspath(config.work_dir)
+        if not work_dir_abs.endswith(("/build/release", "\\build\\release")) or len(work_dir_abs.split(os.sep)) < 3:
+            raise ValueError(f"Unsafe work directory path: {work_dir_abs}")
         shutil.rmtree(config.work_dir)
     print(f"Creating working directory: {config.work_dir}")
     os.makedirs(config.work_dir)
@@ -713,7 +753,12 @@ def prepare_extensions_release() -> None:
         print(f"Preparing extension : {extension} at {extension_source_dir}")
         # copy extension package template to working directory
         if os.path.exists(extension_source_dir):
-            print(f"Removing working directory: {config.source_dir}")
+            print(f"Removing working directory: {extension_source_dir}")
+            # Validate extension_source_dir path to prevent accidental deletion
+            ext_dir_abs = os.path.abspath(extension_source_dir)
+            work_dir_abs = os.path.abspath(config.work_dir)
+            if not ext_dir_abs.startswith(work_dir_abs + os.sep):
+                raise ValueError(f"Extension directory outside work directory: {ext_dir_abs}")
             shutil.rmtree(extension_source_dir)
         check_run(["mkdir", "-p", extension_source_dir], cwd=config.work_dir)
         print(f'Copying : {_source("etc/templates/setup.py")} to {extension_source_dir}')
@@ -750,7 +795,12 @@ def prepare_runtime_extensions_package_release() -> None:
         print(f"Preparing package : {package} at {package_source_dir}")
         # copy extension package template to working directory
         if os.path.exists(package_source_dir):
-            print(f"Removing working directory: {config.source_dir}")
+            print(f"Removing working directory: {package_source_dir}")
+            # Validate package_source_dir path to prevent accidental deletion
+            pkg_dir_abs = os.path.abspath(package_source_dir)
+            work_dir_abs = os.path.abspath(config.work_dir)
+            if not pkg_dir_abs.startswith(work_dir_abs + os.sep):
+                raise ValueError(f"Package directory outside work directory: {pkg_dir_abs}")
             shutil.rmtree(package_source_dir)
         check_run(["mkdir", "-p", package_source_dir], cwd=config.work_dir)
         print(f'Copying : {_source("etc/templates/setup.py")} to {package_source_dir}')
