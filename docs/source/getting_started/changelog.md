@@ -2,6 +2,19 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 4.0.0rc4 - 07/23/2025
+
+- Bump form-data from 4.0.0 to 4.0.4 - [#3317](https://github.com/elyra-ai/elyra/pull/3317)
+- Bump requests from 2.32.3 to 2.32.4 in /etc/generic - [#3314](https://github.com/elyra-ai/elyra/pull/3314)
+- Fix flake8 warnings in the CI - [#3315](https://github.com/elyra-ai/elyra/pull/3315)
+- Bump tornado from 6.4.2 to 6.5.1 in /etc/generic - [#3313](https://github.com/elyra-ai/elyra/pull/3313)
+- Add support to Python 3.12 and 3.13 - [#3311](https://github.com/elyra-ai/elyra/pull/3311)
+- Bump braces from 3.0.2 to 3.0.3 - [#3309](https://github.com/elyra-ai/elyra/pull/3309)
+- Bump JupyterLab packages to v4.4 - [#3308](https://github.com/elyra-ai/elyra/pull/3308)
+- Pin click package - [#3307](https://github.com/elyra-ai/elyra/pull/3307)
+- Use ubuntu-latest on codeql-analysis workflow - [#3304](https://github.com/elyra-ai/elyra/pull/3304)
+- Suppress flake8 F824 warning to fix the CI - [#3300](https://github.com/elyra-ai/elyra/pull/3300)
+
 ## Release 4.0.0rc2 - 03/17/2025
 
 Our 4.0.0 release candidate 2 includes the following high-level changes
