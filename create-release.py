@@ -279,11 +279,16 @@ def update_version_to_release() -> None:
         )
 
         packages_dir = os.path.join(config.source_dir, "packages")
-        for dir in os.listdir(packages_dir):
-            file_path = os.path.join(packages_dir, dir, "package.json")
-            sed(file_path, rf"{old_npm_version}", rf"{new_npm_version}")
-            file_path = os.path.join(packages_dir, dir, "install.json")
-            sed_remove(file_path, rf"packageManager")
+        if os.path.exists(packages_dir) and os.path.isdir(packages_dir):
+            for dir in os.listdir(packages_dir):
+                dir_path = os.path.join(packages_dir, dir)
+                if os.path.isdir(dir_path):
+                    file_path = os.path.join(dir_path, "package.json")
+                    if os.path.exists(file_path):
+                        sed(file_path, rf"{old_npm_version}", rf"{new_npm_version}")
+                    file_path = os.path.join(dir_path, "install.json")
+                    if os.path.exists(file_path):
+                        sed_remove(file_path, rf"packageManager")
 
     except Exception as ex:
         raise UpdateVersionException from ex
@@ -450,9 +455,13 @@ def update_version_to_dev() -> None:
         )
 
         packages_dir = os.path.join(config.source_dir, "packages")
-        for dir in os.listdir(packages_dir):
-            file_path = os.path.join(packages_dir, dir, "package.json")
-            sed(file_path, rf"{new_npm_version}", rf"{dev_npm_version}")
+        if os.path.exists(packages_dir) and os.path.isdir(packages_dir):
+            for dir in os.listdir(packages_dir):
+                dir_path = os.path.join(packages_dir, dir)
+                if os.path.isdir(dir_path):
+                    file_path = os.path.join(dir_path, "package.json")
+                    if os.path.exists(file_path):
+                        sed(file_path, rf"{new_npm_version}", rf"{dev_npm_version}")
 
     except Exception as ex:
         raise UpdateVersionException from ex
