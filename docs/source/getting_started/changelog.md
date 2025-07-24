@@ -2,6 +2,10 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 4.0.0rc5 - 07/24/2025
+
+- Update jupyterlab-git to 0.51.2 to fix vulnerability - [#3319](https://github.com/elyra-ai/elyra/pull/3319)
+
 ## Release 4.0.0rc4 - 07/23/2025
 
 - Bump form-data from 4.0.0 to 4.0.4 - [#3317](https://github.com/elyra-ai/elyra/pull/3317)
