@@ -57,7 +57,15 @@ def check_run(args, cwd=os.getcwd(), capture_output=True, env=None, shell=False)
     try:
         return subprocess.run(args, cwd=cwd, capture_output=capture_output, check=True, env=env, shell=shell)
     except subprocess.CalledProcessError as ex:
-        raise RuntimeError(f'Error executing process: {ex.stderr.decode("unicode_escape")}') from ex
+        # Safely extract error message
+        if ex.stderr is None:
+            error_msg = "No error output available"
+        elif isinstance(ex.stderr, bytes):
+            error_msg = ex.stderr.decode("utf-8", errors="replace")
+        else:
+            error_msg = str(ex.stderr)
+        
+        raise RuntimeError(f'Error executing process: {error_msg}') from ex
 
 
 def check_output(args, cwd=os.getcwd(), env=None, shell=False) -> str:
