@@ -70,7 +70,7 @@ def dependency_exists(command) -> bool:
     """Returns true if a command exists on the system"""
     try:
         check_run(["which", command])
-    except subprocess.CalledProcessError:
+    except RuntimeError:
         return False
 
     return True
