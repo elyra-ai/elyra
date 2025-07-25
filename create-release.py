@@ -86,7 +86,6 @@ def dependency_exists(command) -> bool:
 
 def sed(file: str, pattern: str, replace: str) -> None:
     """Perform regex substitution on a given file using Python instead of shell commands"""
-    import re
     try:
         # Validate file path
         if not os.path.exists(file):
@@ -96,13 +95,16 @@ def sed(file: str, pattern: str, replace: str) -> None:
         with open(file, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # Perform regex substitution
-        modified_content = re.sub(pattern, replace, content)
+        # Perform regex substitution with MULTILINE flag for ^ and $ anchors
+        modified_content = re.sub(pattern, replace, content, flags=re.MULTILINE)
         
         # Write back only if content changed
         if modified_content != content:
             with open(file, 'w', encoding='utf-8') as f:
                 f.write(modified_content)
+            print(f"Updated {file}: {pattern} -> {replace}")
+        else:
+            print(f"No changes needed in {file} for pattern: {pattern}")
                 
     except Exception as ex:
         raise RuntimeError(f"Error processing file {file}: {str(ex)}") from ex
@@ -110,7 +112,6 @@ def sed(file: str, pattern: str, replace: str) -> None:
 
 def sed_remove(file: str, pattern: str) -> None:
     """Remove lines matching pattern from a file using Python instead of shell commands"""
-    import re
     try:
         # Validate file path
         if not os.path.exists(file):
@@ -160,10 +161,10 @@ def update_version_to_release() -> None:
 
     try:
         # Update backend version
-        sed(_source(".bumpversion.cfg"), rf"^current_version* =* {old_version}", f"current_version = {new_version}")
-        sed(_source("elyra/_version.py"), rf'^__version__* =* "{old_version}"', f'__version__ = "{new_version}"')
-        sed(_source("README.md"), rf"elyra {old_version}", f"elyra {new_version}")
-        sed(_source("docs/source/getting_started/installation.md"), rf"elyra {old_version}", f"elyra {new_version}")
+        sed(_source(".bumpversion.cfg"), rf"^current_version\s*=\s*{re.escape(old_version)}", f"current_version = {new_version}")
+        sed(_source("elyra/_version.py"), rf'^__version__\s*=\s*"{re.escape(old_version)}"', f'__version__ = "{new_version}"')
+        sed(_source("README.md"), rf"elyra {re.escape(old_version)}", f"elyra {new_version}")
+        sed(_source("docs/source/getting_started/installation.md"), rf"elyra {re.escape(old_version)}", f"elyra {new_version}")
 
         # Update docker related tags
         sed(_source("Makefile"), r"^TAG:=dev", f"TAG:={new_version}")
@@ -175,8 +176,8 @@ def update_version_to_release() -> None:
         sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), r"main", f"{new_version}")
 
         # Update UI component versions
-        sed(_source("README.md"), rf"v{old_npm_version}", f"v{new_version}")
-        sed(_source("docs/source/getting_started/installation.md"), rf"v{old_npm_version}", f"v{new_version}")
+        sed(_source("README.md"), rf"v{re.escape(old_npm_version)}", f"v{new_version}")
+        sed(_source("docs/source/getting_started/installation.md"), rf"v{re.escape(old_npm_version)}", f"v{new_version}")
 
         sed(
             _source("packages/theme/src/index.ts"),
@@ -316,7 +317,7 @@ def update_version_to_release() -> None:
                 if os.path.isdir(dir_path):
                     file_path = os.path.join(dir_path, "package.json")
                     if os.path.exists(file_path):
-                        sed(file_path, rf"{old_npm_version}", rf"{new_npm_version}")
+                        sed(file_path, re.escape(old_npm_version), new_npm_version)
                     file_path = os.path.join(dir_path, "install.json")
                     if os.path.exists(file_path):
                         sed_remove(file_path, rf"packageManager")
@@ -335,10 +336,10 @@ def update_version_to_dev() -> None:
 
     try:
         # Update backend version
-        sed(_source(".bumpversion.cfg"), rf"^current_version* =* {new_version}", f"current_version = {dev_version}")
-        sed(_source("elyra/_version.py"), rf'^__version__* =* "{new_version}"', f'__version__ = "{dev_version}"')
-        sed(_source("README.md"), rf"elyra {new_version}", f"elyra {dev_version}")
-        sed(_source("docs/source/getting_started/installation.md"), rf"elyra {new_version}", f"elyra {dev_version}")
+        sed(_source(".bumpversion.cfg"), rf"^current_version\s*=\s*{re.escape(new_version)}", f"current_version = {dev_version}")
+        sed(_source("elyra/_version.py"), rf'^__version__\s*=\s*"{re.escape(new_version)}"', f'__version__ = "{dev_version}"')
+        sed(_source("README.md"), rf"elyra {re.escape(new_version)}", f"elyra {dev_version}")
+        sed(_source("docs/source/getting_started/installation.md"), rf"elyra {re.escape(new_version)}", f"elyra {dev_version}")
 
         # Update docker related tags
         sed(_source("Makefile"), rf"^TAG:={new_version}", "TAG:=dev")
@@ -492,7 +493,7 @@ def update_version_to_dev() -> None:
                 if os.path.isdir(dir_path):
                     file_path = os.path.join(dir_path, "package.json")
                     if os.path.exists(file_path):
-                        sed(file_path, rf"{new_npm_version}", rf"{dev_npm_version}")
+                        sed(file_path, re.escape(new_npm_version), dev_npm_version)
 
     except Exception as ex:
         raise UpdateVersionException from ex
