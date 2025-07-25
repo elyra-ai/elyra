@@ -543,20 +543,6 @@ def checkout_code() -> None:
     print("")
 
 
-def update_yarn_lock():
-    global config
-
-    print("-----------------------------------------------------------------")
-    print("----------------------- Update Yarn lock ------------------------")
-    print("-----------------------------------------------------------------")
-
-    # Build wheels and source packages
-    print(f">>> Updating yarn lock file in {config.source_dir}")
-    check_run(["yarn", "install"], cwd=config.source_dir, capture_output=False)
-
-    print("")
-
-
 def build_release():
     global config
 
@@ -615,6 +601,20 @@ def show_release_artifacts():
     print(f"Location \t {dist_dir}")
     print("")
     check_run(["ls", "-la", dist_dir], capture_output=False)
+    print("")
+
+
+def update_yarn_lock():
+    global config
+
+    print("-----------------------------------------------------------------")
+    print("----------------------- Update Yarn lock ------------------------")
+    print("-----------------------------------------------------------------")
+
+    # Build wheels and source packages
+    print(f">>> Updating yarn lock file in {config.source_dir}")
+    check_run(["yarn", "install"], cwd=config.source_dir, capture_output=False)
+
     print("")
 
 
