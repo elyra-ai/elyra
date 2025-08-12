@@ -64,8 +64,8 @@ def check_run(args, cwd=os.getcwd(), capture_output=True, env=None, shell=False)
             error_msg = ex.stderr.decode("utf-8", errors="replace")
         else:
             error_msg = str(ex.stderr)
-        
-        raise RuntimeError(f'Error executing process: {error_msg}') from ex
+
+        raise RuntimeError(f"Error executing process: {error_msg}") from ex
 
 
 def check_output(args, cwd=os.getcwd(), env=None, shell=False) -> str:
@@ -90,22 +90,22 @@ def sed(file: str, pattern: str, replace: str) -> None:
         # Validate file path
         if not os.path.exists(file):
             raise RuntimeError(f"File does not exist: {file}")
-        
+
         # Read file content
-        with open(file, 'r', encoding='utf-8') as f:
+        with open(file, "r", encoding="utf-8") as f:
             content = f.read()
-        
+
         # Perform regex substitution with MULTILINE flag for ^ and $ anchors
         modified_content = re.sub(pattern, replace, content, flags=re.MULTILINE)
-        
+
         # Write back only if content changed
         if modified_content != content:
-            with open(file, 'w', encoding='utf-8') as f:
+            with open(file, "w", encoding="utf-8") as f:
                 f.write(modified_content)
             print(f"Updated {file}: {pattern} -> {replace}")
         else:
             print(f"No changes needed in {file} for pattern: {pattern}")
-                
+
     except Exception as ex:
         raise RuntimeError(f"Error processing file {file}: {str(ex)}") from ex
 
@@ -117,19 +117,19 @@ def sed_remove(file: str, pattern: str) -> None:
         if not os.path.exists(file):
             # Silently return if file doesn't exist (common case for install.json)
             return
-        
+
         # Read file content
-        with open(file, 'r', encoding='utf-8') as f:
+        with open(file, "r", encoding="utf-8") as f:
             lines = f.readlines()
-        
+
         # Filter out lines matching pattern
         filtered_lines = [line for line in lines if not re.search(pattern, line)]
-        
+
         # Write back only if content changed
         if len(filtered_lines) != len(lines):
-            with open(file, 'w', encoding='utf-8') as f:
+            with open(file, "w", encoding="utf-8") as f:
                 f.writelines(filtered_lines)
-                
+
     except Exception as ex:
         raise RuntimeError(f"Error processing file {file}: {str(ex)}") from ex
 
@@ -161,10 +161,22 @@ def update_version_to_release() -> None:
 
     try:
         # Update backend version
-        sed(_source(".bumpversion.cfg"), rf"^current_version\s*=\s*{re.escape(old_version)}", f"current_version = {new_version}")
-        sed(_source("elyra/_version.py"), rf'^__version__\s*=\s*"{re.escape(old_version)}"', f'__version__ = "{new_version}"')
+        sed(
+            _source(".bumpversion.cfg"),
+            rf"^current_version\s*=\s*{re.escape(old_version)}",
+            f"current_version = {new_version}",
+        )
+        sed(
+            _source("elyra/_version.py"),
+            rf'^__version__\s*=\s*"{re.escape(old_version)}"',
+            f'__version__ = "{new_version}"',
+        )
         sed(_source("README.md"), rf"elyra {re.escape(old_version)}", f"elyra {new_version}")
-        sed(_source("docs/source/getting_started/installation.md"), rf"elyra {re.escape(old_version)}", f"elyra {new_version}")
+        sed(
+            _source("docs/source/getting_started/installation.md"),
+            rf"elyra {re.escape(old_version)}",
+            f"elyra {new_version}",
+        )
 
         # Update docker related tags
         sed(_source("Makefile"), r"^TAG:=dev", f"TAG:={new_version}")
@@ -177,7 +189,9 @@ def update_version_to_release() -> None:
 
         # Update UI component versions
         sed(_source("README.md"), rf"v{re.escape(old_npm_version)}", f"v{new_version}")
-        sed(_source("docs/source/getting_started/installation.md"), rf"v{re.escape(old_npm_version)}", f"v{new_version}")
+        sed(
+            _source("docs/source/getting_started/installation.md"), rf"v{re.escape(old_npm_version)}", f"v{new_version}"
+        )
 
         sed(
             _source("packages/theme/src/index.ts"),
@@ -336,10 +350,22 @@ def update_version_to_dev() -> None:
 
     try:
         # Update backend version
-        sed(_source(".bumpversion.cfg"), rf"^current_version\s*=\s*{re.escape(new_version)}", f"current_version = {dev_version}")
-        sed(_source("elyra/_version.py"), rf'^__version__\s*=\s*"{re.escape(new_version)}"', f'__version__ = "{dev_version}"')
+        sed(
+            _source(".bumpversion.cfg"),
+            rf"^current_version\s*=\s*{re.escape(new_version)}",
+            f"current_version = {dev_version}",
+        )
+        sed(
+            _source("elyra/_version.py"),
+            rf'^__version__\s*=\s*"{re.escape(new_version)}"',
+            f'__version__ = "{dev_version}"',
+        )
         sed(_source("README.md"), rf"elyra {re.escape(new_version)}", f"elyra {dev_version}")
-        sed(_source("docs/source/getting_started/installation.md"), rf"elyra {re.escape(new_version)}", f"elyra {dev_version}")
+        sed(
+            _source("docs/source/getting_started/installation.md"),
+            rf"elyra {re.escape(new_version)}",
+            f"elyra {dev_version}",
+        )
 
         # Update docker related tags
         sed(_source("Makefile"), rf"^TAG:={new_version}", "TAG:=dev")
@@ -502,19 +528,19 @@ def update_version_to_dev() -> None:
 def _source(file: str) -> str:
     """Get absolute path for a file within the source directory with path validation"""
     global config
-    
+
     # Validate input
-    if not file or '..' in file or file.startswith('/'):
+    if not file or ".." in file or file.startswith("/"):
         raise ValueError(f"Invalid file path: {file}")
-    
+
     # Create absolute path
     source_path = os.path.abspath(config.source_dir)
     file_path = os.path.abspath(os.path.join(source_path, file))
-    
+
     # Ensure the resolved path is within source directory (prevent path traversal)
     if not file_path.startswith(source_path + os.sep) and file_path != source_path:
         raise ValueError(f"Path traversal attempt detected: {file}")
-    
+
     return file_path
 
 
