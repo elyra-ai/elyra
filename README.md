@@ -59,14 +59,14 @@ Note: You can also [build a container image from the `main` branch ("dev build")
 To run one of the container images, issue the following command, specifying a tag of your choice.
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:4.0.0 jupyter lab --debug
+docker run -it -p 8888:8888 elyra/elyra:dev jupyter lab --debug
 ```
 
 To make a local directory containing your Notebooks (e.g. ${HOME}/opensource/jupyter-notebooks/) available in your
 docker container, you can use a mount command similar to the following:
 
 ```
-docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:4.0.0 jupyter lab --debug
+docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:dev jupyter lab --debug
 ```
 
 These should produce output similar to that below, where you can then find the URL to be used to access Elyra in your local browser.
