@@ -1,6 +1,6 @@
 {
   "name": "@elyra/services",
-  "version": "4.0.0-dev",
+  "version": "4.0.0",
   "description": "JupyterLab - Utilities for use in elyra",
   "keywords": [
     "jupyter",
