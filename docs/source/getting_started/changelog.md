@@ -2,6 +2,20 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 4.0.0 - 08/15/2025
+
+Our 4.0.0 release includes the following high-level changes
+
+- Add support for JupyterLab 4.x - [#3201](https://github.com/elyra-ai/elyra/pull/3201)
+- Update JupyterLab version compatibility all way to 4.3.x  - [#3293](https://github.com/elyra-ai/elyra/pull/3293)
+- Switch from elyra-code-viewer to jupyterlab-code-viewer - [#3265](https://github.com/elyra-ai/elyra/pull/3265)
+- Update jupyterlab-git to 0.51.2 to fix vulnerability - [#3319](https://github.com/elyra-ai/elyra/pull/3319)
+- Enable conditional install of runtime and it's dependencies (e.g: KFP, Airflow) - [#3248](https://github.com/elyra-ai/elyra/pull/3248)
+- Add Airflow 2.x support for generic pipelines and generic components - [#3167](https://github.com/elyra-ai/elyra/pull/3167)
+- Add support to Python 3.12 and 3.13 - [#3311](https://github.com/elyra-ai/elyra/pull/3311)
+- Remove Python 3.8 support as it reached EOL - [#3277](https://github.com/elyra-ai/elyra/pull/3277)
+- Multiple dependency updates with security fixes
+
 ## Release 4.0.0rc5 - 07/24/2025
 
 - Update jupyterlab-git to 0.51.2 to fix vulnerability - [#3319](https://github.com/elyra-ai/elyra/pull/3319)
