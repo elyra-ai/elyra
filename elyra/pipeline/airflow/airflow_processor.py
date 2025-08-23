@@ -102,6 +102,13 @@ be fully qualified (i.e., prefixed with their package names).
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        
+        # Add Airflow version detection for 3.0 compatibility
+        from packaging.version import parse as vparse
+        import airflow
+        self.airflow_major_version = vparse(airflow.__version__).release[0]
+        self.log.info(f"Detected Airflow version: {airflow.__version__} (major: {self.airflow_major_version})")
+        
         if not self.class_import_map:  # Only need to load once
             for package in self.available_airflow_operators:
                 parts = package.rsplit(".", 1)
@@ -523,6 +530,7 @@ be fully qualified (i.e., prefixed with their package names).
                 in_cluster="True",
                 pipeline_description=pipeline_description,
                 processor=self,
+                airflow_major_version=self.airflow_major_version,
             )
 
             # Write to python file and fix formatting
