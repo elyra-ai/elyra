@@ -1,3 +1,3 @@
-jupyterlab==4.2.5
+jupyterlab~=4.4
 jupyter-packaging>=0.10
 build
