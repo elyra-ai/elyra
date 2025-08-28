@@ -36,8 +36,8 @@ You can install elyra with all optional dependencies or with specific dependenci
 
 - `elyra` - install the Elyra core features (except kfp dependencies)
 - `elyra[all]` - install core features and all dependencies
-- `elyra[airflow]` - install the Elyra core features and support for [Apache Airflow pipelines](https://github.com/apache/airflow)
-- `elyra[airflow-gitlab]` - install the Elyra core features and GitLab support for [Apache Airflow pipelines](https://github.com/apache/airflow)
+- `elyra[airflow]` - install the Elyra core features and support for [Apache Airflow pipelines](https://github.com/apache/airflow) (supports Airflow 2.x and 3.x)
+- `elyra[airflow-gitlab]` - install the Elyra core features and GitLab support for [Apache Airflow pipelines](https://github.com/apache/airflow) (supports Airflow 2.x and 3.x)
 - `elyra[kfp]` - install the Elyra core features and support for [Kubeflow Pipelines](https://github.com/kubeflow/pipelines)
 - `elyra[kfp-tekton]` - install the Elyra core features and support for [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton)
 - `elyra[kfp-examples]` - install the Elyra core features and [Kubeflow Pipelines custom component examples](https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/kfp-example-components-connector)

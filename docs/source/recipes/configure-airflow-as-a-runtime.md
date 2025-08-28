@@ -24,7 +24,7 @@ Pipelines in Elyra can be run locally in JupyterLab, or remotely on Kubeflow Pip
 **Note: Support for Apache Airflow is experimental.**
 
 This document outlines how to set up a new Elyra-enabled Apache Airflow environment or add Elyra support to an existing deployment.
-You can submit pipelines with generic components to Airflow >= 2.7.0 from Elyra 4 on.
+Elyra 4 supports Apache Airflow 2.7.0+ and 3.x with automatic version detection and backward compatibility.
 Generic components DAG code generation support for Airflow 1.x is removed in Elyra 4.
   
 This guide assumes a general working knowledge of and administration of a Kubernetes cluster.
@@ -43,11 +43,11 @@ AND
     
 OR  
   
-- An existing Apache Airflow cluster 
+- An existing Apache Airflow cluster
     - Ensure Apache Airflow is at least v1.10.8 and below v2.0.0. This applies to Elyra < 4.
-    - Ensure Apache Airflow is at least v2.7.0. This applies to Elyra 4.
+    - Ensure Apache Airflow is at least v2.7.0. This applies to Elyra 4, which supports both Airflow 2.x and 3.x.
     - Apache Airflow is configured to use the Kubernetes Executor.
-    - Apache Airflow must be configured to use git-sync, which is configurable both in [Airflow 1](https://airflow.apache.org/docs/apache-airflow/1.10.12/configurations-ref.html?highlight=git%20sync#git-repo) as well as in [Airflow 2](https://airflow.apache.org/docs/helm-chart/stable/parameters-ref.html#airflow) 
+    - Apache Airflow must be configured to use git-sync, which is configurable both in [Airflow 1](https://airflow.apache.org/docs/apache-airflow/1.10.12/configurations-ref.html?highlight=git%20sync#git-repo) as well as in [Airflow 2+](https://airflow.apache.org/docs/helm-chart/stable/parameters-ref.html#airflow)
     - Ensure the KubernetesPodOperator is installed and available in the Apache Airflow deployment
     
 ## Setting up a DAG repository on Git
