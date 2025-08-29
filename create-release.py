@@ -650,7 +650,7 @@ def copy_extension_dir(extension: str, work_dir: str) -> None:
     extension = extension.replace("-", "_")
     extension_package_source_dir = os.path.join(config.source_dir, f"labextensions/elyra_{extension}")
     extension_package_dest_dir = os.path.join(work_dir, f"labextensions/elyra_{extension}")
-    print(f">>>Copying extension package from {extension_package_source_dir} to {extension_package_dest_dir}")
+    print(f">>> Copying extension package from {extension_package_source_dir} to {extension_package_dest_dir}")
     os.makedirs(os.path.dirname(extension_package_dest_dir), exist_ok=True)
     shutil.copytree(extension_package_source_dir, extension_package_dest_dir)
 
