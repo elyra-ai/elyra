@@ -1,8 +1,5 @@
 {% if airflow_major_version >= 3 %}
-try:
-    from airflow.sdk import DAG
-except ImportError:
-    from airflow import DAG
+from airflow.sdk import DAG
 {% else %}
 from airflow import DAG
 {% endif %}

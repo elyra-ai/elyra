@@ -102,23 +102,38 @@ be fully qualified (i.e., prefixed with their package names).
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        
-        # Add Airflow version detection for 3.0 compatibility
-        from packaging.version import parse as vparse
-        import airflow
-        self.airflow_major_version = vparse(airflow.__version__).release[0]
-        self.log.info(f"Detected Airflow version: {airflow.__version__} (major: {self.airflow_major_version})")
-        
+        self._airflow_initialized = False
+
+    def _initialize_airflow(self):
+        """Initialize Airflow-specific settings. Called lazily when needed."""
+        if self._airflow_initialized:
+            return
+
+        try:
+            # Add Airflow version detection for 3.0 compatibility
+            from packaging.version import parse as vparse
+            import airflow
+
+            self.airflow_major_version = vparse(airflow.__version__).release[0]
+            self.log.info(f"Detected Airflow version: {airflow.__version__} (major: {self.airflow_major_version})")
+        except ImportError:
+            # Graceful fallback for test environments (e.g., Cypress tests) where Airflow may not be installed
+            # This allows pipeline export functionality to work without requiring Airflow installation
+            self.log.warning("Apache Airflow not available. Using default version 2 for compatibility.")
+            self.airflow_major_version = 2
+
         if not self.class_import_map:  # Only need to load once
             for package in self.available_airflow_operators:
                 parts = package.rsplit(".", 1)
                 self.class_import_map[parts[1]] = f"from {parts[0]} import {parts[1]}"
         self.log.debug(f"class_package_map = {self.class_import_map}")
+        self._airflow_initialized = True
 
     def process(self, pipeline: Pipeline) -> "AirflowPipelineProcessorResponse":
         """
         Submit the pipeline for execution on Apache Airflow.
         """
+        self._initialize_airflow()
         t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         # Create an instance id that will be used to store
@@ -215,6 +230,8 @@ be fully qualified (i.e., prefixed with their package names).
         """
         Export pipeline as Airflow DAG
         """
+        self._initialize_airflow()
+
         # Verify that the AirflowPipelineProcessor supports the given export format
         self._verify_export_format(pipeline_export_format)
 
@@ -496,6 +513,7 @@ be fully qualified (i.e., prefixed with their package names).
         """
         Convert the pipeline to an Airflow DAG and store it in pipeline_export_path.
         """
+        self._initialize_airflow()
 
         self.log.info(f"Creating pipeline definition as a .{pipeline_export_format} file")
         if pipeline_export_format == "json":
