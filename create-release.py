@@ -885,6 +885,8 @@ def prepare_release() -> None:
     checkout_code()
     # Update to new release version
     update_version_to_release()
+    # build packages to update yarn.lock
+    update_yarn_lock()
     # commit and tag
     check_run(["git", "commit", "-s", "-a", "-m", f"Release v{config.new_version}"], cwd=config.source_dir)
     check_run(["git", "tag", config.tag], cwd=config.source_dir)
