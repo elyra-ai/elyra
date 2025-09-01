@@ -704,9 +704,9 @@ def generate_changelog() -> None:
                 # print(f'>>> {commit_hash} - {commit_title}')
                 if commit_title != "Prepare for next development iteration":
                     pr_string = ""
-                    pr = re.findall("\(#(.*?)\)", commit_title)
+                    pr = re.findall(r"\(#(.*?)\)", commit_title)
                     if pr:
-                        commit_title = re.sub("\(#(.*?)\)", "", commit_title).strip()
+                        commit_title = re.sub(r"\(#(.*?)\)", "", commit_title).strip()
                         pr_string = f" - [#{pr[0]}](https://github.com/elyra-ai/elyra/pull/{pr[0]})"
                     changelog_entry = f"- {commit_title}{pr_string}\n"
                     changelog.write(changelog_entry)
