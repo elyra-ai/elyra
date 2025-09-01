@@ -203,7 +203,6 @@ core-metadata-version = "2.3"
 core-metadata-version = "2.3"
 artifacts = [
     "labextensions/elyra_code_snippet_extension/labextension",
-    "labextensions/elyra_code_viewer_extension/labextension",
     "labextensions/elyra_metadata_common/labextension",
     "labextensions/elyra_metadata_extension/labextension",
     "labextensions/elyra_pipeline_editor_extension/labextension",
