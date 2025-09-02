@@ -26,7 +26,7 @@ from traitlets.config import LoggingConfigurable
 
 class CosClient(LoggingConfigurable):
     """
-    MinIO-based Object Storage client, enabling Elyra to upload and download
+    MinIO-based S3-compatible Object Storage client, enabling Elyra to upload and download
     files.This client is configurable via traitlets.
     """
 
@@ -46,7 +46,7 @@ class CosClient(LoggingConfigurable):
                     or len(os.environ.get("AWS_SECRET_ACCESS_KEY", "").strip()) == 0
                 ):
                     raise RuntimeError(
-                        "Cannot connect to object storage. No credentials "
+                        "Cannot connect to S3-compatible object storage. No credentials "
                         " were provided and environment variables "
                         " AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are not "
                         " properly defined."
@@ -65,22 +65,32 @@ class CosClient(LoggingConfigurable):
             auth_type = config.metadata["cos_auth_type"]
             self.endpoint = urlparse(config.metadata["cos_endpoint"])
             self.bucket = config.metadata["cos_bucket"]
-            if auth_type in ["USER_CREDENTIALS", "KUBERNETES_SECRET"]:
+            if auth_type == "USER_CREDENTIALS":
                 cred_provider = providers.StaticProvider(
                     access_key=config.metadata["cos_username"],
                     secret_key=config.metadata["cos_password"],
                 )
+            elif auth_type == "KUBERNETES_SECRET":
+                if "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ:
+                    cred_provider = providers.EnvAWSProvider()
+                else:
+                    raise RuntimeError(
+                        "Cannot connect to S3-compatible object storage. No credentials "
+                        " were provided and environment variables "
+                        " AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are not "
+                        " properly defined."
+                    )
             elif auth_type == "AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS":
                 if os.environ.get("AWS_ROLE_ARN") is None or os.environ.get("AWS_WEB_IDENTITY_TOKEN_FILE") is None:
                     raise RuntimeError(
-                        "Cannot connect to object storage. "
+                        "Cannot connect to S3-compatible object storage. "
                         f"Authentication provider '{auth_type}' requires "
                         "environment variables AWS_ROLE_ARN and AWS_WEB_IDENTITY_TOKEN_FILE."
                     )
                 # Verify that AWS_WEB_IDENTITY_TOKEN_FILE exists
                 if Path(os.environ["AWS_WEB_IDENTITY_TOKEN_FILE"]).is_file() is False:
                     raise RuntimeError(
-                        "Cannot connect to object storage. The value of environment "
+                        "Cannot connect to S3-compatible object storage. The value of environment "
                         "variable AWS_WEB_IDENTITY_TOKEN_FILE references "
                         f"'{os.environ['AWS_WEB_IDENTITY_TOKEN_FILE']}', which is not a valid file."
                     )

@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+import os
 from typing import Any
 
 from elyra.metadata.manager import MetadataManager
@@ -29,25 +30,20 @@ class AirflowMetadata(RuntimesMetadata):
     def on_load(self, **kwargs: Any) -> None:
         super().on_load(**kwargs)
 
-        update_required = False
-
         if self.metadata.get("git_type") is None:
             # Inject git_type property for metadata persisted using Elyra < 3.5:
             self.metadata["git_type"] = SupportedGitTypes.GITHUB.name
-            update_required = True
 
         if self.metadata.get("cos_auth_type") is None:
             # Inject cos_auth_type property for metadata persisted using Elyra < 3.4:
             # - cos_username and cos_password must be present
             # - cos_secret may be present (above statement also applies in this case)
             if self.metadata.get("cos_username") and self.metadata.get("cos_password"):
-                if len(self.metadata.get("cos_secret", "")) == 0:
+                if len(self.metadata.get("cos_secret", "").strip()) == 0:
                     self.metadata["cos_auth_type"] = "USER_CREDENTIALS"
                 else:
                     self.metadata["cos_auth_type"] = "KUBERNETES_SECRET"
-                update_required = True
 
-        if update_required:
             # save changes
             MetadataManager(schemaspace="runtimes").update(self.name, self, for_migration=True)
 
@@ -79,12 +75,12 @@ class AirflowMetadata(RuntimesMetadata):
                 )
         elif self.metadata["cos_auth_type"] == "KUBERNETES_SECRET":
             if (
-                len(self.metadata.get("cos_username", "").strip()) == 0
-                or len(self.metadata.get("cos_password", "").strip()) == 0
-                or len(self.metadata.get("cos_secret", "").strip()) == 0
+                len(self.metadata.get("cos_secret", "").strip()) == 0
+                or "AWS_ACCESS_KEY_ID" not in os.environ
+                or "AWS_SECRET_ACCESS_KEY" not in os.environ
             ):
                 raise ValueError(
-                    "Username, password, and Kubernetes secret are required "
+                    "env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, and K8S secret name are required "
                     "for the selected Object Storage authentication type."
                 )
         elif self.metadata["cos_auth_type"] == "AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS":

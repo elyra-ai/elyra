@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+import os
 from typing import Any
 
 from elyra.metadata.manager import MetadataManager
@@ -131,12 +132,12 @@ class KfpMetadata(RuntimesMetadata):
                 )
         elif self.metadata["cos_auth_type"] == "KUBERNETES_SECRET":
             if (
-                len(self.metadata.get("cos_username", "").strip()) == 0
-                or len(self.metadata.get("cos_password", "").strip()) == 0
-                or len(self.metadata.get("cos_secret", "").strip()) == 0
+                len(self.metadata.get("cos_secret", "").strip()) == 0
+                or "AWS_ACCESS_KEY_ID" not in os.environ
+                or "AWS_SECRET_ACCESS_KEY" not in os.environ
             ):
                 raise ValueError(
-                    "Username, password, and Kubernetes secret are required "
+                    "env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, and K8S secret name are required "
                     "for the selected Object Storage authentication type."
                 )
         elif self.metadata["cos_auth_type"] == "AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS":

@@ -190,7 +190,7 @@ def test_collect_envs(processor: KfpPipelineProcessor):
     assert "USER_NO_VALUE" not in envs
 
     # Repeat with non-None secret - ensure user and password envs are not present, but others are
-    envs = processor._collect_envs(test_operation, cos_secret="secret", cos_username="Alice", cos_password="secret")
+    envs = processor._collect_envs(test_operation, cos_secret="secret")
 
     assert envs["ELYRA_RUNTIME_ENV"] == "kfp"
     assert "AWS_ACCESS_KEY_ID" not in envs
