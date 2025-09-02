@@ -706,7 +706,7 @@ def test_initialize_airflow_with_airflow_available(monkeypatch, processor):
     mock_airflow.__version__ = "2.5.0"
 
     # Mock the specific imports in the method
-    with mock.patch.dict('sys.modules', {'airflow': mock_airflow}):
+    with mock.patch.dict("sys.modules", {"airflow": mock_airflow}):
         # Reset initialization state
         processor._airflow_initialized = False
         processor.airflow_major_version = None
@@ -726,7 +726,7 @@ def test_initialize_airflow_with_airflow_3_available(monkeypatch, processor):
     mock_airflow.__version__ = "3.1.0"
 
     # Mock the specific imports in the method
-    with mock.patch.dict('sys.modules', {'airflow': mock_airflow}):
+    with mock.patch.dict("sys.modules", {"airflow": mock_airflow}):
         # Reset initialization state
         processor._airflow_initialized = False
         processor.airflow_major_version = None
@@ -742,14 +742,14 @@ def test_initialize_airflow_with_airflow_3_available(monkeypatch, processor):
 def test_initialize_airflow_without_airflow_available(monkeypatch, processor):
     """Test _initialize_airflow when Airflow is not available (graceful fallback)."""
     # Mock import to raise ImportError for airflow and packaging
-    original_import = __builtins__['__import__']
+    original_import = __builtins__["__import__"]
 
     def mock_import(name, *args, **kwargs):
-        if name in ['airflow', 'packaging.version']:
+        if name in ["airflow", "packaging.version"]:
             raise ImportError(f"No module named '{name}'")
         return original_import(name, *args, **kwargs)
 
-    monkeypatch.setattr('builtins.__import__', mock_import)
+    monkeypatch.setattr("builtins.__import__", mock_import)
 
     # Reset initialization state
     processor._airflow_initialized = False
