@@ -704,16 +704,16 @@ def test_initialize_airflow_with_airflow_available(monkeypatch, processor):
     # Mock airflow module to simulate it being available
     mock_airflow = mock.MagicMock()
     mock_airflow.__version__ = "2.5.0"
-    
+
     # Mock the specific imports in the method
     with mock.patch.dict('sys.modules', {'airflow': mock_airflow}):
         # Reset initialization state
         processor._airflow_initialized = False
         processor.airflow_major_version = None
-        
+
         # Call the method
         processor._initialize_airflow()
-        
+
         # Verify results
         assert processor._airflow_initialized is True
         assert processor.airflow_major_version == 2
@@ -724,16 +724,16 @@ def test_initialize_airflow_with_airflow_3_available(monkeypatch, processor):
     # Mock airflow module to simulate version 3.x
     mock_airflow = mock.MagicMock()
     mock_airflow.__version__ = "3.1.0"
-    
+
     # Mock the specific imports in the method
     with mock.patch.dict('sys.modules', {'airflow': mock_airflow}):
         # Reset initialization state
         processor._airflow_initialized = False
         processor.airflow_major_version = None
-        
+
         # Call the method
         processor._initialize_airflow()
-        
+
         # Verify results
         assert processor._airflow_initialized is True
         assert processor.airflow_major_version == 3
@@ -743,21 +743,21 @@ def test_initialize_airflow_without_airflow_available(monkeypatch, processor):
     """Test _initialize_airflow when Airflow is not available (graceful fallback)."""
     # Mock import to raise ImportError for airflow and packaging
     original_import = __builtins__['__import__']
-    
+
     def mock_import(name, *args, **kwargs):
         if name in ['airflow', 'packaging.version']:
             raise ImportError(f"No module named '{name}'")
         return original_import(name, *args, **kwargs)
-    
+
     monkeypatch.setattr('builtins.__import__', mock_import)
-    
+
     # Reset initialization state
     processor._airflow_initialized = False
     processor.airflow_major_version = None
-    
+
     # Call the method
     processor._initialize_airflow()
-    
+
     # Verify graceful fallback
     assert processor._airflow_initialized is True
     assert processor.airflow_major_version == 2
@@ -768,10 +768,10 @@ def test_initialize_airflow_already_initialized(processor):
     # Set up already initialized state
     processor._airflow_initialized = True
     processor.airflow_major_version = 3
-    
+
     # Call the method
     processor._initialize_airflow()
-    
+
     # Verify no change
     assert processor._airflow_initialized is True
     assert processor.airflow_major_version == 3
