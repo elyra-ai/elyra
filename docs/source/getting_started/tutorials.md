@@ -38,7 +38,7 @@ Learn how to [run runtime-specific pipelines on Kubeflow Pipelines](https://gith
 #### Run generic pipelines on Apache Airflow
 
 Learn how to [run generic pipelines on Apache Airflow](https://github.com/elyra-ai/examples/tree/main/pipelines/run-generic-pipelines-on-apache-airflow). This tutorial requires an Apache Airflow deployment in a local environment or on the cloud.
-Elyra 4 supports Apache Airflow 2.7.0+ and 3.x with automatic version detection. Generic pipeline support for Airflow 1.x is removed in Elyra 4.
+If you want to run generic pipelines in Airflow >= 2.7.0 and 3.x, you have to use Elyra 4. In Elyra 4, generic pipeline support for Airflow 1 is removed.
 
 #### Run runtime-specific pipelines on Apache Airflow
 
