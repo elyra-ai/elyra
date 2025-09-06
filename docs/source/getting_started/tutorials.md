@@ -38,12 +38,12 @@ Learn how to [run runtime-specific pipelines on Kubeflow Pipelines](https://gith
 #### Run generic pipelines on Apache Airflow
 
 Learn how to [run generic pipelines on Apache Airflow](https://github.com/elyra-ai/examples/tree/main/pipelines/run-generic-pipelines-on-apache-airflow). This tutorial requires an Apache Airflow deployment in a local environment or on the cloud.
-If you want to run generic pipelines in Airflow >= 2.7.0, you have to use Elyra 4. In Elyra 4, generic pipeline support for Airflow 1 is removed.
+If you want to run generic pipelines in Airflow >= 2.7.0 and 3.x, you have to use Elyra 4. In Elyra 4, generic pipeline support for Airflow 1 is removed.
 
 #### Run runtime-specific pipelines on Apache Airflow
 
 Learn how to [run runtime-specific pipelines on Apache Airflow](https://github.com/elyra-ai/examples/tree/main/pipelines/run-pipelines-on-apache-airflow). This tutorial requires an Apache Airflow deployment in a local environment or on the cloud.
-If you want to run generic components (R, Python, ipynb Notebooks) in runtime-specific pipelines in Airflow >= 2.7.0, you have to use Elyra 4. In Elyra 4, generic pipeline support for Airflow 1 is removed and custom Airflow components are not yet supported.
+Elyra 4 supports generic components (R, Python, ipynb Notebooks) in runtime-specific pipelines for Airflow 2.7.0+ and 3.x. Custom Airflow components are not yet supported in Elyra 4.
 
 
 #### Examples
