@@ -77,7 +77,7 @@
           "title": "Kubeflow Pipelines engine",
           "description": "The Kubeflow Pipelines engine in use",
           "type": "string",
-          "enum": ["Argo", "Tekton"],
+          "enum": ["Argo"],
           "default": "Argo",
           "uihints": {
             "category": "Kubeflow Pipelines"
