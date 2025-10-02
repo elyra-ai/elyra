@@ -45,6 +45,11 @@ enable_pipeline_info = os.getenv("ELYRA_ENABLE_PIPELINE_INFO", "true").lower() =
 enable_generic_node_script_output_to_s3 = (
     os.getenv("ELYRA_GENERIC_NODES_ENABLE_SCRIPT_OUTPUT_TO_S3", "true").lower() == "true"
 )
+# Set it to false to disable automatic package installation.
+# This is useful in airgapped environments where the image
+# already contains the required packages.
+install_packages = os.getenv("ELYRA_INSTALL_PACKAGES", "true").lower() == "true"
+
 pipeline_name = None  # global used in formatted logging
 operation_name = None  # global used in formatted logging
 
@@ -587,7 +592,8 @@ def main():
     # must be commented out in airgapped images if packages from
     # https://github.com/elyra-ai/elyra/blob/main/etc/generic/requirements-elyra.txt
     # already installed via central pip env during container build
-    OpUtil.package_install()
+    if install_packages:
+        OpUtil.package_install()
 
     # Create the appropriate instance, process dependencies and execute the operation
     file_op = FileOpBase.get_instance(**input_params)
