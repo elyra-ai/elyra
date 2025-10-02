@@ -589,9 +589,7 @@ def main():
     input_params = OpUtil.parse_arguments(sys.argv[1:])
     OpUtil.log_operation_info("starting operation")
     t0 = time.time()
-    # must be commented out in airgapped images if packages from
-    # https://github.com/elyra-ai/elyra/blob/main/etc/generic/requirements-elyra.txt
-    # already installed via central pip env during container build
+
     if install_packages:
         OpUtil.package_install()
 
