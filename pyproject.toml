@@ -106,6 +106,10 @@ kfp = [
 kfp-examples = [
     "elyra-examples-kfp-catalog",
 ]
+magic-wand = [
+    "jupyter-ai>=2.0.0",
+    "jupyterlab-magic-wand>=0.1.0"
+]
 # The following is a collection of "non-test" extra dependencies from above.
 all = [
     "kfp>=2.0.0", # Cap kfp for protobuf compatibility
