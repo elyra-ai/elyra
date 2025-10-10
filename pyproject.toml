@@ -235,6 +235,7 @@ exclude = [
     "*.sh",
     "docs",
     "build/release",
+    "elyra/tests",
 ]
 
 # Move flake8 configuration from setup.cfg. Use pflake8 instead of flake8.
