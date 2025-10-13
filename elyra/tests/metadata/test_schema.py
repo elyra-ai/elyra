@@ -34,7 +34,7 @@ os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests schemaspace
 
 
 schemaspace_map = {
-    "metadata-tests": ("elyra.tests.metadata.test_utils", "MetadataTestSchemaspace"),
+    "metadata-tests": ("elyra.metadata.schemaspaces", "MetadataTestSchemaspace"),
     "byo_schemaspace_bad_id": ("elyra.tests.metadata.test_utils", "BYOSchemaspaceBadId"),
     "byo.schemaspace-bad.name": ("elyra.tests.metadata.test_utils", "BYOSchemaspaceBadName"),
     "byo.schemaspace_CaseSensitiveName": ("elyra.tests.metadata.test_utils", "BYOSchemaspaceCaseSensitiveName"),
@@ -43,7 +43,7 @@ schemaspace_map = {
     "byo-schemaspace-throws": ("elyra.tests.metadata.test_utils", "BYOSchemaspaceThrows"),
 }
 schemas_provider_map = {
-    "metadata-tests": ("elyra.tests.metadata.test_utils", "MetadataTestSchemasProvider"),
+    "metadata-tests": ("elyra.metadata.schemasproviders", "MetadataTestSchemasProvider"),
     "byo-schemas-provider-throws": ("elyra.tests.metadata.test_utils", "BYOSchemasProviderThrows"),
     "byo-schemas-provider-bad-class": ("elyra.tests.metadata.test_utils", "BYOSchemasProviderBadClass"),
     "byo-schemas-provider": ("elyra.tests.metadata.test_utils", "BYOSchemasProvider"),

@@ -141,3 +141,38 @@ class ComponentCatalogsSchemas(ElyraSchemasProvider):
     def get_schemas(self) -> List[Dict]:
         schemas = self.get_local_schemas_by_schemaspace(ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
         return schemas
+
+
+class MetadataTestSchemasProvider(SchemasProvider):
+    """Returns schemas relative to Runtime Images schemaspace."""
+
+    def get_schemas(self) -> List[Dict]:
+        schemas = []
+        parent_dir = os.path.dirname(os.path.dirname(__file__))
+        schema_dir = os.path.join(parent_dir, "metadata", "schemas")
+        schema_files = [
+            json_file
+            for json_file in os.listdir(schema_dir)
+            if json_file.endswith(".json") and json_file.startswith("metadata-test")
+        ]
+        for json_file in schema_files:
+            schema_file = os.path.join(schema_dir, json_file)
+            with io.open(schema_file, "r", encoding="utf-8") as f:
+                schema_json = json.load(f)
+
+                if json_file == "metadata-test.json":  # Apply filtering
+                    # Update multipleOf from 7 to 6 and and value 'added' to enum-valued property
+                    multiple_of: int = schema_json["properties"]["metadata"]["properties"]["integer_multiple_test"][
+                        "multipleOf"
+                    ]
+                    assert multiple_of == 7
+                    schema_json["properties"]["metadata"]["properties"]["integer_multiple_test"]["multipleOf"] = 6
+
+                    enum: list = schema_json["properties"]["metadata"]["properties"]["enum_test"]["enum"]
+                    assert len(enum) == 2
+                    enum.append("added")
+                    schema_json["properties"]["metadata"]["properties"]["enum_test"]["enum"] = enum
+
+                schemas.append(schema_json)
+
+        return schemas

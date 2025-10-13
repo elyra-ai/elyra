@@ -29,7 +29,6 @@ from elyra.metadata.error import MetadataExistsError
 from elyra.metadata.error import MetadataNotFoundError
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE
-from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE_ID
 from elyra.metadata.schema import Schemaspace
 from elyra.metadata.schema import SchemasProvider
 from elyra.metadata.storage import FileMetadataStore
@@ -404,16 +403,6 @@ class MockMetadataTestInvalid(object):
         pass
 
 
-class MetadataTestSchemaspace(Schemaspace):
-    def __init__(self, *args, **kwargs):
-        super().__init__(
-            schemaspace_id=METADATA_TEST_SCHEMASPACE_ID,
-            name=METADATA_TEST_SCHEMASPACE,
-            description="Schemaspace for instances of metadata for testing",
-            **kwargs,
-        )
-
-
 class BYOSchemaspaceBadId(Schemaspace):
     def __init__(self, *args, **kwargs):
         super().__init__(schemaspace_id="byo_schemaspace_bad_id", name="byo-schemaspace-bad-id", **kwargs)
@@ -459,41 +448,6 @@ class BYOSchemaspace(Schemaspace):
         super().__init__(
             schemaspace_id=BYOSchemaspace.BYO_SCHEMASPACE_ID, name=BYOSchemaspace.BYO_SCHEMASPACE_NAME, **kwargs
         )
-
-
-class MetadataTestSchemasProvider(SchemasProvider):
-    """Returns schemas relative to Runtime Images schemaspace."""
-
-    def get_schemas(self) -> List[Dict]:
-        schemas = []
-        parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        schema_dir = os.path.join(parent_dir, "metadata", "schemas")
-        schema_files = [
-            json_file
-            for json_file in os.listdir(schema_dir)
-            if json_file.endswith(".json") and json_file.startswith("metadata-test")
-        ]
-        for json_file in schema_files:
-            schema_file = os.path.join(schema_dir, json_file)
-            with io.open(schema_file, "r", encoding="utf-8") as f:
-                schema_json = json.load(f)
-
-                if json_file == "metadata-test.json":  # Apply filtering
-                    # Update multipleOf from 7 to 6 and and value 'added' to enum-valued property
-                    multiple_of: int = schema_json["properties"]["metadata"]["properties"]["integer_multiple_test"][
-                        "multipleOf"
-                    ]
-                    assert multiple_of == 7
-                    schema_json["properties"]["metadata"]["properties"]["integer_multiple_test"]["multipleOf"] = 6
-
-                    enum: list = schema_json["properties"]["metadata"]["properties"]["enum_test"]["enum"]
-                    assert len(enum) == 2
-                    enum.append("added")
-                    schema_json["properties"]["metadata"]["properties"]["enum_test"]["enum"] = enum
-
-                schemas.append(schema_json)
-
-        return schemas
 
 
 def schema_factory(schemaspace_id: str, schemaspace_name: str, num_good: int, bad_reasons: List[str]) -> List[Dict]:

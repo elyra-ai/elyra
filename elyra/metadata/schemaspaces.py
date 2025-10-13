@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE
+from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE_ID
 from elyra.metadata.schema import Schemaspace
 
 
@@ -68,4 +70,14 @@ class ComponentCatalogs(Schemaspace):
             name=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_NAME,
             display_name=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_DISPLAY_NAME,
             description="Schemaspace for instances of Elyra component catalog configurations",
+        )
+
+
+class MetadataTestSchemaspace(Schemaspace):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            schemaspace_id=METADATA_TEST_SCHEMASPACE_ID,
+            name=METADATA_TEST_SCHEMASPACE,
+            description="Schemaspace for instances of metadata for testing",
+            **kwargs,
         )
