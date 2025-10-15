@@ -33,9 +33,7 @@ describe('Code Snippet tests', () => {
     // make sure it is rendered properly
     cy.get('.elyra-metadata .elyra-metadataHeader').contains('Code Snippets');
     // and code-snippet create new button is visible
-    cy.findByRole('button', { name: /create new code snippet/i }).should(
-      'be.visible'
-    );
+    cy.get('[title="Create new code snippet"]').should('be.visible');
   });
 
   it('should show validation warnings only after submission', () => {
@@ -72,7 +70,7 @@ describe('Code Snippet tests', () => {
     checkValidationWarnings(2);
   });
 
-  it.skip('should create valid code-snippet', () => {
+  it('should create valid code-snippet', () => {
     createValidCodeSnippet(snippetName);
 
     checkEditorVisibility(false);
@@ -274,77 +272,75 @@ describe('Code Snippet tests', () => {
     // Check for language mismatch warning
     cy.get('.jp-Dialog-header').contains(/warning/i);
     // Dismiss the dialog
-    cy.findByRole('button', { name: /cancel/i }).click();
+    cy.get('.jp-Dialog-button.jp-mod-reject').click();
 
     // Check it did not insert the code
     cy.get('.cm-editor:visible');
     cy.get('.cm-editor .cm-content .cm-line').should('not.contain', /test/i);
   });
 
-  // DEV NOTE: Uncomment the tests below to run them locally
-  // TODO: Investigate tests below only failing on CI
-  // Steps: checkCodeMirror, closeTabWithoutSaving
+  it('Test inserting a code snippet into a notebook', () => {
+    openCodeSnippetExtension();
+    clickCreateNewSnippetButton();
 
-  // it('Test inserting a code snippet into a notebook', () => {
-  //   openCodeSnippetExtension();
-  //   clickCreateNewSnippetButton();
+    const snippetName = 'test-code-snippet';
+    populateCodeSnippetFields(snippetName);
 
-  //   const snippetName = 'test-code-snippet';
-  //   fillMetadaEditorForm(snippetName);
+    saveAndCloseMetadataEditor();
 
-  //   cy.wait(500);
+    cy.wait(500);
 
-  //   // Open blank notebook file
-  //   cy.get(
-  //     '.jp-LauncherCard[data-category="Notebook"][title="Python 3"]:visible'
-  //   ).click();
+    // Open blank notebook file
+    cy.get(
+      '.jp-LauncherCard[data-category="Notebook"][title="Python 3"]:visible'
+    ).click();
 
-  //   cy.wait(500);
+    cy.wait(500);
 
-  //   // Check widget is loaded
-  //   cy.get('.CodeMirror:visible');
+    // Check widget is loaded - Update selector for modern JupyterLab
+    cy.get('.cm-editor:visible');
 
-  //   insert(snippetName);
+    insert(snippetName);
 
-  //   // Check if notebook cell has the new code
-  //   checkCodeMirror();
-  //   // NOTE: Notebook cell is still empty when this test runs on CI
+    // Check if notebook cell has the new code
+    checkCodeMirror();
 
-  //   closeTabWithoutSaving();
-  //   // NOTE: Save dialog isn't visible when this test runs on CI
-  // });
+    closeTabWithoutSaving();
+  });
 
-  //   it('Test inserting a code snippet into a markdown file', () => {
-  //     openCodeSnippetExtension();
-  //     clickCreateNewSnippetButton();
+  it('Test inserting a code snippet into a markdown file', () => {
+    openCodeSnippetExtension();
+    clickCreateNewSnippetButton();
 
-  //     const snippetName = 'test-code-snippet';
-  //     fillMetadaEditorForm(snippetName);
+    const snippetName = 'test-code-snippet';
+    populateCodeSnippetFields(snippetName);
 
-  //     cy.wait(500);
+    saveAndCloseMetadataEditor();
 
-  //     // Open blank notebook file
-  //     cy.get(
-  //       '.jp-LauncherCard[title="Create a new markdown file"]:visible'
-  //     ).click();
+    cy.wait(500);
 
-  //     cy.wait(500);
+    // Open blank notebook file
+    cy.get(
+      '.jp-LauncherCard[title="Create a new markdown file"]:visible'
+    ).click();
 
-  //     // Check widget is loaded
-  //     cy.get('.CodeMirror:visible');
+    cy.wait(500);
 
-  //     insert(snippetName);
+    // Check widget is loaded - Update selector for modern JupyterLab
+    cy.get('.cm-editor:visible');
 
-  //     // Check if notebook cell has the new code
-  //     checkCodeMirror();
+    insert(snippetName);
 
-  //     // Check for language decoration
-  //     cy.get('span.cm-comment')
-  //       .first()
-  //       .contains('Python');
+    // Check if notebook cell has the new code
+    checkCodeMirror();
 
-  //     closeTabWithoutSaving();
-  //   });
+    // Check for language decoration
+    cy.get('span.cm-comment')
+      .first()
+      .contains('Python');
+
+    closeTabWithoutSaving();
+  });
 });
 
 // ------------------------------
@@ -401,7 +397,7 @@ const createValidCodeSnippet = (
 };
 
 const clickCreateNewSnippetButton = (): void => {
-  cy.findByRole('button', { name: /create new code snippet/i }).click();
+  cy.get('[title="Create new code snippet"]').click();
 };
 
 const checkValidationWarnings = (count: number): void => {
@@ -473,4 +469,24 @@ const editSnippetLanguage = (snippetName: string, lang: string): void => {
   cy.get('.elyra-formEditor-form-language input')
     .should('have.value', lang)
     .click();
+};
+
+const checkCodeMirror = (): void => {
+  // Check that CodeMirror editor contains the expected code snippet
+  cy.get('.cm-editor:visible')
+    .find('.cm-content')
+    .should('contain.text', 'print("test")')
+    .and('be.visible');
+};
+
+const closeTabWithoutSaving = (): void => {
+  // Close the current tab and handle any save dialog
+  cy.closeTab(-1);
+  
+  // If save dialog appears, click "Don't Save"
+  cy.get('body').then(($body) => {
+    if ($body.find('.jp-Dialog-header:contains("Save your work")').length > 0) {
+      cy.get('.jp-Dialog-button.jp-mod-reject').click();
+    }
+  });
 };

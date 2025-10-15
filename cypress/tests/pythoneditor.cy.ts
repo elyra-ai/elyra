@@ -38,9 +38,11 @@ describe('Python Editor tests', () => {
     cy.closeTab(-1);
   });
 
-  // Flaky test: Missing expected items in the context menu
-  it.skip('check Python editor tab right click content', () => {
+  it('check Python editor tab right click content', () => {
     cy.createNewScriptEditor('Python');
+    // Wait for editor to fully load before testing right-click
+    cy.get('.elyra-ScriptEditor').should('be.visible');
+    cy.wait(500);
     cy.checkRightClickTabContent('Python');
     cy.closeTab(-1);
   });
@@ -51,8 +53,8 @@ describe('Python Editor tests', () => {
   });
 
   it('opens blank Python editor from menu', () => {
-    cy.findByRole('menuitem', { name: /file/i }).click();
-    cy.findByText(/^new$/i).click();
+    cy.get('.jp-MenuBar-item[data-command="filemenu:open"]').click();
+    cy.get('[data-command="filemenu:new"] .lm-Menu-itemLabel').click();
 
     cy.get(
       '[data-command="script-editor:create-new-python-editor"] > .lm-Menu-itemLabel'
@@ -147,49 +149,48 @@ describe('Python Editor tests', () => {
     cy.closeTab(-1);
   });
 
-  // TODO: Investigate CI failures commented below
   // check for expected output on running a valid code
-  // it('checks for valid output', () => {
-  //   cy.openHelloWorld('py');
-  //   clickRunButton();
-  //   cy.wait(1000);
-  //   cy.get('.elyra-ScriptEditor-OutputArea-output').should(
-  //     'have.text',
-  //     'Hello Elyra\n'
-  //   );
+  it('checks for valid output', () => {
+    cy.openHelloWorld('py');
+    clickRunButton();
+    cy.wait(2000); // Increased wait time for stability
+    cy.get('.elyra-ScriptEditor-OutputArea-output').should(
+      'contain.text',
+      'Hello Elyra'
+    );
 
-  //   //close console tab
-  //   cy.closeTab(-1);
+    //close console tab
+    cy.closeTab(-1);
 
-  //   // Close editor tab
-  //   cy.closeTab(-1);
-  // });
+    // Close editor tab
+    cy.closeTab(-1);
+  });
 
   // check for error message running an invalid code
-  // it('checks for Error message', () => {
-  //   cy.createNewScriptEditor('Python');
-  //   cy.wait(1000);
+  it('checks for Error message', () => {
+    cy.createNewScriptEditor('Python');
+    cy.wait(1000);
 
-  //   // Add some code with syntax error to the editor (wait code editor to load)
-  //   cy.get('.CodeMirror-lines')
-  //     .first()
-  //     .should('be.visible')
-  //     .type('print"test"');
+    // Add some code with syntax error to the editor (wait code editor to load)
+    cy.get('.cm-editor .cm-content')
+      .first()
+      .should('be.visible')
+      .type('print"test"');
 
-  //   cy.wait(500);
-  //   cy.dismissAssistant('scripteditor');
-  //   clickRunButton();
-  //   cy.findByText(/Error : SyntaxError/i).should('be.visible');
+    cy.wait(500);
+    cy.dismissAssistant('scripteditor');
+    clickRunButton();
+    cy.get('.elyra-ScriptEditor-OutputArea-output').should('contain.text', 'SyntaxError');
 
-  //   //close console tab
-  //   cy.closeTab(-1);
+    //close console tab
+    cy.closeTab(-1);
 
-  //   // Close editor tab
-  //   cy.closeTab(-1);
+    // Close editor tab
+    cy.closeTab(-1);
 
-  //   // Dismiss save your work dialog by discarding changes
-  //   cy.get('button.jp-mod-warn').click();
-  // });
+    // Dismiss save your work dialog by discarding changes
+    cy.get('button.jp-mod-warn').click();
+  });
 });
 
 // ------------------------------

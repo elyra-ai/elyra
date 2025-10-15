@@ -33,9 +33,11 @@ describe('R Editor tests', () => {
     cy.closeTab(-1);
   });
 
-  // Flaky test: Missing expected items in the context menu; it works manually though.
-  it.skip('check R editor tab right click content', () => {
+  it('check R editor tab right click content', () => {
     cy.createNewScriptEditor('R');
+    // Wait for editor to fully load before testing right-click
+    cy.get('.elyra-ScriptEditor').should('be.visible');
+    cy.wait(500);
     cy.checkRightClickTabContent('R');
     cy.closeTab(-1);
   });
@@ -52,8 +54,8 @@ describe('R Editor tests', () => {
 
   it('check icons', () => {
     // Check file menu editor contents
-    cy.findByRole('menuitem', { name: /file/i }).click();
-    cy.findByText(/^new$/i).click();
+    cy.get('.jp-MenuBar-item[data-command="filemenu:open"]').click();
+    cy.get('[data-command="filemenu:new"] .lm-Menu-itemLabel').click();
     cy.get(
       '[data-command="script-editor:create-new-r-editor"] svg[data-icon="elyra:rIcon"]'
     );
@@ -69,8 +71,8 @@ describe('R Editor tests', () => {
   });
 
   it('opens blank R file from menu', () => {
-    cy.findByRole('menuitem', { name: /file/i }).click();
-    cy.findByText(/^new$/i).click();
+    cy.get('.jp-MenuBar-item[data-command="filemenu:open"]').click();
+    cy.get('[data-command="filemenu:new"] .lm-Menu-itemLabel').click();
 
     cy.get(
       '[data-command="script-editor:create-new-r-editor"] > .lm-Menu-itemLabel'
