@@ -44,7 +44,7 @@
     "yjs": "^13.5.40"
   },
   "devDependencies": {
-    "@cypress/code-coverage": "^3.13.9",
+    "@cypress/code-coverage": "^3.14.7",
     "@glen/jest-raw-loader": "^2.0.0",
     "@testing-library/cypress": "^10.0.2",
     "@types/jest": "^29.2.0",
@@ -53,7 +53,7 @@
     "@typescript-eslint/eslint-plugin": "~6.13.2",
     "@typescript-eslint/parser": "~6.13.2",
     "chalk": "^5.4.1",
-    "cypress": "^13.17.0",
+    "cypress": "^14.5.4",
     "cypress-real-events": "^1.13.0",
     "eslint": "~8.55.0",
     "eslint-config-prettier": "~9.1.0",
