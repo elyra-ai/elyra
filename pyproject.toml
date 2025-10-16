@@ -168,6 +168,9 @@ include = [
     "elyra/*",
     "labextensions/**/*",
 ]
+exclude = [
+    "elyra/tests",
+]
 ignore-vcs = true
 
 [tool.hatch.build.targets.wheel]
