@@ -289,6 +289,10 @@ describe('Code Snippet tests', () => {
 
     cy.wait(500);
 
+    // Close Code Snippets sidebar to reveal the launcher
+    cy.get('.jp-SideBar [title="Code Snippets"]').click();
+    cy.wait(500);
+
     // Open blank notebook file
     cy.get(
       '.jp-LauncherCard[data-category="Notebook"][title="Python 3"]:visible'
@@ -321,7 +325,11 @@ describe('Code Snippet tests', () => {
 
     cy.wait(500);
 
-    // Open blank notebook file
+    // Close Code Snippets sidebar to reveal the launcher
+    cy.get('.jp-SideBar [title="Code Snippets"]').click();
+    cy.wait(500);
+
+    // Open blank markdown file
     cy.get(
       '.jp-LauncherCard[title="Create a new markdown file"]:visible'
     ).click();
