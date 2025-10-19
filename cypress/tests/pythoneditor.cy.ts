@@ -53,8 +53,9 @@ describe('Python Editor tests', () => {
   });
 
   it('opens blank Python editor from menu', () => {
-    cy.get('.jp-MenuBar-item[data-command="filemenu:open"]').click();
-    cy.get('[data-command="filemenu:new"] .lm-Menu-itemLabel').click();
+    // Open File menu
+    cy.get('.lm-MenuBar-itemLabel:contains("File")').click();
+    cy.get('.lm-Menu-itemLabel:contains("New")').click();
 
     cy.get(
       '[data-command="script-editor:create-new-python-editor"] > .lm-Menu-itemLabel'
@@ -180,7 +181,10 @@ describe('Python Editor tests', () => {
     cy.wait(500);
     cy.dismissAssistant('scripteditor');
     clickRunButton();
-    cy.get('.elyra-ScriptEditor-OutputArea-output').should('contain.text', 'SyntaxError');
+    cy.get('.elyra-ScriptEditor-OutputArea-output').should(
+      'contain.text',
+      'SyntaxError'
+    );
 
     //close console tab
     cy.closeTab(-1);

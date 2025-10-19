@@ -280,7 +280,6 @@ describe('Code Snippet tests', () => {
   });
 
   it('Test inserting a code snippet into a notebook', () => {
-    openCodeSnippetExtension();
     clickCreateNewSnippetButton();
 
     const snippetName = 'test-code-snippet';
@@ -300,6 +299,10 @@ describe('Code Snippet tests', () => {
     // Check widget is loaded - Update selector for modern JupyterLab
     cy.get('.cm-editor:visible');
 
+    // Re-open Code Snippets sidebar as it may have switched when opening notebook
+    cy.get('.jp-SideBar [title="Code Snippets"]').click();
+    cy.wait(500);
+
     insert(snippetName);
 
     // Check if notebook cell has the new code
@@ -309,7 +312,6 @@ describe('Code Snippet tests', () => {
   });
 
   it('Test inserting a code snippet into a markdown file', () => {
-    openCodeSnippetExtension();
     clickCreateNewSnippetButton();
 
     const snippetName = 'test-code-snippet';
@@ -329,15 +331,17 @@ describe('Code Snippet tests', () => {
     // Check widget is loaded - Update selector for modern JupyterLab
     cy.get('.cm-editor:visible');
 
+    // Re-open Code Snippets sidebar as it may have switched when opening markdown
+    cy.get('.jp-SideBar [title="Code Snippets"]').click();
+    cy.wait(500);
+
     insert(snippetName);
 
     // Check if notebook cell has the new code
     checkCodeMirror();
 
     // Check for language decoration
-    cy.get('span.cm-comment')
-      .first()
-      .contains('Python');
+    cy.get('span.cm-comment').first().contains('Python');
 
     closeTabWithoutSaving();
   });
@@ -482,7 +486,7 @@ const checkCodeMirror = (): void => {
 const closeTabWithoutSaving = (): void => {
   // Close the current tab and handle any save dialog
   cy.closeTab(-1);
-  
+
   // If save dialog appears, click "Don't Save"
   cy.get('body').then(($body) => {
     if ($body.find('.jp-Dialog-header:contains("Save your work")').length > 0) {
