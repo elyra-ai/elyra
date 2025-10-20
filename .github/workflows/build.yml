@@ -95,7 +95,11 @@ jobs:
         run: pip freeze
       - name: Test
         id: Test
-        run: make pytest
+        # Note: we have to copy the tests dir into the package to get the tests to run properly
+        run: |
+          make copy-tests-to-package
+          make pytest
+          make clean-tests-from-package
       - name: Fetch packages metadata (if Test step failed)
         # Note: checking for general failure() first is needed according to docs
         if: ${{ failure() && steps.Test.conclusion == 'failure' }}
