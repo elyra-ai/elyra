@@ -54,8 +54,8 @@ describe('R Editor tests', () => {
 
   it('check icons', () => {
     // Check file menu editor contents
-    cy.get('.lm-MenuBar-itemLabel:contains("File")').click();
-    cy.get('.lm-Menu-itemLabel:contains("New")').click();
+    cy.get('.lm-MenuBar-itemLabel:contains("File")').first().click();
+    cy.get('.lm-Menu-itemLabel:contains("New")').first().click();
     cy.get(
       '[data-command="script-editor:create-new-r-editor"] svg[data-icon="elyra:rIcon"]'
     );
@@ -71,8 +71,8 @@ describe('R Editor tests', () => {
   });
 
   it('opens blank R file from menu', () => {
-    cy.get('.lm-MenuBar-itemLabel:contains("File")').click();
-    cy.get('.lm-Menu-itemLabel:contains("New")').click();
+    cy.get('.lm-MenuBar-itemLabel:contains("File")').first().click();
+    cy.get('.lm-Menu-itemLabel:contains("New")').first().click();
 
     cy.get(
       '[data-command="script-editor:create-new-r-editor"] > .lm-Menu-itemLabel'

@@ -54,8 +54,8 @@ describe('Python Editor tests', () => {
 
   it('opens blank Python editor from menu', () => {
     // Open File menu
-    cy.get('.lm-MenuBar-itemLabel:contains("File")').click();
-    cy.get('.lm-Menu-itemLabel:contains("New")').click();
+    cy.get('.lm-MenuBar-itemLabel:contains("File")').first().click();
+    cy.get('.lm-Menu-itemLabel:contains("New")').first().click();
 
     cy.get(
       '[data-command="script-editor:create-new-python-editor"] > .lm-Menu-itemLabel'
