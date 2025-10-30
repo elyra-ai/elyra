@@ -92,7 +92,7 @@ uninstall:
 	# remove GitLab dependency
 	- $(PYTHON_PIP) uninstall -y python-gitlab
 
-clean: purge uninstall ## Make a clean source tree and uninstall extensions
+clean: clean-tests-from-package purge uninstall ## Make a clean source tree and uninstall extensions
 
 ## Lint targets
 
