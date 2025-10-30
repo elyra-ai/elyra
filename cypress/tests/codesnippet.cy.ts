@@ -36,10 +36,7 @@ describe('Code Snippet tests', () => {
     cy.get('[title="Create new code snippet"]').should('be.visible');
   });
 
-  // TODO: This test has dialog/tab management issues with JupyterLab 4.x
-  // In JupyterLab 4.x, metadata editor tabs don't auto-close after save
-  // which causes the delete operation to fail due to overlapping dialogs
-  it.skip('should show validation warnings only after submission', () => {
+  it('should show validation warnings only after submission', () => {
     const name = 'foo';
 
     clickCreateNewSnippetButton();
