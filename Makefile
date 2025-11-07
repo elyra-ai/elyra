@@ -20,7 +20,7 @@
 .PHONY: build-dependencies dev-dependencies yarn-install build-ui-prod build-ui-dev package-ui-prod package-ui-dev
 .PHONY: build-server install-server-package install-server
 .PHONY: install-prod install-dev install-all-prod install-all-dev install-examples install-gitlab-dependency check-install watch release
-.PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
+.PHONY: test-dependencies copy-tests-to-package pytest clean-tests-from-package test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
 .PHONY: elyra-image elyra-image-env publish-elyra-image kf-notebook-image publish-kf-notebook-image
 .PHONY: container-images publish-container-images validate-runtime-image validate-runtime-images
@@ -92,7 +92,7 @@ uninstall:
 	# remove GitLab dependency
 	- $(PYTHON_PIP) uninstall -y python-gitlab
 
-clean: purge uninstall ## Make a clean source tree and uninstall extensions
+clean: clean-tests-from-package purge uninstall ## Make a clean source tree and uninstall extensions
 
 ## Lint targets
 
@@ -210,10 +210,21 @@ elyra-image-env: ## Creates a conda env consisting of the dependencies used in i
 test-dependencies:
 	@$(PYTHON_PIP) install -q -r test_requirements.txt
 
-pytest:
+copy-tests-to-package: ## Copy test files to installed package
+	@$(PYTHON) -c "import site, shutil, pathlib; \
+	src = pathlib.Path('elyra/tests'); \
+	dst = pathlib.Path(site.getsitepackages()[0]) / 'elyra' / 'tests'; \
+	shutil.copytree(src, dst, dirs_exist_ok=True)"
+
+pytest: ## Run python unit tests
 	$(PYTHON) -m pytest -v --durations=0 --durations-min=60 elyra --cov --cov-report=xml
 
-test-server: test-dependencies pytest # Run python unit tests
+clean-tests-from-package: ## Remove test files from installed package
+	@$(PYTHON) -c "import site, shutil, pathlib; \
+	dst = pathlib.Path(site.getsitepackages()[0]) / 'elyra' / 'tests'; \
+	shutil.rmtree(dst, ignore_errors=True)"
+
+test-server: test-dependencies copy-tests-to-package pytest clean-tests-from-package ## Run backend tests
 
 test-ui-unit: # Run frontend jest unit tests
 	yarn test:unit
