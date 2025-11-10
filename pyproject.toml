@@ -56,6 +56,9 @@ dependencies = [
     "kfp-kubernetes>=1.0.0",
     "pygithub",
     "black>=22.8.0",
+    # AI assistant dependencies
+    "jupyter-ai>=2.0.0",
+    "jupyterlab-magic-wand>=0.1.0",
 ]
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
@@ -105,10 +108,6 @@ kfp = [
 ]
 kfp-examples = [
     "elyra-examples-kfp-catalog",
-]
-magic-wand = [
-    "jupyter-ai>=2.0.0",
-    "jupyterlab-magic-wand>=0.1.0"
 ]
 # The following is a collection of "non-test" extra dependencies from above.
 all = [
