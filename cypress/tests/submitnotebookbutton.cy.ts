@@ -22,6 +22,7 @@ describe('Submit Notebook Button tests', () => {
 
   beforeEach(() => {
     cy.resetJupyterLab();
+    cy.wait(2000);
   });
 
   after(() => {
