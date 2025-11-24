@@ -63,6 +63,8 @@ try:
 except ImportError:
     pass  # Gitlab package is not installed, ignore and use only GitHub
 
+from elyra.util.gitea import GiteaClient
+
 from elyra.util.gitutil import SupportedGitTypes  # noqa:I202
 from elyra.util.path import get_absolute_path
 
@@ -130,6 +132,8 @@ be fully qualified (i.e., prefixed with their package names).
         git_type = SupportedGitTypes.get_instance_by_name(
             runtime_configuration.metadata.get("git_type", SupportedGitTypes.GITHUB.name)
         )
+
+        # Validate git type dependencies
         if git_type == SupportedGitTypes.GITLAB and SupportedGitTypes.is_enabled(SupportedGitTypes.GITLAB) is False:
             raise ValueError(
                 "Python package `python-gitlab` is not installed. "
@@ -158,37 +162,57 @@ be fully qualified (i.e., prefixed with their package names).
             self.log.debug(f"Uploading pipeline file '{pipeline_filepath}'")
 
             try:
+                # Create appropriate git client based on git_type
                 if git_type == SupportedGitTypes.GITHUB:
                     git_client = GithubClient(
-                        server_url=github_api_endpoint, token=github_repo_token, repo=github_repo, branch=github_branch
+                        server_url=github_api_endpoint,
+                        token=github_repo_token,
+                        repo=github_repo,
+                        branch=github_branch
                     )
-                else:
+                elif git_type == SupportedGitTypes.GITLAB:
                     git_client = GitLabClient(
                         server_url=github_api_endpoint,
                         token=github_repo_token,
                         project=github_repo,
                         branch=github_branch,
                     )
+                elif git_type == SupportedGitTypes.GITEA:
+                    git_client = GiteaClient(
+                        server_url=github_api_endpoint,
+                        token=github_repo_token,
+                        repo=github_repo,
+                        branch=github_branch,
+                    )
+                else:
+                    raise ValueError(f"Unsupported git type: {git_type}")
 
             except BaseException as be:
-                raise RuntimeError(f"Unable to create a connection to {github_api_endpoint}: {str(be)}") from be
+                raise RuntimeError(
+                    f"Unable to create a connection to {github_api_endpoint}: {str(be)}"
+                ) from be
 
             git_client.upload_dag(pipeline_filepath, pipeline_instance_id)
 
             self.log.info("Waiting for Airflow Scheduler to process and start the pipeline")
 
             download_url = git_client.get_git_url(
-                api_url=github_api_endpoint, repository_name=github_repo, repository_branch=github_branch
+                api_url=github_api_endpoint,
+                repository_name=github_repo,
+                repository_branch=github_branch
             )
 
             self.log_pipeline_info(
-                pipeline.name, f"pipeline pushed to git: {download_url}", duration=(time.time() - t0_all)
+                pipeline.name,
+                f"pipeline pushed to git: {download_url}",
+                duration=(time.time() - t0_all)
             )
 
             if pipeline.contains_generic_operations():
                 object_storage_url = f"{cos_endpoint}"
                 os_path = join_paths(
-                    pipeline.pipeline_properties.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
+                    pipeline.pipeline_properties.get(pipeline_constants.COS_OBJECT_PREFIX),
+                    pipeline_instance_id
                 )
                 object_storage_path = f"/{cos_bucket}/{os_path}"
             else:
