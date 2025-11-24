@@ -114,3 +114,5 @@ build
 .env
 rebuild.ps1
 build.ps1
+.virtual_documents
+elyra/tests/airflow/test_gitea_client.py
