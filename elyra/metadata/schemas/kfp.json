@@ -10,7 +10,7 @@
   "uihints": {
     "title": "Kubeflow Pipelines runtimes",
     "icon": "elyra:runtimes",
-    "reference_url": "https://elyra.readthedocs.io/en/v4.0.0/user_guide/runtime-conf.html"
+    "reference_url": "https://elyra.readthedocs.io/en/latest/user_guide/runtime-conf.html"
   },
   "properties": {
     "schema_name": {
@@ -77,7 +77,7 @@
           "title": "Kubeflow Pipelines engine",
           "description": "The Kubeflow Pipelines engine in use",
           "type": "string",
-          "enum": ["Argo", "Tekton"],
+          "enum": ["Argo"],
           "default": "Argo",
           "uihints": {
             "category": "Kubeflow Pipelines"

@@ -20,7 +20,7 @@
 .PHONY: build-dependencies dev-dependencies yarn-install build-ui-prod build-ui-dev package-ui-prod package-ui-dev
 .PHONY: build-server install-server-package install-server
 .PHONY: install-prod install-dev install-all-prod install-all-dev install-examples install-gitlab-dependency check-install watch release
-.PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
+.PHONY: test-dependencies copy-tests-to-package pytest clean-tests-from-package test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
 .PHONY: elyra-image elyra-image-env publish-elyra-image kf-notebook-image publish-kf-notebook-image
 .PHONY: container-images publish-container-images validate-runtime-image validate-runtime-images
@@ -40,7 +40,7 @@ PYTHON_VERSION?=3.13
 CONDA_ACTIVATE = source $$(conda info --base)/etc/profile.d/conda.sh ; conda activate
 
 ELYRA_VERSION:=$$(grep __version__ elyra/_version.py | cut -d"\"" -f2)
-TAG:=4.0.0
+TAG:=dev
 IMAGE_IS_LATEST=False
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 ELYRA_IMAGE_LATEST=elyra/elyra:latest
@@ -65,6 +65,7 @@ help:
 purge:
 	rm -rf build *.egg-info yarn-error.log
 	rm -rf node_modules lib dist
+	rm -rf $$(find labextension -name labextensions -type d)
 	rm -rf $$(find packages -name node_modules -type d -maxdepth 2)
 	rm -rf $$(find packages -name dist -type d)
 	rm -rf $$(find packages -name lib -type d)
@@ -91,7 +92,7 @@ uninstall:
 	# remove GitLab dependency
 	- $(PYTHON_PIP) uninstall -y python-gitlab
 
-clean: purge uninstall ## Make a clean source tree and uninstall extensions
+clean: clean-tests-from-package purge uninstall ## Make a clean source tree and uninstall extensions
 
 ## Lint targets
 
@@ -165,7 +166,7 @@ uninstall-server-package:
 	@$(PYTHON_PIP) uninstall elyra -y
 
 install-server-package: uninstall-server-package
-	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
+	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) "$(shell find dist -name "elyra-*-py3-none-any.whl")"
 
 install-server: build-dependencies lint-server build-server install-server-package ## Build and install backend
 
@@ -209,10 +210,21 @@ elyra-image-env: ## Creates a conda env consisting of the dependencies used in i
 test-dependencies:
 	@$(PYTHON_PIP) install -q -r test_requirements.txt
 
-pytest:
+copy-tests-to-package: ## Copy test files to installed package
+	@$(PYTHON) -c "import site, shutil, pathlib; \
+	src = pathlib.Path('elyra/tests'); \
+	dst = pathlib.Path(site.getsitepackages()[0]) / 'elyra' / 'tests'; \
+	shutil.copytree(src, dst, dirs_exist_ok=True)"
+
+pytest: ## Run python unit tests
 	$(PYTHON) -m pytest -v --durations=0 --durations-min=60 elyra --cov --cov-report=xml
 
-test-server: test-dependencies pytest # Run python unit tests
+clean-tests-from-package: ## Remove test files from installed package
+	@$(PYTHON) -c "import site, shutil, pathlib; \
+	dst = pathlib.Path(site.getsitepackages()[0]) / 'elyra' / 'tests'; \
+	shutil.rmtree(dst, ignore_errors=True)"
+
+test-server: test-dependencies copy-tests-to-package pytest clean-tests-from-package ## Run backend tests
 
 test-ui-unit: # Run frontend jest unit tests
 	yarn test:unit

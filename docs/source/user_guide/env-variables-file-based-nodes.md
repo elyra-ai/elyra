@@ -63,3 +63,16 @@ set env var **`ELYRA_GENERIC_NODES_ENABLE_SCRIPT_OUTPUT_TO_S3`** to **`false`**.
 If you want to set `ELYRA_GENERIC_NODES_ENABLE_SCRIPT_OUTPUT_TO_S3` to `false`, you can do so in either
 - Pipeline Editor at Pipeline Properties - Generic Node Defaults - Environment Variables or at Node Properties - Additional Properties - Environment Variables
 - Statically baked into Jupyterlab container definition for use in KFP or Airflow runtime image container build
+
+### `ELYRA_INSTALL_PACKAGES`
+
+Scope: Runtime image task (Airflow) or component (KFP) execution of file-based node Jupyter notebooks, Python scripts, and R scripts (bootstrapper pipeline run)
+
+Impact: Controls whether Elyra’s required packages are installed automatically during the bootstrap phase.
+
+Default: `true` if not specified, i.e. no explicit setting of this environment variable necessary.
+
+Background: 
+In air-gapped environments (where internet access is restricted), Elyra cannot automatically download its dependencies. Additionally, in some cases, the required packages may already be installed on the system.
+
+If your environment already has Elyra’s dependencies available, you can set **`ELYRA_INSTALL_PACKAGES`** to **`false`** to avoid installing them again or to avoid having errors in air-gapped environments.

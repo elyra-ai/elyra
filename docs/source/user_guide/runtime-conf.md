@@ -259,14 +259,11 @@ A password or token is required for most authentication types. Refer to the [Kub
 Example: `mypassword`
 
 ##### Kubeflow Pipelines engine (engine)
-The engine being used by Kubeflow Pipelines to run pipelines: `Argo` or `Tekton`. If you have access to the Kubernetes cluster where Kubeflow Pipelines is deployed, run these commands in a terminal window to determine the engine type.
+The engine being used by Kubeflow Pipelines to run pipelines: `Argo`. If you have access to the Kubernetes cluster where Kubeflow Pipelines is deployed, run these commands in a terminal window to determine the engine type.
 
 ```
 # If this command completes successfully, the engine type is Argo.
 kubectl describe configmap -n kubeflow workflow-controller-configmap
-
-# If this command completes successfully, the engine type is Tekton.
-kubectl describe configmap -n kubeflow kfp-tekton-config
 ```
 
 The default is `Argo`.

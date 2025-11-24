@@ -271,7 +271,7 @@ def pipeline():
     Run Elyra pipelines in your local environment or submit them to an external service,
     such as Kubeflow Pipelines or Apache Airflow.
 
-    Find more information at: https://elyra.readthedocs.io/en/v4.0.0/
+    Find more information at: https://elyra.readthedocs.io/en/latest/
     """
     pass
 
@@ -428,8 +428,7 @@ def _monitor_kfp_submission(runtime_config: dict, runtime_config_name: str, run_
         raise click.ClickException(f"Kubeflow authentication failed: {ae}")
 
     try:
-        # Create a Kubeflow Pipelines client. There is no need to use a Tekton client,
-        # because the monitoring API is agnostic.
+        # Create a Kubeflow Pipelines client.
         client = ArgoClient(
             host=runtime_config.metadata["api_endpoint"].rstrip("/"),
             cookies=auth_info.get("cookies", None),

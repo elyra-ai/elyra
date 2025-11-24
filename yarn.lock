@@ -2014,13 +2014,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@colors/colors@npm:1.5.0":
-  version: 1.5.0
-  resolution: "@colors/colors@npm:1.5.0"
-  checksum: d64d5260bed1d5012ae3fc617d38d1afc0329fec05342f4e6b838f46998855ba56e0a73833f4a80fa8378c84810da254f76a8a19c39d038260dc06dc4e007425
-  languageName: node
-  linkType: hard
-
 "@cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -2030,32 +2023,32 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cypress/code-coverage@npm:^3.13.9":
-  version: 3.14.2
-  resolution: "@cypress/code-coverage@npm:3.14.2"
+"@cypress/code-coverage@npm:^3.14.7":
+  version: 3.14.7
+  resolution: "@cypress/code-coverage@npm:3.14.7"
   dependencies:
     "@cypress/webpack-preprocessor": ^6.0.0
     chalk: 4.1.2
     dayjs: 1.11.13
     debug: 4.4.0
     execa: 4.1.0
-    globby: 11.1.0
     istanbul-lib-coverage: ^3.0.0
     js-yaml: 4.1.0
     nyc: 15.1.0
+    tinyglobby: ^0.2.14
   peerDependencies:
     "@babel/core": ^7.0.1
     "@babel/preset-env": ^7.0.0
-    babel-loader: ^8.3 || ^9
+    babel-loader: ^8.3 || ^9 || ^10
     cypress: "*"
     webpack: ^4 || ^5
-  checksum: d0ddeafc8f4303ce75749cd55f8e4697c9f6ddddb2ca405c2cc33e9abe5fceb54b1cd49a5b11eb3ff30903323ed85bd27e9d7038841adbad4d26f7a25d5a87a9
+  checksum: a30abe18a37276c61f669eda9aad531e58b20cea1a293768771a04945ca4d589911039adf5824c98d591571cf72748eff812e8c8edfd7003500a903d8df0fd7e
   languageName: node
   linkType: hard
 
-"@cypress/request@npm:^3.0.6":
-  version: 3.0.7
-  resolution: "@cypress/request@npm:3.0.7"
+"@cypress/request@npm:^3.0.9":
+  version: 3.0.9
+  resolution: "@cypress/request@npm:3.0.9"
   dependencies:
     aws-sign2: ~0.7.0
     aws4: ^1.8.0
@@ -2063,19 +2056,19 @@ __metadata:
     combined-stream: ~1.0.6
     extend: ~3.0.2
     forever-agent: ~0.6.1
-    form-data: ~4.0.0
+    form-data: ~4.0.4
     http-signature: ~1.4.0
     is-typedarray: ~1.0.0
     isstream: ~0.1.2
     json-stringify-safe: ~5.0.1
     mime-types: ~2.1.19
     performance-now: ^2.1.0
-    qs: 6.13.1
+    qs: 6.14.0
     safe-buffer: ^5.1.2
     tough-cookie: ^5.0.0
     tunnel-agent: ^0.6.0
     uuid: ^8.3.2
-  checksum: af1736764789d8023ce35d1aeb6e2f317943e65a1e83c97d83d6230257a725832d299be8c2432e508e07b5fbe03ac00112247686756511f5ec380f82bc8e69ff
+  checksum: d22327b6fc52c8c6bbfa82b3a5b40f890f869da615c0dd494b3bf2c016eb3b1875082b451571d6b109a84c7e73a5869e9a997cdb71716e46900f607002e6afd0
   languageName: node
   linkType: hard
 
@@ -2154,9 +2147,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/code-snippet-extension@workspace:packages/code-snippet"
   dependencies:
-    "@elyra/metadata-common": 4.0.0
-    "@elyra/services": 4.0.0
-    "@elyra/ui-components": 4.0.0
+    "@elyra/metadata-common": 4.0.1-dev
+    "@elyra/services": 4.0.1-dev
+    "@elyra/ui-components": 4.0.1-dev
     "@jupyterlab/application": ^4.4.2
     "@jupyterlab/apputils": ^4.4.2
     "@jupyterlab/builder": ^4.4.2
@@ -2182,12 +2175,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@elyra/metadata-common@4.0.0, @elyra/metadata-common@workspace:packages/metadata-common":
+"@elyra/metadata-common@4.0.1-dev, @elyra/metadata-common@workspace:packages/metadata-common":
   version: 0.0.0-use.local
   resolution: "@elyra/metadata-common@workspace:packages/metadata-common"
   dependencies:
-    "@elyra/services": 4.0.0
-    "@elyra/ui-components": 4.0.0
+    "@elyra/services": 4.0.1-dev
+    "@elyra/ui-components": 4.0.1-dev
     "@jupyterlab/application": ^4.4.2
     "@jupyterlab/apputils": ^4.4.2
     "@jupyterlab/builder": ^4.4.2
@@ -2210,9 +2203,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/metadata-extension@workspace:packages/metadata"
   dependencies:
-    "@elyra/metadata-common": 4.0.0
-    "@elyra/services": 4.0.0
-    "@elyra/ui-components": 4.0.0
+    "@elyra/metadata-common": 4.0.1-dev
+    "@elyra/services": 4.0.1-dev
+    "@elyra/ui-components": 4.0.1-dev
     "@jupyterlab/application": ^4.4.2
     "@jupyterlab/apputils": ^4.4.2
     "@jupyterlab/builder": ^4.4.2
@@ -2230,11 +2223,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/pipeline-editor-extension@workspace:packages/pipeline-editor"
   dependencies:
-    "@elyra/metadata-common": 4.0.0
+    "@elyra/metadata-common": 4.0.1-dev
     "@elyra/pipeline-editor": 1.12.1
     "@elyra/pipeline-services": 1.12.1
-    "@elyra/services": 4.0.0
-    "@elyra/ui-components": 4.0.0
+    "@elyra/services": 4.0.1-dev
+    "@elyra/ui-components": 4.0.1-dev
     "@jupyterlab/application": ^4.4.2
     "@jupyterlab/apputils": ^4.4.2
     "@jupyterlab/builder": ^4.4.2
@@ -2321,8 +2314,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/python-editor-extension@workspace:packages/python-editor"
   dependencies:
-    "@elyra/script-editor": 4.0.0
-    "@elyra/ui-components": 4.0.0
+    "@elyra/script-editor": 4.0.1-dev
+    "@elyra/ui-components": 4.0.1-dev
     "@jupyterlab/application": ^4.4.2
     "@jupyterlab/apputils": ^4.4.2
     "@jupyterlab/builder": ^4.4.2
@@ -2344,8 +2337,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/r-editor-extension@workspace:packages/r-editor"
   dependencies:
-    "@elyra/script-editor": 4.0.0
-    "@elyra/ui-components": 4.0.0
+    "@elyra/script-editor": 4.0.1-dev
+    "@elyra/ui-components": 4.0.1-dev
     "@jupyterlab/application": ^4.4.2
     "@jupyterlab/apputils": ^4.4.2
     "@jupyterlab/builder": ^4.4.2
@@ -2367,8 +2360,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/scala-editor-extension@workspace:packages/scala-editor"
   dependencies:
-    "@elyra/script-editor": 4.0.0
-    "@elyra/ui-components": 4.0.0
+    "@elyra/script-editor": 4.0.1-dev
+    "@elyra/ui-components": 4.0.1-dev
     "@jupyterlab/application": ^4.4.2
     "@jupyterlab/apputils": ^4.4.2
     "@jupyterlab/builder": ^4.4.2
@@ -2390,7 +2383,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/script-debugger-extension@workspace:packages/script-debugger"
   dependencies:
-    "@elyra/script-editor": 4.0.0
+    "@elyra/script-editor": 4.0.1-dev
     "@jupyterlab/application": ^4.4.2
     "@jupyterlab/builder": ^4.4.2
     "@jupyterlab/debugger": ^4.4.2
@@ -2402,7 +2395,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@elyra/script-editor@4.0.0, @elyra/script-editor@workspace:packages/script-editor":
+"@elyra/script-editor@4.0.1-dev, @elyra/script-editor@workspace:packages/script-editor":
   version: 0.0.0-use.local
   resolution: "@elyra/script-editor@workspace:packages/script-editor"
   dependencies:
@@ -2428,7 +2421,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@elyra/services@4.0.0, @elyra/services@workspace:packages/services":
+"@elyra/services@4.0.1-dev, @elyra/services@workspace:packages/services":
   version: 0.0.0-use.local
   resolution: "@elyra/services@workspace:packages/services"
   dependencies:
@@ -2449,7 +2442,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/theme-extension@workspace:packages/theme"
   dependencies:
-    "@elyra/ui-components": 4.0.0
+    "@elyra/ui-components": 4.0.1-dev
     "@jupyterlab/application": ^4.4.2
     "@jupyterlab/apputils": ^4.4.2
     "@jupyterlab/builder": ^4.4.2
@@ -2466,7 +2459,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@elyra/ui-components@4.0.0, @elyra/ui-components@workspace:packages/ui-components":
+"@elyra/ui-components@4.0.1-dev, @elyra/ui-components@workspace:packages/ui-components":
   version: 0.0.0-use.local
   resolution: "@elyra/ui-components@workspace:packages/ui-components"
   dependencies:
@@ -6447,6 +6440,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"async-function@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "async-function@npm:1.0.0"
+  checksum: 9102e246d1ed9b37ac36f57f0a6ca55226876553251a31fc80677e71471f463a54c872dc78d5d7f80740c8ba624395cccbe8b60f7b690c4418f487d8e9fd1106
+  languageName: node
+  linkType: hard
+
+"async-generator-function@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "async-generator-function@npm:1.0.0"
+  checksum: 74a71a4a2dd7afd06ebb612f6d612c7f4766a351bedffde466023bf6dae629e46b0d2cd38786239e0fbf245de0c7df76035465e16d1213774a0efb22fec0d713
+  languageName: node
+  linkType: hard
+
 "async@npm:^3.2.0, async@npm:^3.2.3":
   version: 3.2.4
   resolution: "async@npm:3.2.4"
@@ -6901,6 +6908,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"call-bound@npm:^1.0.2":
+  version: 1.0.4
+  resolution: "call-bound@npm:1.0.4"
+  dependencies:
+    call-bind-apply-helpers: ^1.0.2
+    get-intrinsic: ^1.3.0
+  checksum: 2f6399488d1c272f56306ca60ff696575e2b7f31daf23bc11574798c84d9f2759dceb0cb1f471a85b77f28962a7ac6411f51d283ea2e45319009a19b6ccab3b2
+  languageName: node
+  linkType: hard
+
 "callsites@npm:^3.0.0":
   version: 3.1.0
   resolution: "callsites@npm:3.1.0"
@@ -7119,6 +7136,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ci-info@npm:^4.1.0":
+  version: 4.3.1
+  resolution: "ci-info@npm:4.3.1"
+  checksum: 66c159d92648e8a07acab0a3a0681bff6ccc39aa44916263208c4d97bbbeedbbc886d7611fd30c21df1aa624ce3c6fcdfde982e74689e3e014e064e1d0805f94
+  languageName: node
+  linkType: hard
+
 "cjs-module-lexer@npm:^1.0.0":
   version: 1.4.0
   resolution: "cjs-module-lexer@npm:1.4.0"
@@ -7179,16 +7203,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cli-table3@npm:~0.6.1":
-  version: 0.6.5
-  resolution: "cli-table3@npm:0.6.5"
+"cli-table3@npm:0.6.1":
+  version: 0.6.1
+  resolution: "cli-table3@npm:0.6.1"
   dependencies:
-    "@colors/colors": 1.5.0
+    colors: 1.4.0
     string-width: ^4.2.0
   dependenciesMeta:
-    "@colors/colors":
+    colors:
       optional: true
-  checksum: ab7afbf4f8597f1c631f3ee6bb3481d0bfeac8a3b81cffb5a578f145df5c88003b6cfff46046a7acae86596fdd03db382bfa67f20973b6b57425505abc47e42c
+  checksum: 956e175f8eb019c26465b9f1e51121c08d8978e2aab04be7f8520ea8a4e67906fcbd8516dfb77e386ae3730ef0281aa21a65613dffbfa3d62969263252bd25a9
   languageName: node
   linkType: hard
 
@@ -7384,6 +7408,13 @@ __metadata:
   version: 2.0.20
   resolution: "colorette@npm:2.0.20"
   checksum: 0c016fea2b91b733eb9f4bcdb580018f52c0bc0979443dad930e5037a968237ac53d9beb98e218d2e9235834f8eebce7f8e080422d6194e957454255bde71d3d
+  languageName: node
+  linkType: hard
+
+"colors@npm:1.4.0":
+  version: 1.4.0
+  resolution: "colors@npm:1.4.0"
+  checksum: 98aa2c2418ad87dedf25d781be69dc5fc5908e279d9d30c34d8b702e586a0474605b3a189511482b9d5ed0d20c867515d22749537f7bc546256c6014f3ebdcec
   languageName: node
   linkType: hard
 
@@ -7846,11 +7877,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cypress@npm:^13.17.0":
-  version: 13.17.0
-  resolution: "cypress@npm:13.17.0"
+"cypress@npm:^14.5.4":
+  version: 14.5.4
+  resolution: "cypress@npm:14.5.4"
   dependencies:
-    "@cypress/request": ^3.0.6
+    "@cypress/request": ^3.0.9
     "@cypress/xvfb": ^1.2.4
     "@types/sinonjs__fake-timers": 8.1.1
     "@types/sizzle": ^2.3.2
@@ -7861,9 +7892,9 @@ __metadata:
     cachedir: ^2.3.0
     chalk: ^4.1.0
     check-more-types: ^2.24.0
-    ci-info: ^4.0.0
+    ci-info: ^4.1.0
     cli-cursor: ^3.1.0
-    cli-table3: ~0.6.1
+    cli-table3: 0.6.1
     commander: ^6.2.1
     common-tags: ^1.8.0
     dayjs: ^1.10.4
@@ -7876,6 +7907,7 @@ __metadata:
     figures: ^3.2.0
     fs-extra: ^9.1.0
     getos: ^3.2.1
+    hasha: 5.2.2
     is-installed-globally: ~0.4.0
     lazy-ass: ^1.6.0
     listr2: ^3.8.3
@@ -7887,7 +7919,7 @@ __metadata:
     process: ^0.11.10
     proxy-from-env: 1.0.0
     request-progress: ^3.0.0
-    semver: ^7.5.3
+    semver: ^7.7.1
     supports-color: ^8.1.1
     tmp: ~0.2.3
     tree-kill: 1.2.2
@@ -7895,7 +7927,7 @@ __metadata:
     yauzl: ^2.10.0
   bin:
     cypress: bin/cypress
-  checksum: c1d87358e8b92e19e3bf5246a8787dcdd5083e27fa7b816d26c28b4678ecd87b5b3b8661fb812bc993845ca30a482d3f18837af1ac6d9e142e41049dccbc51e0
+  checksum: 5fe95e88a6af1a454021a00490e051e658254744d14f0f51ecadb98ad2a37097f4774163423384a5a7d847496e5bb5b46cdf9c68007a86530659758edf1a9405
   languageName: node
   linkType: hard
 
@@ -8757,7 +8789,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "elyra@workspace:."
   dependencies:
-    "@cypress/code-coverage": ^3.13.9
+    "@cypress/code-coverage": ^3.14.7
     "@glen/jest-raw-loader": ^2.0.0
     "@testing-library/cypress": ^10.0.2
     "@types/jest": ^29.2.0
@@ -8766,7 +8798,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ~6.13.2
     "@typescript-eslint/parser": ~6.13.2
     chalk: ^5.4.1
-    cypress: ^13.17.0
+    cypress: ^14.5.4
     cypress-real-events: ^1.13.0
     eslint: ~8.55.0
     eslint-config-prettier: ~9.1.0
@@ -9774,6 +9806,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fdir@npm:^6.5.0":
+  version: 6.5.0
+  resolution: "fdir@npm:6.5.0"
+  peerDependencies:
+    picomatch: ^3 || ^4
+  peerDependenciesMeta:
+    picomatch:
+      optional: true
+  checksum: bd537daa9d3cd53887eed35efa0eab2dbb1ca408790e10e024120e7a36c6e9ae2b33710cb8381e35def01bc9c1d7eaba746f886338413e68ff6ebaee07b9a6e8
+  languageName: node
+  linkType: hard
+
 "figures@npm:3.2.0, figures@npm:^3.0.0, figures@npm:^3.2.0":
   version: 3.2.0
   resolution: "figures@npm:3.2.0"
@@ -9943,7 +9987,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"form-data@npm:^4.0.0, form-data@npm:~4.0.0":
+"form-data@npm:^4.0.0, form-data@npm:~4.0.4":
   version: 4.0.4
   resolution: "form-data@npm:4.0.4"
   dependencies:
@@ -10116,6 +10160,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"generator-function@npm:^2.0.0":
+  version: 2.0.1
+  resolution: "generator-function@npm:2.0.1"
+  checksum: 3bf87f7b0230de5d74529677e6c3ceb3b7b5d9618b5a22d92b45ce3876defbaf5a77791b25a61b0fa7d13f95675b5ff67a7769f3b9af33f096e34653519e873d
+  languageName: node
+  linkType: hard
+
 "gensync@npm:^1.0.0-beta.2":
   version: 1.0.0-beta.2
   resolution: "gensync@npm:1.0.0-beta.2"
@@ -10158,6 +10209,27 @@ __metadata:
     has-symbols: "npm:^1.0.3"
     hasown: "npm:^2.0.0"
   checksum: 414e3cdf2c203d1b9d7d33111df746a4512a1aa622770b361dadddf8ed0b5aeb26c560f49ca077e24bfafb0acb55ca908d1f709216ccba33ffc548ec8a79a951
+  languageName: node
+  linkType: hard
+
+"get-intrinsic@npm:^1.2.5, get-intrinsic@npm:^1.3.0":
+  version: 1.3.1
+  resolution: "get-intrinsic@npm:1.3.1"
+  dependencies:
+    async-function: ^1.0.0
+    async-generator-function: ^1.0.0
+    call-bind-apply-helpers: ^1.0.2
+    es-define-property: ^1.0.1
+    es-errors: ^1.3.0
+    es-object-atoms: ^1.1.1
+    function-bind: ^1.1.2
+    generator-function: ^2.0.0
+    get-proto: ^1.0.1
+    gopd: ^1.2.0
+    has-symbols: ^1.1.0
+    hasown: ^2.0.2
+    math-intrinsics: ^1.1.0
+  checksum: c02b3b6a445f9cd53e14896303794ac60f9751f58a69099127248abdb0251957174c6524245fc68579dc8e6a35161d3d94c93e665f808274716f4248b269436a
   languageName: node
   linkType: hard
 
@@ -10649,7 +10721,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hasha@npm:^5.0.0":
+"hasha@npm:5.2.2, hasha@npm:^5.0.0":
   version: 5.2.2
   resolution: "hasha@npm:5.2.2"
   dependencies:
@@ -14021,6 +14093,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"object-inspect@npm:^1.13.3":
+  version: 1.13.4
+  resolution: "object-inspect@npm:1.13.4"
+  checksum: 582810c6a8d2ef988ea0a39e69e115a138dad8f42dd445383b394877e5816eb4268489f316a6f74ee9c4e0a984b3eab1028e3e79d62b1ed67c726661d55c7a8b
+  languageName: node
+  linkType: hard
+
 "object-keys@npm:^1.1.1":
   version: 1.1.1
   resolution: "object-keys@npm:1.1.1"
@@ -14622,6 +14701,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"picomatch@npm:^4.0.3":
+  version: 4.0.3
+  resolution: "picomatch@npm:4.0.3"
+  checksum: 6817fb74eb745a71445debe1029768de55fd59a42b75606f478ee1d0dc1aa6e78b711d041a7c9d5550e042642029b7f373dc1a43b224c4b7f12d23436735dba0
+  languageName: node
+  linkType: hard
+
 "pidtree@npm:~0.6.0":
   version: 0.6.0
   resolution: "pidtree@npm:0.6.0"
@@ -14988,12 +15074,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:6.13.1":
-  version: 6.13.1
-  resolution: "qs@npm:6.13.1"
+"qs@npm:6.14.0":
+  version: 6.14.0
+  resolution: "qs@npm:6.14.0"
   dependencies:
-    side-channel: ^1.0.6
-  checksum: 86c5059146955fab76624e95771031541328c171b1d63d48a7ac3b1fdffe262faf8bc5fcadc1684e6f3da3ec87a8dedc8c0009792aceb20c5e94dc34cf468bb9
+    side-channel: ^1.1.0
+  checksum: 189b52ad4e9a0da1a16aff4c58b2a554a8dad9bd7e287c7da7446059b49ca2e33a49e570480e8be406b87fccebf134f51c373cbce36c8c83859efa0c9b71d635
   languageName: node
   linkType: hard
 
@@ -16026,6 +16112,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"semver@npm:^7.7.1":
+  version: 7.7.3
+  resolution: "semver@npm:7.7.3"
+  bin:
+    semver: bin/semver.js
+  checksum: f013a3ee4607857bcd3503b6ac1d80165f7f8ea94f5d55e2d3e33df82fce487aa3313b987abf9b39e0793c83c9fc67b76c36c067625141a9f6f704ae0ea18db2
+  languageName: node
+  linkType: hard
+
 "semver@npm:^7.7.2":
   version: 7.7.2
   resolution: "semver@npm:7.7.2"
@@ -16109,6 +16204,41 @@ __metadata:
   languageName: node
   linkType: hard
 
+"side-channel-list@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "side-channel-list@npm:1.0.0"
+  dependencies:
+    es-errors: ^1.3.0
+    object-inspect: ^1.13.3
+  checksum: 603b928997abd21c5a5f02ae6b9cc36b72e3176ad6827fab0417ead74580cc4fb4d5c7d0a8a2ff4ead34d0f9e35701ed7a41853dac8a6d1a664fcce1a044f86f
+  languageName: node
+  linkType: hard
+
+"side-channel-map@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "side-channel-map@npm:1.0.1"
+  dependencies:
+    call-bound: ^1.0.2
+    es-errors: ^1.3.0
+    get-intrinsic: ^1.2.5
+    object-inspect: ^1.13.3
+  checksum: 42501371cdf71f4ccbbc9c9e2eb00aaaab80a4c1c429d5e8da713fd4d39ef3b8d4a4b37ed4f275798a65260a551a7131fd87fe67e922dba4ac18586d6aab8b06
+  languageName: node
+  linkType: hard
+
+"side-channel-weakmap@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "side-channel-weakmap@npm:1.0.2"
+  dependencies:
+    call-bound: ^1.0.2
+    es-errors: ^1.3.0
+    get-intrinsic: ^1.2.5
+    object-inspect: ^1.13.3
+    side-channel-map: ^1.0.1
+  checksum: a815c89bc78c5723c714ea1a77c938377ea710af20d4fb886d362b0d1f8ac73a17816a5f6640f354017d7e292a43da9c5e876c22145bac00b76cfb3468001736
+  languageName: node
+  linkType: hard
+
 "side-channel@npm:^1.0.4":
   version: 1.0.4
   resolution: "side-channel@npm:1.0.4"
@@ -16129,6 +16259,19 @@ __metadata:
     get-intrinsic: "npm:^1.2.4"
     object-inspect: "npm:^1.13.1"
   checksum: bfc1afc1827d712271453e91b7cd3878ac0efd767495fd4e594c4c2afaa7963b7b510e249572bfd54b0527e66e4a12b61b80c061389e129755f34c493aad9b97
+  languageName: node
+  linkType: hard
+
+"side-channel@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "side-channel@npm:1.1.0"
+  dependencies:
+    es-errors: ^1.3.0
+    object-inspect: ^1.13.3
+    side-channel-list: ^1.0.0
+    side-channel-map: ^1.0.1
+    side-channel-weakmap: ^1.0.2
+  checksum: bf73d6d6682034603eb8e99c63b50155017ed78a522d27c2acec0388a792c3ede3238b878b953a08157093b85d05797217d270b7666ba1f111345fbe933380ff
   languageName: node
   linkType: hard
 
@@ -16944,6 +17087,16 @@ __metadata:
   version: 2.3.8
   resolution: "through@npm:2.3.8"
   checksum: a38c3e059853c494af95d50c072b83f8b676a9ba2818dcc5b108ef252230735c54e0185437618596c790bbba8fcdaef5b290405981ffa09dce67b1f1bf190cbd
+  languageName: node
+  linkType: hard
+
+"tinyglobby@npm:^0.2.14":
+  version: 0.2.15
+  resolution: "tinyglobby@npm:0.2.15"
+  dependencies:
+    fdir: ^6.5.0
+    picomatch: ^4.0.3
+  checksum: 0e33b8babff966c6ab86e9b825a350a6a98a63700fa0bb7ae6cf36a7770a508892383adc272f7f9d17aaf46a9d622b455e775b9949a3f951eaaf5dfb26331d44
   languageName: node
   linkType: hard
 

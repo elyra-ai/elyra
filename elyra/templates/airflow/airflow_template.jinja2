@@ -1,4 +1,8 @@
+{% if airflow_major_version >= 3 %}
+from airflow.sdk import DAG
+{% else %}
 from airflow import DAG
+{% endif %}
 import pendulum
 
 args = {
@@ -10,6 +14,7 @@ dag = DAG(
     default_args=args,
     schedule='@once',
     start_date=pendulum.today('UTC').add(days=-1),
+    catchup=False,
     description="""
 {{ pipeline_description|replace("\"\"\"", "\\\"\\\"\\\"") }}
     """,
