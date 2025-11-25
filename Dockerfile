@@ -73,6 +73,16 @@ RUN yarn install && \
 # Install Elyra python package (NOT editable - proper installation)
 RUN pip install . --no-cache-dir
 
+# ===== CRITICAL FIX: Force MinIO upgrade to match Elyra requirements =====
+# Airflow constraints may have installed minio<7.0.0, but Elyra requires >=7.0.0
+# We need to force reinstall to ensure compatibility with the new Elyra code
+RUN pip install --no-cache-dir --force-reinstall "minio>=7.0.0,!=7.2.1,<8.0.0"
+# ========================================================================
+
+# Verify the MinIO version is correct (optional but helpful for debugging)
+RUN echo "=== Verifying MinIO version ===" && \
+    pip show minio | grep Version
+
 # Explicitly enable Elyra server extension
 RUN jupyter server extension enable elyra --py --sys-prefix
 
