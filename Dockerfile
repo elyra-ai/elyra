@@ -114,9 +114,9 @@ COPY --from=builder /opt/conda/share/jupyter /opt/conda/share/jupyter
 COPY --from=builder /opt/conda/etc/jupyter /opt/conda/etc/jupyter
 
 # Copy start.sh into image (before USER switch, so we can chmod)
-COPY start.sh /usr/local/bin/start.sh
-RUN chmod +x /usr/local/bin/start.sh && \
-    chown jovyan:users /usr/local/bin/start.sh
+#COPY start.sh /usr/local/bin/start.sh
+#RUN chmod +x /usr/local/bin/start.sh && \
+#    chown jovyan:users /usr/local/bin/start.sh
 
 # Create work directory with proper permissions
 RUN mkdir -p /home/jovyan/work && \
@@ -133,4 +133,5 @@ USER jovyan
 EXPOSE 8888
 
 # Default command for the container
-CMD ["/usr/local/bin/start.sh"]
+#CMD ["/usr/local/bin/start.sh"]
+CMD ["jupyter", "lab", "--ip=0.0.0.0"]
