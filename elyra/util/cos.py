@@ -94,11 +94,7 @@ class CosClient(LoggingConfigurable):
         self.secure = self.endpoint.scheme == "https"
 
         # get minio client
-        self.client = minio.Minio(
-            endpoint=self.endpoint.netloc,
-            secure=self.secure,
-            credentials=cred_provider
-        )
+        self.client = minio.Minio(endpoint=self.endpoint.netloc, secure=self.secure, credentials=cred_provider)
 
         # Make a bucket with the make_bucket API call.
         try:
