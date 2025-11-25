@@ -87,7 +87,6 @@ target/
 # Build-related
 .image-*
 
-tsconfig.tsbuildinfo
 node_modules
 
 .vscode/
@@ -97,22 +96,5 @@ node_modules
 
 labextensions/**/labextension/*
 
-# -------------------------
-
-.git
-.gitignore
-node_modules
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.vscode
-*.pyc
-__pycache__
-.venv
-dist
-build
-.env
 rebuild.ps1
 build.ps1
-.virtual_documents
-elyra/tests/airflow/test_gitea_client.py
