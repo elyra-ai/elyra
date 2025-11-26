@@ -95,7 +95,8 @@ def stop_minio_container():
 @pytest.fixture(scope="function")
 def s3_setup():
     bucket_name = "test-bucket"
-    cos_client = minio.Minio(MINIO_HOST_PORT, access_key="minioadmin", secret_key="minioadmin", secure=False)
+    # cos_client = minio.Minio(MINIO_HOST_PORT, access_key="minioadmin", secret_key="minioadmin", secure=False)
+    cos_client = minio.Minio(endpoint=MINIO_HOST_PORT, credentials=minio.credentials.providers.StaticProvider(access_key="minioadmin", secret_key="minioadmin"), secure=False)
     cos_client.make_bucket(bucket_name)
 
     yield cos_client
