@@ -661,7 +661,12 @@ def test_put_file_object_store(monkeypatch, s3_setup, tmpdir):
     op.put_file_to_object_storage(object_name=file_to_put, file_to_upload=os.path.join(ELYRA_ROOT_DIR, file_to_put))
 
     with tmpdir.as_cwd():
-        s3_setup.fget_object(bucket_name, file_to_put, file_to_put)
+        # s3_setup.fget_object(bucket_name, file_to_put, file_to_put)
+        s3_setup.fget_object(
+            bucket_name=bucket_name,
+            object_name=file_to_put,
+            file_path=file_to_put,
+        )
         assert os.path.isfile(file_to_put)
         assert _fileChecksum(file_to_put) == _fileChecksum(os.path.join(ELYRA_ROOT_DIR, file_to_put))
 
