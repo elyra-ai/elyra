@@ -108,10 +108,10 @@ def s3_setup():
 
     yield cos_client
 
-    cleanup_files = cos_client.list_objects(bucket_name, recursive=True)
+    cleanup_files = cos_client.list_objects(bucket_name=bucket_name, recursive=True)
     for file in cleanup_files:
-        cos_client.remove_object(bucket_name, file.object_name)
-    cos_client.remove_bucket(bucket_name)
+        cos_client.remove_object(bucket_name=bucket_name, object_name=file.object_name)
+    cos_client.remove_bucket(bucket_name=bucket_name)
 
 
 def main_method_setup_execution(monkeypatch, s3_setup, tmpdir, argument_dict):
