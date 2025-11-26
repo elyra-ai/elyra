@@ -104,7 +104,7 @@ def s3_setup():
         ),
         secure=False,
     )
-    cos_client.make_bucket(bucket_name)
+    cos_client.make_bucket(bucket_name=bucket_name)
 
     yield cos_client
 
