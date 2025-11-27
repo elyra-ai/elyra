@@ -1,5 +1,6 @@
 import base64
 import os
+
 import giteapy
 from giteapy.rest import ApiException
 
@@ -65,9 +66,7 @@ class GiteaClient:
         # Determine if file exists
         sha = None
         try:
-            existing = self.repo_api.repo_get_contents(
-                self.owner, self.repo, path, ref=self.branch
-            )
+            existing = self.repo_api.repo_get_contents(self.owner, self.repo, path, ref=self.branch)
             sha = existing.sha
             file_exists = True
         except ApiException as e:
@@ -86,9 +85,7 @@ class GiteaClient:
                     content=content_b64,
                     sha=sha,
                 )
-                result = self.repo_api.repo_update_file(
-                    self.owner, self.repo, path, req
-                )
+                result = self.repo_api.repo_update_file(self.owner, self.repo, path, req)
             else:
                 # Create new file
                 req = giteapy.CreateFileOptions(
@@ -96,16 +93,12 @@ class GiteaClient:
                     message=message,
                     content=content_b64,
                 )
-                result = self.repo_api.repo_create_file(
-                    self.owner, self.repo, path, req
-                )
+                result = self.repo_api.repo_create_file(self.owner, self.repo, path, req)
 
             return result
 
         except ApiException as e:
-            raise RuntimeError(
-                f"Failed to upload DAG to Gitea: {e.status} - {e.reason}"
-            )
+            raise RuntimeError(f"Failed to upload DAG to Gitea: {e.status} - {e.reason}")
 
     def verify_repo_access(self) -> bool:
         """

@@ -56,14 +56,13 @@ from elyra.pipeline.properties import KubernetesToleration
 from elyra.pipeline.properties import VolumeMount
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.cos import join_paths
+from elyra.util.gitea import GiteaClient
 from elyra.util.github import GithubClient
 
 try:
     from elyra.util.gitlab import GitLabClient
 except ImportError:
     pass  # Gitlab package is not installed, ignore and use only GitHub
-
-from elyra.util.gitea import GiteaClient
 
 from elyra.util.gitutil import SupportedGitTypes  # noqa:I202
 from elyra.util.path import get_absolute_path
@@ -187,10 +186,7 @@ be fully qualified (i.e., prefixed with their package names).
                 # Create appropriate git client based on git_type
                 if git_type == SupportedGitTypes.GITHUB:
                     git_client = GithubClient(
-                        server_url=github_api_endpoint,
-                        token=github_repo_token,
-                        repo=github_repo,
-                        branch=github_branch
+                        server_url=github_api_endpoint, token=github_repo_token, repo=github_repo, branch=github_branch
                     )
                 elif git_type == SupportedGitTypes.GITLAB:
                     git_client = GitLabClient(
@@ -210,31 +206,24 @@ be fully qualified (i.e., prefixed with their package names).
                     raise ValueError(f"Unsupported git type: {git_type}")
 
             except BaseException as be:
-                raise RuntimeError(
-                    f"Unable to create a connection to {github_api_endpoint}: {str(be)}"
-                ) from be
+                raise RuntimeError(f"Unable to create a connection to {github_api_endpoint}: {str(be)}") from be
 
             git_client.upload_dag(pipeline_filepath, pipeline_instance_id)
 
             self.log.info("Waiting for Airflow Scheduler to process and start the pipeline")
 
             download_url = git_client.get_git_url(
-                api_url=github_api_endpoint,
-                repository_name=github_repo,
-                repository_branch=github_branch
+                api_url=github_api_endpoint, repository_name=github_repo, repository_branch=github_branch
             )
 
             self.log_pipeline_info(
-                pipeline.name,
-                f"pipeline pushed to git: {download_url}",
-                duration=(time.time() - t0_all)
+                pipeline.name, f"pipeline pushed to git: {download_url}", duration=(time.time() - t0_all)
             )
 
             if pipeline.contains_generic_operations():
                 object_storage_url = f"{cos_endpoint}"
                 os_path = join_paths(
-                    pipeline.pipeline_properties.get(pipeline_constants.COS_OBJECT_PREFIX),
-                    pipeline_instance_id
+                    pipeline.pipeline_properties.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
                 )
                 object_storage_path = f"/{cos_bucket}/{os_path}"
             else:

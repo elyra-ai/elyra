@@ -13,12 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from enum import Enum
 import logging
 
-from enum import Enum
 from typing import List
 
 logger = logging.getLogger(__name__)
+
 
 class SupportedGitTypes(Enum):
     GITHUB = "GitHub"
@@ -41,6 +42,7 @@ class SupportedGitTypes(Enum):
         # Enable GitLab (if python-gitlab installed)
         try:
             from elyra.util.gitlab import GitLabClient  # noqa: F401
+
             enabled_types.append(SupportedGitTypes.GITLAB)
         except ImportError as e:
             logger.debug(f"GitLab client not available: {e}")
@@ -48,6 +50,7 @@ class SupportedGitTypes(Enum):
         # Enable Gitea (if your gitea.py exists)
         try:
             from elyra.util.gitea import GiteaClient  # noqa: F401
+
             enabled_types.append(SupportedGitTypes.GITEA)
         except ImportError as e:
             logger.debug(f"Gitea client not available: {e}")
