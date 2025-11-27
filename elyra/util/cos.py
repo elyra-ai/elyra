@@ -94,12 +94,12 @@ class CosClient(LoggingConfigurable):
         self.secure = self.endpoint.scheme == "https"
 
         # get minio client
-        self.client = minio.Minio(self.endpoint.netloc, secure=self.secure, credentials=cred_provider)
+        self.client = minio.Minio(endpoint=self.endpoint.netloc, secure=self.secure, credentials=cred_provider)
 
         # Make a bucket with the make_bucket API call.
         try:
-            if not self.client.bucket_exists(self.bucket):
-                self.client.make_bucket(self.bucket)
+            if not self.client.bucket_exists(bucket_name=self.bucket):
+                self.client.make_bucket(bucket_name=self.bucket)
         except S3Error as ex:
             # unpack the S3Error based off error codes
             # https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html
