@@ -95,7 +95,6 @@ def stop_minio_container():
 @pytest.fixture(scope="function")
 def s3_setup():
     bucket_name = "test-bucket"
-    # cos_client = minio.Minio(MINIO_HOST_PORT, access_key="minioadmin", secret_key="minioadmin", secure=False)
     cos_client = minio.Minio(
         endpoint=MINIO_HOST_PORT,
         credentials=minio.credentials.providers.StaticProvider(
@@ -661,7 +660,6 @@ def test_put_file_object_store(monkeypatch, s3_setup, tmpdir):
     op.put_file_to_object_storage(object_name=file_to_put, file_to_upload=os.path.join(ELYRA_ROOT_DIR, file_to_put))
 
     with tmpdir.as_cwd():
-        # s3_setup.fget_object(bucket_name, file_to_put, file_to_put)
         s3_setup.fget_object(
             bucket_name=bucket_name,
             object_name=file_to_put,
