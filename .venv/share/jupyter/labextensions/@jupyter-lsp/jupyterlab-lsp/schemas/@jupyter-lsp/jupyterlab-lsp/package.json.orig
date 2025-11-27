@@ -1,0 +1,138 @@
+{
+  "name": "@jupyter-lsp/jupyterlab-lsp",
+  "version": "5.1.1",
+  "description": "Language Server Protocol integration for JupyterLab",
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension",
+    "lsp",
+    "language-server-protocol",
+    "intellisense",
+    "code-intelligence",
+    "linting"
+  ],
+  "homepage": "https://github.com/jupyter-lsp/jupyterlab-lsp",
+  "bugs": {
+    "url": "https://github.com/jupyter-lsp/jupyterlab-lsp/issues"
+  },
+  "license": "BSD-3-Clause",
+  "author": "JupyterLab-LSP Development Team",
+  "files": [
+    "{lib,style,schema,src}/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css,json,ts,tsx,txt,md}",
+    "LICENSE"
+  ],
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jupyter-lsp/jupyterlab-lsp.git"
+  },
+  "scripts": {
+    "build": "jlpm build:schema && jlpm run build:lib && jlpm run build:labextension",
+    "build:labextension": "jupyter labextension build .",
+    "build:labextension:dev": "jupyter labextension build --development True .",
+    "build:lib": "tsc",
+    "build:prod": "jlpm run build:lib && jlpm run build:labextension",
+    "build:schema": "jlpm build:schema-backend && jlpm build:schema-completion && jlpm build:schema-hover && jlpm build:schema-diagnostics && jlpm build:schema-syntax_highlighting && jlpm build:schema-jump_to && jlpm build:schema-signature && jlpm build:schema-highlights && jlpm build:schema-plugin && jlpm build:schema-rename && jlpm build:schema-symbol",
+    "build:schema-backend": "json2ts ../../python_packages/jupyter_lsp/jupyter_lsp/schema/schema.json --unreachableDefinitions | prettier --stdin-filepath _schema.d.ts > src/_schema.ts",
+    "build:schema-plugin": "json2ts schema/plugin.json | prettier --stdin-filepath _plugin.d.ts > src/_plugin.ts",
+    "build:schema-completion": "json2ts schema/completion.json | prettier --stdin-filepath _completion.d.ts > src/_completion.ts ",
+    "build:schema-diagnostics": "json2ts schema/diagnostics.json | prettier --stdin-filepath _diagnostics.d.ts > src/_diagnostics.ts ",
+    "build:schema-hover": "json2ts schema/hover.json | prettier --stdin-filepath _hover.d.ts > src/_hover.ts",
+    "build:schema-jump_to": "json2ts schema/jump_to.json | prettier --stdin-filepath _jump_to.d.ts > src/_jump_to.ts",
+    "build:schema-syntax_highlighting": "json2ts schema/syntax_highlighting.json | prettier --stdin-filepath _syntax_highlighting.d.ts > src/_syntax_highlighting.ts ",
+    "build:schema-highlights": "json2ts schema/highlights.json | prettier --stdin-filepath _highlights.d.ts > src/_highlights.ts",
+    "build:schema-rename": "json2ts schema/rename.json | prettier --stdin-filepath _rename.d.ts > src/_rename.ts",
+    "build:schema-signature": "json2ts schema/signature.json | prettier --stdin-filepath _signature.d.ts > src/_signature.ts",
+    "build:schema-symbol": "json2ts schema/symbol.json | prettier --stdin-filepath _symbol.d.ts > src/_symbol.ts",
+    "bundle": "npm pack .",
+    "clean": "jlpm run clean:lib",
+    "clean:all": "jlpm run clean:lib && jlpm run clean:labextension",
+    "clean:labextension": "rimraf labextension",
+    "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
+    "eslint": "eslint . --ext .ts,.tsx --fix",
+    "eslint:check": "eslint . --ext .ts,.tsx",
+    "install:extension": "jupyter labextension develop --overwrite .",
+    "prepare": "jlpm run clean && jlpm run build:prod",
+    "test": "jlpm jest --coverage --coverageReporters=cobertura --coverageReporters=html --coverageReporters=text-summary",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:labextension": "jupyter labextension watch .",
+    "watch:src": "tsc -w"
+  },
+  "dependencies": {
+    "@jupyter-lsp/code-jumpers": "~2.1.0",
+    "@jupyter-lsp/completion-theme": "~4.1.0",
+    "@jupyter-lsp/theme-material": "~3.0.0",
+    "@jupyter-lsp/theme-vscode": "~3.0.0",
+    "@jupyterlab/lsp": "^4.1.0",
+    "@rjsf/utils": "^5.17.1",
+    "@rjsf/validator-ajv8": "^5.12.1",
+    "lodash.mergewith": "^4.6.1"
+  },
+  "devDependencies": {
+    "@codemirror/lint": "^6.4.0",
+    "@jupyter-notebook/application": "^7.1.0",
+    "@jupyterlab/application": "^4.1.0",
+    "@jupyterlab/apputils": "^4.2.0",
+    "@jupyterlab/builder": "^4.1.0",
+    "@jupyterlab/cells": "^4.1.0",
+    "@jupyterlab/codeeditor": "^4.1.0",
+    "@jupyterlab/codemirror": "^4.1.0",
+    "@jupyterlab/completer": "^4.1.0",
+    "@jupyterlab/coreutils": "^6.1.0",
+    "@jupyterlab/docmanager": "^4.1.0",
+    "@jupyterlab/docregistry": "^4.1.0",
+    "@jupyterlab/fileeditor": "^4.1.0",
+    "@jupyterlab/logconsole": "^4.1.0",
+    "@jupyterlab/notebook": "^4.1.0",
+    "@jupyterlab/rendermime": "^4.1.0",
+    "@jupyterlab/services": "^7.1.0",
+    "@jupyterlab/statusbar": "^4.1.0",
+    "@jupyterlab/testing": "^4.1.0",
+    "@jupyterlab/tooltip": "^4.1.0",
+    "@jupyterlab/ui-components": "^4.1.0",
+    "@lumino/algorithm": "*",
+    "@lumino/widgets": "^2.3.1",
+    "@types/jest": "^29.5.4",
+    "@types/lodash.mergewith": "^4.6.1",
+    "jest": "^29.2.0",
+    "json-schema-to-typescript": "^8.0.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.8.8",
+    "react": "^18.2.0",
+    "rimraf": "^5.0.5",
+    "typescript": "~5.1.6",
+    "vscode-languageserver-protocol": "^3.17.0"
+  },
+  "jupyterlab": {
+    "extension": true,
+    "webpackConfig": "./webpack.config.js",
+    "disabledExtensions": [
+      "@jupyterlab/notebook-extension:language-server",
+      "@jupyterlab/fileeditor-extension:language-server",
+      "@jupyterlab/completer-extension:base-service",
+      "@jupyterlab/lsp-extension:settings"
+    ],
+    "discovery": {
+      "server": {
+        "base": {
+          "name": "jupyterlab-lsp"
+        },
+        "managers": [
+          "pip",
+          "conda"
+        ]
+      }
+    },
+    "sharedPackages": {
+      "@jupyterlab/lsp": {
+        "bundled": false,
+        "singleton": true,
+        "strictVersion": false
+      }
+    },
+    "schemaDir": "schema",
+    "outputDir": "../../python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/@jupyter-lsp/jupyterlab-lsp"
+  }
+}

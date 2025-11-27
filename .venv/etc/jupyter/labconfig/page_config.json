@@ -1,0 +1,8 @@
+{
+  "disabledExtensions": {
+    "@jupyterlab/launcher-extension": true
+  },
+  "lockedExtensions": {
+    "@jupyterlab/launcher-extension": true
+  }
+}

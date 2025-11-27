@@ -1,0 +1,24 @@
+{
+  "jupyter.lab.setting-icon": "lsp:syntax-highlighting",
+  "jupyter.lab.setting-icon-label": "Language integration",
+  "title": "Code Syntax",
+  "description": "LSP code syntax highlighting settings.",
+  "type": "object",
+  "properties": {
+    "foreignCodeThreshold": {
+      "title": "Threshold of foreign code coverage for changing the mode in an editor",
+      "type": "number",
+      "default": 0.5,
+      "minimum": 0,
+      "maximum": 1,
+      "description": "If a code editor includes a code fragment in another language (for example a %%markdown magic in IPython) with appropriate foreign code extractor defined, and the extend of this code (coverage of the editor) passes the threshold, the syntax highlighting (i.e. the mode) will change to provide highlighting for the language of the foreign code."
+    },
+    "disable": {
+      "title": "Disable",
+      "type": "boolean",
+      "default": false,
+      "description": "Disable this feature. Requires reloading JupyterLab to apply changes."
+    }
+  },
+  "jupyter.lab.shortcuts": []
+}

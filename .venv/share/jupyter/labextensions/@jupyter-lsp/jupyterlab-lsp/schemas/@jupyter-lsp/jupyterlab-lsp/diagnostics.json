@@ -1,0 +1,62 @@
+{
+  "jupyter.lab.setting-icon": "lsp:diagnostics",
+  "jupyter.lab.setting-icon-label": "Language integration",
+  "title": "Code Diagnostics",
+  "description": "LSP Diagnostics (linter results) settings.",
+  "type": "object",
+  "properties": {
+    "defaultSeverity": {
+      "title": "Default severity level",
+      "type": "string",
+      "enum": ["Error", "Warning", "Information", "Hint"],
+      "default": "Warning",
+      "description": "Default level of the severity for diagnostics without severity provided by the language server."
+    },
+    "gutter": {
+      "title": "Show gutter (experimental, requires restart)",
+      "type": "boolean",
+      "default": false
+    },
+    "debounceDelay": {
+      "title": "Delay between typing and refreshing diagnostic (requires restart)",
+      "type": "number",
+      "default": 250
+    },
+    "ignoreCodes": {
+      "title": "Diagnostic codes to ignore",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Codes of diagnostics which should not be shown in the panel nor highlighted in the editor."
+    },
+    "ignoreMessagesPatterns": {
+      "title": "Diagnostic messages to ignore",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Regular expressions matching messages of diagnostics which should not be shown in the panel nor highlighted in the editor."
+    },
+    "ignoreSeverities": {
+      "title": "Diagnostic severity levels to ignore",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["Error", "Warning", "Information", "Hint"]
+      },
+      "default": [],
+      "uniqueItems": true,
+      "description": "Severities of diagnostics which should not be shown in the panel nor highlighted in the editor."
+    },
+    "disable": {
+      "title": "Disable",
+      "type": "boolean",
+      "default": false,
+      "description": "Disable this feature. Requires reloading JupyterLab to apply changes."
+    }
+  },
+  "jupyter.lab.shortcuts": []
+}

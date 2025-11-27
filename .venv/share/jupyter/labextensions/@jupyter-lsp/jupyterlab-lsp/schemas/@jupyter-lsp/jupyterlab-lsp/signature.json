@@ -1,0 +1,31 @@
+{
+  "jupyter.lab.setting-icon": "lsp:hover",
+  "jupyter.lab.setting-icon-label": "Language integration",
+  "title": "Code Signature",
+  "description": "LSP Code Signature Help settings.",
+  "type": "object",
+  "properties": {
+    "closeCharacters": {
+      "title": "Close characters",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [")", ";"],
+      "description": "An array of characters which should close the signature help. The signature help may be shown again after typing a character from this list if the server requests it to open."
+    },
+    "maxLines": {
+      "title": "Number of lines to show without collapsing",
+      "type": "number",
+      "default": 12,
+      "description": "The number of documentation lines to show without collapsing into the details section."
+    },
+    "disable": {
+      "title": "Disable",
+      "type": "boolean",
+      "default": false,
+      "description": "Disable this feature. Requires reloading JupyterLab to apply changes."
+    }
+  },
+  "jupyter.lab.shortcuts": []
+}

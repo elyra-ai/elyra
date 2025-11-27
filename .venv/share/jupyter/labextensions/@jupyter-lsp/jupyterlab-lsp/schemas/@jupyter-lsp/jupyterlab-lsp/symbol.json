@@ -1,0 +1,23 @@
+{
+  "jupyter.lab.setting-icon": "lsp:hover",
+  "jupyter.lab.setting-icon-label": "Language integration",
+  "title": "Code Symbols",
+  "description": "LSP Symbols (table of contents integration).",
+  "type": "object",
+  "properties": {
+    "throttlerDelay": {
+      "title": "Throttler delay",
+      "type": "number",
+      "default": 50,
+      "minimum": 0,
+      "description": "Number of milliseconds to delay sending out the hover request to the language server."
+    },
+    "disable": {
+      "title": "Disable",
+      "type": "boolean",
+      "default": false,
+      "description": "Disable this feature. Requires reloading JupyterLab to apply changes."
+    }
+  },
+  "jupyter.lab.shortcuts": []
+}

@@ -1,0 +1,86 @@
+{
+  "jupyter.lab.setting-icon": "lsp:codeCheck",
+  "jupyter.lab.setting-icon-label": "Language integration",
+  "jupyter.lab.transform": true,
+  "title": "Language Servers",
+  "description": "Language Server Protocol settings.",
+  "type": "object",
+  "definitions": {
+    "language-server": {
+      "description": "Client and server configurations for a single language server",
+      "type": "object",
+      "default": {},
+      "properties": {
+        "priority": {
+          "title": "Priority of the server",
+          "description": "When multiple servers match specific document/language, the server with the highest priority will be used",
+          "type": "number",
+          "default": 50,
+          "minimum": 1
+        },
+        "serverSettings": {
+          "title": "Language Server Configurations",
+          "description": "Configuration to be sent to language server over LSP when initialized: see the specific language server's documentation for more",
+          "type": "object",
+          "default": {},
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "properties": {
+    "language_servers": {
+      "title": "Language Server",
+      "description": "Language-server specific configuration, keyed by implementation, e.g: \n\npyls: {\n  serverSettings: {\n    pyls: {\n      plugins: {\n        pydocstyle: {\n          enabled: true\n        },\n        pyflakes: {\n          enabled: false\n        },\n        flake8: {\n          enabled: true\n        }\n      }\n    }\n  }\n}\n\nAlternatively, using dotted naming convention:\n\npyls: {\n  serverSettings: {\n    \"pyls.plugins.pydocstyle.enabled\": true,\n    \"pyls.plugins.pyflakes.enabled\": false,\n    \"pyls.plugins.flake8.enabled\": true\n  }\n}",
+      "type": "object",
+      "default": {
+        "pyright": {
+          "serverSettings": {
+            "python.analysis.useLibraryCodeForTypes": true
+          }
+        },
+        "bash-language-server": {
+          "serverSettings": {
+            "bashIde.enableSourceErrorDiagnostics": true
+          }
+        }
+      },
+      "patternProperties": {
+        ".*": {
+          "$ref": "#/definitions/language-server"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/language-server"
+      }
+    },
+    "loggingConsole": {
+      "title": "Logging console type",
+      "type": "string",
+      "enum": ["browser", "floating"],
+      "default": "browser",
+      "description": "The console to use for debugging problems with this extension. Allowed values are: browser, floating."
+    },
+    "loggingLevel": {
+      "title": "Logging console verbosity level",
+      "type": "string",
+      "enum": ["debug", "log", "warn", "error"],
+      "default": "warn",
+      "description": "The verbosity of the console for debugging problems with this extension. Allowed values are: debug, log, warn, error."
+    },
+    "logAllCommunication": {
+      "title": "Log all LSP communication with the LSP servers",
+      "type": "boolean",
+      "default": false,
+      "description": "Whether all messages sent to and received from LSP servers should be logged into the console. To see these messages, set loggingLevel to debug or log. Note: Only messages handled by the new API will be shown."
+    },
+    "setTrace": {
+      "title": "Ask servers to send trace notifications",
+      "type": ["string", "null"],
+      "enum": ["off", "messages", "verbose", null],
+      "default": null,
+      "description": "Whether to ask server to send logs with execution trace (for debugging). To see these messages, set loggingLevel to debug or log. Accepted values are: \"off\", \"messages\", \"verbose\". Servers are allowed to ignore this request."
+    }
+  },
+  "jupyter.lab.shortcuts": []
+}

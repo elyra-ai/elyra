@@ -1,0 +1,86 @@
+{
+  "name": "@elyra/metadata-common",
+  "version": "4.0.0",
+  "description": "JupyterLab - Widgets for interacting with metadata",
+  "keywords": [
+    "jupyter",
+    "jupyterlab"
+  ],
+  "homepage": "https://github.com/elyra-ai/elyra",
+  "bugs": {
+    "url": "https://github.com/elyra-ai/elyra/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elyra-ai/elyra/"
+  },
+  "license": "Apache-2.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "style": "style/index.css",
+  "files": [
+    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "src/**/*.{ts,tsx}",
+    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+  ],
+  "scripts": {
+    "build": "jlpm build:lib && jlpm build:labextension:dev",
+    "build:prod": "jlpm clean && jlpm build:lib:prod && jlpm build:labextension",
+    "build:labextension": "jupyter labextension build .",
+    "build:labextension:dev": "jupyter labextension build --development True .",
+    "build:lib": "tsc --sourceMap",
+    "build:lib:prod": "tsc",
+    "clean": "jlpm clean:lib",
+    "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
+    "clean:lintcache": "rimraf .eslintcache .stylelintcache",
+    "clean:labextension": "rimraf ../../../../labextensions/elyra_metadata_common/labextension ../../../../labextensions/elyra_metadata_common/_version.py",
+    "clean:all": "jlpm clean:lib && jlpm clean:labextension && jlpm clean:lintcache",
+    "cy:instrument": "npx nyc instrument --compact=false --in-place src/ src/",
+    "eslint": "jlpm eslint:check --fix",
+    "eslint:check": "eslint . --cache --ext .ts,.tsx",
+    "install:extension": "jlpm build",
+    "lint": "jlpm stylelint && jlpm prettier && jlpm eslint",
+    "lint:check": "jlpm stylelint:check && jlpm prettier:check && jlpm eslint:check",
+    "prettier": "jlpm prettier:base --write --list-different",
+    "prettier:base": "prettier \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}\"",
+    "prettier:check": "jlpm prettier:base --check",
+    "stylelint": "jlpm stylelint:check --fix",
+    "stylelint:check": "stylelint --cache \"style/**/*.css\"",
+    "test": "jest --coverage --passWithNoTests",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:src": "tsc -w --sourceMap",
+    "watch:labextension": "jupyter labextension watch ."
+  },
+  "dependencies": {
+    "@elyra/services": "4.0.0",
+    "@elyra/ui-components": "4.0.0",
+    "@jupyterlab/application": "^4.4.2",
+    "@jupyterlab/apputils": "^4.4.2",
+    "@jupyterlab/codeeditor": "^4.4.2",
+    "@jupyterlab/translation": "^4.4.2",
+    "@jupyterlab/ui-components": "^4.4.2",
+    "@lumino/algorithm": "^2.0.3",
+    "@lumino/coreutils": "^2.2.1",
+    "@lumino/disposable": "^2.1.4",
+    "@lumino/messaging": "^2.0.3",
+    "@lumino/signaling": "^2.1.4",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@jupyterlab/builder": "^4.4.2",
+    "@types/react": "^18.0.26",
+    "rimraf": "~5.0.5",
+    "typescript": "~5.5.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "jupyterlab": {
+    "extension": false,
+    "outputDir": "../../labextensions/elyra_metadata_common/labextension",
+    "_build": {
+      "load": "static\\remoteEntry.6ddd91de48183eb4a418.js",
+      "style": "./style"
+    }
+  }
+}

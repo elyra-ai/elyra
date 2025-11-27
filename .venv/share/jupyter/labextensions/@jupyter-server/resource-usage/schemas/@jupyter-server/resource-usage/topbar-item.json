@@ -1,0 +1,89 @@
+{
+  "title": "Resource Usage Indicator",
+  "description": "Resource Usage Indicator settings.",
+  "jupyter.lab.toolbars": {
+    "TopBar": [
+      {
+        "name": "cpu",
+        "rank": 120
+      },
+      {
+        "name": "memory",
+        "rank": 130
+      },
+      {
+        "name": "disk",
+        "rank": 140
+      }
+    ]
+  },
+  "properties": {
+    "enable": {
+      "title": "Enable resource usage indicators",
+      "description": "Whether to enable resource usage indicators on topbar",
+      "default": false,
+      "type": "boolean"
+    },
+    "refreshRate": {
+      "title": "Refresh Rate (ms)",
+      "description": "Refresh Rate to sync metrics data",
+      "default": 5000,
+      "type": "number"
+    },
+    "memory": {
+      "title": "Memory Settings",
+      "description": "Settings for the memory indicator",
+      "$ref": "#/definitions/memory",
+      "default": {
+        "label": "| Mem: "
+      }
+    },
+    "cpu": {
+      "title": "CPU Settings",
+      "description": "Settings for the CPU indicator",
+      "$ref": "#/definitions/cpu",
+      "default": {
+        "label": "CPU: "
+      }
+    },
+    "disk": {
+      "title": "Disk Settings",
+      "description": "Settings for the Disk indicator",
+      "$ref": "#/definitions/disk",
+      "default": {
+        "label": "| Disk: "
+      }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "memory": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Label for the memory indicator"
+        }
+      }
+    },
+    "cpu": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Label for the cpu indicator"
+        }
+      }
+    },
+    "disk": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Label for the disk indicator"
+        }
+      }
+    }
+  },
+  "type": "object"
+}

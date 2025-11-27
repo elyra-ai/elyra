@@ -1,0 +1,27 @@
+{
+  "jupyter.lab.setting-icon": "lsp:rename",
+  "jupyter.lab.setting-icon-label": "Language integration",
+  "title": "Code Rename",
+  "description": "LSP Rename settings.",
+  "type": "object",
+  "properties": {
+    "disable": {
+      "title": "Disable",
+      "type": "boolean",
+      "default": false,
+      "description": "Disable this feature. Requires reloading JupyterLab to apply changes."
+    }
+  },
+  "jupyter.lab.shortcuts": [
+    {
+      "command": "lsp:rename-symbol-notebook",
+      "keys": ["F2"],
+      "selector": ".jp-Notebook .jp-CodeCell"
+    },
+    {
+      "command": "lsp:rename-symbol-file_editor",
+      "keys": ["F2"],
+      "selector": ".jp-FileEditor"
+    }
+  ]
+}

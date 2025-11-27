@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk_jupyterlab_git=self.webpackChunk_jupyterlab_git||[]).push([[285],{5285:(n,r,t)=>{function e(){return e=Object.assign?Object.assign.bind():function(n){for(var r=1;r<arguments.length;r++){var t=arguments[r];for(var e in t)({}).hasOwnProperty.call(t,e)&&(n[e]=t[e])}return n},e.apply(null,arguments)}t.d(r,{A:()=>e})}}]);

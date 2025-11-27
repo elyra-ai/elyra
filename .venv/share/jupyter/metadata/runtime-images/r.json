@@ -1,0 +1,9 @@
+{
+  "display_name": "R Script 4.3.1",
+  "metadata": {
+    "description": "R Script 4.3.1 with Python 3.11.6",
+    "image_name": "jupyter/r-notebook:x86_64-python-3.11.6",
+    "tags": ["R"]
+  },
+  "schema_name": "runtime-image"
+}

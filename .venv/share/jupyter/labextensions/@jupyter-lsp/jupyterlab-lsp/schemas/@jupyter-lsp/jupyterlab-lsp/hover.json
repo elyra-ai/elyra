@@ -1,0 +1,50 @@
+{
+  "jupyter.lab.setting-icon": "lsp:hover",
+  "jupyter.lab.setting-icon-label": "Language integration",
+  "title": "Code Hover",
+  "description": "LSP Hover over the code tooltip settings.",
+  "type": "object",
+  "properties": {
+    "autoActivate": {
+      "title": "Automatic hover",
+      "type": "boolean",
+      "default": false,
+      "description": "Automatic activation of hover without pressing a key. It will still be possible to show up tooltips with the modifier key."
+    },
+    "delay": {
+      "title": "Hover delay",
+      "type": "number",
+      "default": 300,
+      "minimum": 0,
+      "description": "Number of milliseconds after which the hover tooltip should be shown. Ignored if 'Automatic hover' is off."
+    },
+    "modifierKey": {
+      "title": "Modifier key",
+      "type": "string",
+      "enum": ["Alt", "Control", "Shift", "Meta", "AltGraph"],
+      "default": "Control",
+      "description": "Keyboard key which activates the tooltip on hover. The allowed keys are Alt, Control, Shift, and AltGraph. Linux user: Meta key is also supported. Safari users: Meta key is also supported, AltGraph is not supported. To see which physical keys are mapped, visit: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/getModifierState"
+    },
+    "throttlerDelay": {
+      "title": "Throttler delay",
+      "type": "number",
+      "default": 50,
+      "minimum": 0,
+      "description": "Number of milliseconds to delay sending out the hover request to the language server; you can get better responsiveness adjusting this value, but setting it to zero can actually slow it down as the server might get overwhelmed when moving the mouse over the code."
+    },
+    "cacheSize": {
+      "title": "Cache size",
+      "type": "number",
+      "default": 25,
+      "minimum": 0,
+      "description": "Up to how many hover responses should be cached at any given time. The cache being is invalidated after any change in the editor."
+    },
+    "disable": {
+      "title": "Disable",
+      "type": "boolean",
+      "default": false,
+      "description": "Disable this feature. Requires reloading JupyterLab to apply changes."
+    }
+  },
+  "jupyter.lab.shortcuts": []
+}
