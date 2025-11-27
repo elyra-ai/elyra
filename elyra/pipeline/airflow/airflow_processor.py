@@ -56,8 +56,12 @@ from elyra.pipeline.properties import KubernetesToleration
 from elyra.pipeline.properties import VolumeMount
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.cos import join_paths
-from elyra.util.gitea import GiteaClient
 from elyra.util.github import GithubClient
+
+try:
+    from elyra.util.gitea import GiteaClient
+except ImportError:
+    GiteaClient = None
 
 try:
     from elyra.util.gitlab import GitLabClient
@@ -196,6 +200,11 @@ be fully qualified (i.e., prefixed with their package names).
                         branch=github_branch,
                     )
                 elif git_type == SupportedGitTypes.GITEA:
+                    if GiteaClient is None:
+                        raise ValueError(
+                            "Python package `giteapy` is not installed. "
+                            "Please install with `elyra[gitea]` to use Gitea as a DAG repository."
+                        )
                     git_client = GiteaClient(
                         server_url=github_api_endpoint,
                         token=github_repo_token,
