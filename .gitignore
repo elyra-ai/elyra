@@ -99,3 +99,4 @@ labextensions/**/labextension/*
 
 rebuild.ps1
 build.ps1
+Dockerfile
