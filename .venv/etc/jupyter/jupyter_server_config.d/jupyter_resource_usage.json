@@ -1,7 +1,0 @@
-{
-  "ServerApp": {
-    "jpserver_extensions": {
-      "jupyter_resource_usage": true
-    }
-  }
-}

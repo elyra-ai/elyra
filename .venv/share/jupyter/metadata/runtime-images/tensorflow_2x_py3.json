@@ -1,9 +1,0 @@
-{
-  "display_name": "Tensorflow 2.18.0",
-  "metadata": {
-    "description": "TensorFlow 2.18.0 (with Python 3.11)",
-    "image_name": "tensorflow/tensorflow:2.18.0",
-    "tags": ["tensorflow"]
-  },
-  "schema_name": "runtime-image"
-}

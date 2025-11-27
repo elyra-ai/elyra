@@ -1,9 +1,0 @@
-{
-  "display_name": "PyTorch 2.5.1 (with GPU support)",
-  "metadata": {
-    "description": "Pytorch 2.5.1 with CUDA 11.8 devel",
-    "image_name": "pytorch/pytorch:2.5.1-cuda11.8-cudnn9-devel",
-    "tags": ["gpu", "pytorch"]
-  },
-  "schema_name": "runtime-image"
-}

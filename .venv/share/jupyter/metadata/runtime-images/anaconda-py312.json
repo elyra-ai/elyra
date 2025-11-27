@@ -1,9 +1,0 @@
-{
-  "display_name": "Anaconda Python 3.12",
-  "metadata": {
-    "description": "Anaconda (2024-10) with Python 3.12",
-    "image_name": "continuumio/anaconda3:2024.10-1",
-    "tags": ["anaconda", "python-3.12"]
-  },
-  "schema_name": "runtime-image"
-}

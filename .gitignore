@@ -24,6 +24,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 .pytest_cache
+.venv/
 env/
 build/
 develop-eggs/
