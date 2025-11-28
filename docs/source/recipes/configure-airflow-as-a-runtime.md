@@ -54,16 +54,18 @@ OR
 
 In order to use Apache Airflow with Elyra, it must be configured to use a Git repository to store DAGs.
 
-- Create a private repository on github.com, GitHub Enterprise, gitlab.com, or GitLab Enterprise. (Elyra produces DAGs that contain credentials, which are not encrypted. Therefore you should not use a public repository.) Next, create a branch (e.g `main`) in your repository. This will be referenced later for storing the DAGs. 
+- Create a private repository on github.com, GitHub Enterprise, gitlab.com, GitLab Enterprise or Gitea. (Elyra produces DAGs that contain credentials, which are not encrypted. Therefore you should not use a public repository.) Next, create a branch (e.g `main`) in your repository. This will be referenced later for storing the DAGs. 
 - Generate a personal access token with push access to the repository. This token is used by Elyra to upload DAGs.
    - [Instructions for GitHub](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
    - [Instructions for GitLab](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html)
+   - [Instructions for Gitea](https://docs.gitea.com/development/api-usage#authentication)
 - Generate an SSH key with read access for the repository. Apache Airflow uses a git-sync container to keep its collection of DAGs in synch with the content of the Git Repository and the SSH key is used to authenticate. **Note: Make sure to generate the SSH key using RSA algorithm.**  
    - [Instructions for GitHub](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account)
    - [Instructions for GitLab](https://docs.gitlab.com/ee/ssh/)
+   - [Instructions for GitLab](https://docs.gitea.com/administration/signing#installing-and-generating-a-ssh-key-for-gitea)
 
 Take note of the following information:
- - Git API endpoint (e.g. `https://api.github.com` for github.com or `https://gitlab.com` for gitlab.com)
+ - Git API endpoint (e.g. `https://api.github.com` for github.com, `https://gitlab.com` for gitlab.com or `https://your-gitea-server/api/v1` for gitea.com)
  - Repository name (e.g. `your-git-org/your-dag-repo`)
  - Repository branch name (e.g. `main`)
  - Personal access token (e.g. `4d79206e616d6520697320426f6e642e204a616d657320426f6e64`)
