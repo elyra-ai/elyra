@@ -62,7 +62,7 @@ In order to use Apache Airflow with Elyra, it must be configured to use a Git re
 - Generate an SSH key with read access for the repository. Apache Airflow uses a git-sync container to keep its collection of DAGs in synch with the content of the Git Repository and the SSH key is used to authenticate. **Note: Make sure to generate the SSH key using RSA algorithm.**  
    - [Instructions for GitHub](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account)
    - [Instructions for GitLab](https://docs.gitlab.com/ee/ssh/)
-   - [Instructions for GitLab](https://docs.gitea.com/administration/signing#installing-and-generating-a-ssh-key-for-gitea)
+   - [Instructions for Gitea](https://docs.gitea.com/administration/signing#installing-and-generating-a-ssh-key-for-gitea)
 
 Take note of the following information:
  - Git API endpoint (e.g. `https://api.github.com` for github.com, `https://gitlab.com` for gitlab.com or `https://your-gitea-server/api/v1` for gitea.com)
