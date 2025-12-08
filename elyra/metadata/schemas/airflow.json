@@ -75,8 +75,8 @@
           }
         },
         "github_api_endpoint": {
-          "title": "GitHub or GitLab server API Endpoint",
-          "description": "The GitHub or GitLab server URL / API endpoint - Public or Enterprise",
+          "title": "GitHub or Gitea or GitLab server API Endpoint",
+          "description": "The GitHub or Gitea or GitLab server URL / API endpoint - Public or Enterprise",
           "type": "string",
           "format": "uri",
           "default": "https://api.github.com",
@@ -86,7 +86,7 @@
           }
         },
         "github_repo": {
-          "title": "GitHub or GitLab DAG Repository",
+          "title": "GitHub or Gitea or GitLab DAG Repository",
           "description": "Existing repository where DAGs are stored",
           "type": "string",
           "uihints": {
@@ -95,7 +95,7 @@
           }
         },
         "github_branch": {
-          "title": "GitHub or GitLab DAG Repository Branch",
+          "title": "GitHub or Gitea or  GitLab DAG Repository Branch",
           "description": "Existing branch in the repository where DAGs are stored",
           "type": "string",
           "uihints": {

@@ -59,6 +59,11 @@ from elyra.util.cos import join_paths
 from elyra.util.github import GithubClient
 
 try:
+    from elyra.util.gitea import GiteaClient
+except ImportError:
+    GiteaClient = None
+
+try:
     from elyra.util.gitlab import GitLabClient
 except ImportError:
     pass  # Gitlab package is not installed, ignore and use only GitHub
@@ -152,6 +157,8 @@ be fully qualified (i.e., prefixed with their package names).
         git_type = SupportedGitTypes.get_instance_by_name(
             runtime_configuration.metadata.get("git_type", SupportedGitTypes.GITHUB.name)
         )
+
+        # Validate git type dependencies
         if git_type == SupportedGitTypes.GITLAB and SupportedGitTypes.is_enabled(SupportedGitTypes.GITLAB) is False:
             raise ValueError(
                 "Python package `python-gitlab` is not installed. "
@@ -180,17 +187,32 @@ be fully qualified (i.e., prefixed with their package names).
             self.log.debug(f"Uploading pipeline file '{pipeline_filepath}'")
 
             try:
+                # Create appropriate git client based on git_type
                 if git_type == SupportedGitTypes.GITHUB:
                     git_client = GithubClient(
                         server_url=github_api_endpoint, token=github_repo_token, repo=github_repo, branch=github_branch
                     )
-                else:
+                elif git_type == SupportedGitTypes.GITLAB:
                     git_client = GitLabClient(
                         server_url=github_api_endpoint,
                         token=github_repo_token,
                         project=github_repo,
                         branch=github_branch,
                     )
+                elif git_type == SupportedGitTypes.GITEA:
+                    if GiteaClient is None:
+                        raise ValueError(
+                            "Python package `giteapy` is not installed. "
+                            "Please install with `elyra[gitea]` to use Gitea as a DAG repository."
+                        )
+                    git_client = GiteaClient(
+                        server_url=github_api_endpoint,
+                        token=github_repo_token,
+                        repo=github_repo,
+                        branch=github_branch,
+                    )
+                else:
+                    raise ValueError(f"Unsupported git type: {git_type}")
 
             except BaseException as be:
                 raise RuntimeError(f"Unable to create a connection to {github_api_endpoint}: {str(be)}") from be

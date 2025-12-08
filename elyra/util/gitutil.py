@@ -14,12 +14,17 @@
 # limitations under the License.
 #
 from enum import Enum
+import logging
 from typing import List
+
+
+logger = logging.getLogger(__name__)
 
 
 class SupportedGitTypes(Enum):
     GITHUB = "GitHub"
     GITLAB = "GitLab"
+    GITEA = "Gitea"
 
     @staticmethod
     def get_default_type() -> "SupportedGitTypes":
@@ -32,18 +37,23 @@ class SupportedGitTypes(Enum):
 
     @staticmethod
     def get_enabled_types() -> List["SupportedGitTypes"]:
-        """
-        Returns all enabled types
-        :return: List of enabled types
-        :rtype: List[SupportedGitTypes]
-        """
         enabled_types = [SupportedGitTypes.GITHUB]
+
+        # Enable GitLab (if python-gitlab installed)
         try:
             from elyra.util.gitlab import GitLabClient  # noqa: F401
 
             enabled_types.append(SupportedGitTypes.GITLAB)
-        except ImportError:
-            pass  # Gitlab package is not installed, ignore and use only GitHub
+        except ImportError as e:
+            logger.debug(f"GitLab client not available: {e}")
+
+        # Enable Gitea (if your gitea.py exists)
+        try:
+            from elyra.util.gitea import GiteaClient  # noqa: F401
+
+            enabled_types.append(SupportedGitTypes.GITEA)
+        except ImportError as e:
+            logger.debug(f"Gitea client not available: {e}")
         return enabled_types
 
     @staticmethod

@@ -24,6 +24,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 .pytest_cache
+.venv/
 env/
 build/
 develop-eggs/
@@ -87,7 +88,6 @@ target/
 # Build-related
 .image-*
 
-tsconfig.tsbuildinfo
 node_modules
 
 .vscode/
@@ -96,3 +96,7 @@ node_modules
 .yarn/install-state.gz
 
 labextensions/**/labextension/*
+
+rebuild.ps1
+build.ps1
+Dockerfile

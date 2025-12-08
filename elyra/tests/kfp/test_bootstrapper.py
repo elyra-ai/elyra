@@ -95,22 +95,15 @@ def stop_minio_container():
 @pytest.fixture(scope="function")
 def s3_setup():
     bucket_name = "test-bucket"
-    cos_client = minio.Minio(
-        endpoint=MINIO_HOST_PORT,
-        credentials=minio.credentials.providers.StaticProvider(
-            access_key="minioadmin",
-            secret_key="minioadmin",
-        ),
-        secure=False,
-    )
-    cos_client.make_bucket(bucket_name=bucket_name)
+    cos_client = minio.Minio(MINIO_HOST_PORT, access_key="minioadmin", secret_key="minioadmin", secure=False)
+    cos_client.make_bucket(bucket_name)
 
     yield cos_client
 
-    cleanup_files = cos_client.list_objects(bucket_name=bucket_name, recursive=True)
+    cleanup_files = cos_client.list_objects(bucket_name, recursive=True)
     for file in cleanup_files:
-        cos_client.remove_object(bucket_name=bucket_name, object_name=file.object_name)
-    cos_client.remove_bucket(bucket_name=bucket_name)
+        cos_client.remove_object(bucket_name, file.object_name)
+    cos_client.remove_bucket(bucket_name)
 
 
 def main_method_setup_execution(monkeypatch, s3_setup, tmpdir, argument_dict):
@@ -660,11 +653,7 @@ def test_put_file_object_store(monkeypatch, s3_setup, tmpdir):
     op.put_file_to_object_storage(object_name=file_to_put, file_to_upload=os.path.join(ELYRA_ROOT_DIR, file_to_put))
 
     with tmpdir.as_cwd():
-        s3_setup.fget_object(
-            bucket_name=bucket_name,
-            object_name=file_to_put,
-            file_path=file_to_put,
-        )
+        s3_setup.fget_object(bucket_name, file_to_put, file_to_put)
         assert os.path.isfile(file_to_put)
         assert _fileChecksum(file_to_put) == _fileChecksum(os.path.join(ELYRA_ROOT_DIR, file_to_put))
 

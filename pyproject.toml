@@ -100,6 +100,9 @@ airflow = [
 airflow-gitlab = [
     "python-gitlab"
 ]
+airflow-gitea = [
+    "giteapy"
+]
 kfp = [
     "kfp>=2.0.0", # Cap kfp for protobuf compatibility
     "typing-extensions>=3.10,<5",  # Cap from kfp
@@ -115,6 +118,7 @@ all = [
     "kfp-kubernetes>=1.0.0",
     "elyra-examples-kfp-catalog",
     "python-gitlab",
+    "giteapy",
     "typing-extensions>=3.10,<5",  # Cap from kfp
 ]
 

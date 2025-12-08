@@ -40,7 +40,7 @@ In the chart above the arrows indicate whether read access, write access, or bot
 
 Elyra requires access to the following dependencies when you build, export, or submit a pipeline:
 - **Runtime environment**: Elyra requires access to the Kubernetes cluster where Kubeflow Pipelines or Apache Airflow is running. 
-- **GitHub repository or GitLab project:** For Apache Airflow Elyra requires access to the GitHub repository or GitLab project that is configured in the [runtime configuration](../user_guide/runtime-conf.html#git-type-git-type).
+- **GitHub repository, GitLab project or Gitea repository:** For Apache Airflow Elyra requires access to the GitHub repository, GitLab project or Gitea repository that is configured in the [runtime configuration](../user_guide/runtime-conf.html#git-type-git-type).
 - **Component definitions for [custom components](../user_guide/pipeline-components.html#custom-components)**: Elyra utilizes [catalog connectors](../user_guide/pipeline-components.html#component-catalogs) to locate and load component definitions. The connectors must be able to communicate with the configured catalog, or you will not be able to submit or export pipelines. For example, if a pipeline utilizes a component that is stored in a URL component catalog, the component's URL must be accessible via an anonymous HTTP request.  
 - **S3-compatible cloud storage for [generic components](../user_guide/pipeline-components.html#generic-components)**: During pipeline [export](../user_guide/pipelines.html#exporting-pipelines) or [submission](../user_guide/pipelines.html#running-pipelines) Elyra uploads pipeline artifacts to an S3 bucket. These artifacts are downloaded to the pipeline runtime environment when the pipeline is executed.
 

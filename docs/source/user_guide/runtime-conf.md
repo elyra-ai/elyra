@@ -289,17 +289,22 @@ Example: `anonymous`
 
 ##### Git Type (git_type)
 
-Identifies which git type shall be used to store DAGs. Supported types are `GitHub` and `GitLab`. `GitLab` is only supported if the [`gitlab` dependency is installed](../getting_started/installation.html#packaging). This setting is required.
+Identifies which git type shall be used to store DAGs. Supported types are `GitHub`, `GitLab` and `Gitea`.
+
+`GitLab` is only supported if the [`gitlab` dependency is installed](../getting_started/installation.html#packaging). 
+`Gitea` is only supported if the [`giteapy` dependency is installed](../getting_started/installation.html#packaging).
+
+This setting is required.
 
 ##### GitHub API Endpoint (github_api_endpoint)
 
-The GitHub, GitHub Enterprise, GitLab, or GitLab Enterprise API endpoint where the git client will attempt to connect. This setting is required. Keep the default `https://api.github.com` for github.com or use `https://gitlab.com` for gitlab.com.
+The GitHub, GitHub Enterprise, GitLab, GitLab Enterprise or Gitea API endpoint where the git client will attempt to connect. This setting is required. Keep the default `https://api.github.com` for github.com, use `https://gitlab.com` for gitlab.com or use `https://your-gitea-server/api/v1` for gitea.com.
 
 Example: `https://api.private.githubenterprise.com`
 
 ##### GitHub DAG Repository (github_repo)
 
-The GitHub repository or GitLab project that Apache Airflow utilizes to store DAGs. This setting is required. The specified repository/project must exist.
+The GitHub repository, GitLab project or Gitea repository that Apache Airflow utilizes to store DAGs. This setting is required. The specified repository/project must exist.
 
 Example: `user-or-org/dag-repo-name`
 
@@ -310,7 +315,7 @@ This setting is required and the branch must exist.
 Example: `dag-branch`
 
 ##### GitHub Personal Access Token (github_repo_token)
-For GitHub and GitHub Enterprise: [Personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with write access to the GitHub DAG Repository. For GitLab and GitLab Enterprise: [Personal access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html), which has been granted `api` access to the project. This setting is required. 
+For GitHub and GitHub Enterprise: [Personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with write access to the GitHub DAG Repository. For GitLab and GitLab Enterprise: [Personal access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) which has been granted `api` access to the project. For Gitea [Personal access token](https://docs.gitea.com/development/api-usage#authentication) requires a token with repository write permissions. This setting is required. 
 
 Example: `766f7c267519fee7c71d7f96bdf42e646dc65433`
 
