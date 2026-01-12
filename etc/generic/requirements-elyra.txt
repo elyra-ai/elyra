@@ -16,7 +16,7 @@ prompt-toolkit==3.0.43
 requests==2.32.4
 tornado==6.5.1
 traitlets==5.10.0
-urllib3==2.6.0
+urllib3==2.6.3
 #
 # These excluded are transitive dependencies of the included python packages.
 #ansiwrap==0.8.4
