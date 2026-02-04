@@ -47,7 +47,6 @@ from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.registry import PipelineProcessorRegistry
 from elyra.pipeline.validation import PipelineValidationManager
 
-
 DEFAULT_STATIC_FILES_PATH = os.path.join(os.path.dirname(__file__), "static")
 DEFAULT_TEMPLATE_FILES_PATH = os.path.join(os.path.dirname(__file__), "templates")
 

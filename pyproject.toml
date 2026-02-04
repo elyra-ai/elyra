@@ -13,7 +13,7 @@ maintainers = [
     {name = "Elyra Maintainers"},
 ]
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "autopep8>=1.5.0",
     "click==8.1.8",  # elyra-ai/elyra#2579 -- 8.2.0 dropped support for Python 3.9
@@ -68,7 +68,6 @@ classifiers = [
     "Topic :: Software Development",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -289,7 +288,7 @@ import-order-style = "google"
 line-length = 120
 
 # Python versions that should be supported by the produced output
-target-version = ['py39', 'py310', 'py311', 'py312', 'py313']
+target-version = ['py310', 'py311', 'py312', 'py313']
 
 # Migrate configurations from pytest.ini
 [tool.pytest.ini_options]

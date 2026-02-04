@@ -357,10 +357,10 @@ validate-runtime-image: # Validate that runtime image meets minimum criteria
 		fi; \
 		if [ $$cmd == "python3" ]; then \
 			IMAGE_PYTHON3_MINOR_VERSION=`$(CONTAINER_EXEC) run --rm --entrypoint /bin/bash $$image -c "$$cmd --version" | cut -d' ' -f2 | cut -d'.' -f2` ; \
-			if [[ $$IMAGE_PYTHON3_MINOR_VERSION -lt 9 ]]; then \
-				echo "WARNING: Container image $$image requires Python 3.9 or greater for latest generic component dependency installation" ; \
+			if [[ $$IMAGE_PYTHON3_MINOR_VERSION -lt 10 ]]; then \
+				echo "WARNING: Container image $$image requires Python 3.10 or greater for latest generic component dependency installation" ; \
 				fail=1; \
-			elif [[ $$IMAGE_PYTHON3_MINOR_VERSION -ge 9 ]]; then \
+			elif [[ $$IMAGE_PYTHON3_MINOR_VERSION -ge 10 ]]; then \
 				echo "=> Checking notebook execution..." ; \
 				$(CONTAINER_EXEC) run -v $$(pwd)/etc/generic:/opt/elyra/ --rm --entrypoint /bin/bash $$image -c "python3 -m pip install -r /opt/elyra/requirements-elyra.txt && \
 							   python3 -c 'import urllib.request; urllib.request.urlretrieve(\"https://raw.githubusercontent.com/nteract/papermill/main/papermill/tests/notebooks/simple_execute.ipynb\", \"simple_execute.ipynb\")' && \

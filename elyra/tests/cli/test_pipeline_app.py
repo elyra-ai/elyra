@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 """Tests for elyra-pipeline application"""
+
 import json
 from pathlib import Path
 import shutil

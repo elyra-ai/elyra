@@ -88,7 +88,7 @@ For detailed information refer to the [installation documentation](https://elyra
 
 ### Prerequisites :
 * [Node.js 22](https://nodejs.org/en/)
-* [Python 3.9+](https://www.python.org/downloads/)
+* [Python 3.10+](https://www.python.org/downloads/)
 * [Miniconda](https://docs.conda.io/en/latest/miniconda.html) / [Micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html) (optional)
 
 ### Install current release (for JupyterLab 4.x)

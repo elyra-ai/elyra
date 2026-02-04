@@ -30,11 +30,11 @@ dialog of the pipeline:
   can include a _relative_ path as a prefix to the filename.  Each file is NOT expected
   to exist, but will be created as a function of the notebook's execution.
 """
+
 import os
 import requests  # noqa
 
 from elyra.tests.pipeline.resources.node_util.node_util import PythonNode
-
 
 # These getenv calls are here to help seed the environment variables
 # dialog in the node properties of the pipeline editor

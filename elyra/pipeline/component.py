@@ -106,11 +106,9 @@ class Component(object):
                 parameter_refs = {}
 
         if self._catalog_type == "elyra" and extensions and not parameter_refs.get("filehandler"):
-            Component._log_warning(
-                f"Component '{self._id}' specifies extensions '{extensions}' but \
+            Component._log_warning(f"Component '{self._id}' specifies extensions '{extensions}' but \
                                    no entry in the 'parameter_ref' dictionary for 'filehandler' and \
-                                   cannot participate in drag and drop functionality as a result."
-            )
+                                   cannot participate in drag and drop functionality as a result.")
 
         self._extensions = extensions
         self._parameter_refs = parameter_refs
