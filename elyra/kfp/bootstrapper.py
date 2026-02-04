@@ -35,7 +35,6 @@ from urllib.parse import urlunparse
 
 from packaging import version
 
-
 # Inputs and Outputs separator character.  If updated,
 # same-named variable in _notebook_op.py must be updated!
 INOUT_SEPARATOR = ";"
@@ -644,7 +643,7 @@ class OpUtil(object):
     @classmethod
     def determine_elyra_requirements(cls) -> Any:
         if sys.version_info.major == 3:
-            if sys.version_info.minor in [9, 10, 11, 12, 13]:
+            if sys.version_info.minor in [10, 11, 12, 13]:
                 return "requirements-elyra.txt"
         logger.error(
             f"This version of Python '{sys.version_info.major}.{sys.version_info.minor}' "

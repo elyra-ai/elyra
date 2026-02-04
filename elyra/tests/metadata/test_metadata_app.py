@@ -15,6 +15,7 @@
 #
 
 """Tests for elyra-metadata application"""
+
 import json
 import os
 import shutil

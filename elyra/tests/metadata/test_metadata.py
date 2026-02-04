@@ -43,7 +43,6 @@ from elyra.tests.metadata.test_utils import valid_display_name_json
 from elyra.tests.metadata.test_utils import valid_metadata2_json
 from elyra.tests.metadata.test_utils import valid_metadata_json
 
-
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests schemaspace
 
 

@@ -35,7 +35,6 @@ from elyra.metadata.schema import SchemasProvider
 from elyra.metadata.storage import FileMetadataStore
 from elyra.metadata.storage import MetadataStore
 
-
 NON_EXISTENT_SCHEMASPACE_ID = "9ab68f6f-000c-470e-814d-2af59ea0956e"
 
 valid_metadata_json = {

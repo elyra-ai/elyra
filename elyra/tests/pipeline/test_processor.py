@@ -23,7 +23,6 @@ from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.properties import ElyraProperty
 from elyra.pipeline.registry import PipelineProcessorRegistry
 
-
 # ---------------------------------------------------
 # Fixtures
 # ---------------------------------------------------
