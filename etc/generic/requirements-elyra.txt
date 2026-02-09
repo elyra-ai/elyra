@@ -8,7 +8,7 @@ jupyter-core==5.8.1
 MarkupSafe==2.1.1
 minio==7.1.15
 nbclient==0.6.3
-nbconvert==7.1.0
+nbconvert==7.17.0
 nbformat==5.4.0
 papermill==2.6.0
 pyzmq==26.4.0
