@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2025 Elyra Authors
+# Copyright 2018-2026 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -126,15 +126,15 @@ lint: lint-ui lint-server ## Run linters
 ## Library linking targets
 
 dev-link:
-	- yarn link @elyra/pipeline-services
-	- yarn link @elyra/pipeline-editor
-	- lerna run link:dev
+	cd ../pipeline-editor && yarn install && yarn build
+	rm -rf node_modules/@elyra/pipeline-editor node_modules/@elyra/pipeline-services
+	ln -s $(realpath ../pipeline-editor/packages/pipeline-editor) node_modules/@elyra/pipeline-editor
+	ln -s $(realpath ../pipeline-editor/packages/pipeline-services) node_modules/@elyra/pipeline-services
+	rm -rf node_modules/lerna
 
 dev-unlink:
-	- yarn unlink @elyra/pipeline-services
-	- yarn unlink @elyra/pipeline-editor
-	- lerna run unlink:dev
-	yarn install --force
+	rm -f node_modules/@elyra/pipeline-editor node_modules/@elyra/pipeline-services
+	yarn install
 
 ## Build and install targets
 
@@ -150,10 +150,10 @@ yarn-install:
 	yarn install
 
 build-ui-prod: ## Build UI packages for production
-	yarn lerna run build:prod --stream
+	lerna run build:prod --stream
 
 build-ui-dev: ## Build UI packages for development
-	yarn lerna run build --stream
+	lerna run build --stream
 
 package-ui-prod: build-dependencies yarn-install lint-ui build-ui-prod ## Package UI for production
 
@@ -193,7 +193,7 @@ check-install:
 	jupyter labextension list
 
 watch: ## Watch packages. For use alongside jupyter lab --watch
-	yarn lerna run watch --parallel
+	lerna run watch --parallel
 
 release: yarn-install build-ui-prod build-server ## Build wheel file for release
 
@@ -230,7 +230,7 @@ test-ui-unit: # Run frontend jest unit tests
 	yarn test:unit
 
 test-instrument: # Prepare code coverage instrumentation
-	yarn lerna run cy:instrument --stream
+	lerna run cy:instrument --stream
 
 test-integration: # Run frontend cypress integration tests
 	jupyter labextension disable "@jupyterlab/apputils-extension:announcements"
