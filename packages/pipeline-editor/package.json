@@ -55,7 +55,7 @@
   },
   "dependencies": {
     "@elyra/metadata-common": "4.0.1-dev",
-    "@elyra/pipeline-editor": "1.12.1",
+    "@elyra/pipeline-editor": "1.13.0",
     "@elyra/pipeline-services": "1.12.1",
     "@elyra/services": "4.0.1-dev",
     "@elyra/ui-components": "4.0.1-dev",
