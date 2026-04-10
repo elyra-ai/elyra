@@ -13,7 +13,7 @@
   "scripts": {
     "graph": "ts-node etc/scripts/generate-make-graph.ts",
     "cy:open": "npx cypress open",
-    "cy:run": "npx nyc npx cypress run --headed",
+    "cy:run": "npx nyc npx cypress run --headless",
     "eslint": "eslint . --fix --ignore-path .gitignore --ext .ts,.tsx,.js",
     "eslint:check": "eslint . --ignore-path .gitignore --ext .ts,.tsx,.js",
     "prettier": "prettier --ignore-path .gitignore --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
@@ -21,6 +21,7 @@
     "test": "npm run test:unit && npm run test:integration",
     "start": "mkdir -p build/cypress && ts-node scripts/start-test-server.ts",
     "test:integration": "server-test 'yarn start' ':9000/minio/health/live|http-get://localhost:58888?token=test' 'yarn cy:run'",
+    "test:integration:spec": "server-test 'yarn start' ':9000/minio/health/live|http-get://localhost:58888?token=test'",
     "test:integration:debug": "server-test 'yarn start' ':9000/minio/health/live|http-get://localhost:58888?token=test' 'yarn cy:open'",
     "test:unit": "lerna run test --concurrency 1 --stream"
   },

@@ -234,7 +234,11 @@ test-instrument: # Prepare code coverage instrumentation
 
 test-integration: # Run frontend cypress integration tests
 	jupyter labextension disable "@jupyterlab/apputils-extension:announcements"
+ifdef CYPRESS_SPEC
+	yarn test:integration:spec 'npx nyc --check-coverage=false npx cypress run --headless --spec $(CYPRESS_SPEC)'
+else
 	yarn test:integration
+endif
 
 test-integration-debug: # Open cypress integration test debugger
 	yarn test:integration:debug

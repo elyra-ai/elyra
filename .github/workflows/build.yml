@@ -143,9 +143,21 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   test-integration:
-    name: Run Integration Tests
+    name: Integration Tests (${{ matrix.group }})
     needs: prepare-yarn-cache
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: pipeline
+            specs: 'cypress/tests/pipeline.cy.ts'
+          - group: codesnippet
+            specs: 'cypress/tests/codesnippet.cy.ts'
+          - group: editors
+            specs: 'cypress/tests/pythoneditor.cy.ts,cypress/tests/codesnippetfromselectedcells.cy.ts,cypress/tests/scriptdebugger.cy.ts'
+          - group: misc
+            specs: 'cypress/tests/reditor.cy.ts,cypress/tests/submitnotebookbutton.cy.ts,cypress/tests/launcher.cy.ts,cypress/tests/lsp.cy.ts,cypress/tests/git.cy.ts,cypress/tests/toc.cy.ts'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -173,18 +185,19 @@ jobs:
         run: |
           make install-server
           make install-examples
-      - name: Cypress
-        run: make test-integration
+      - name: Cypress (${{ matrix.group }})
+        run: make test-integration CYPRESS_SPEC=${{ matrix.specs }}
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/cobertura-coverage.xml
+          flags: integration-${{ matrix.group }}
       - name: Collect logs
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: elyra_test_artifacts
+          name: elyra_test_artifacts_${{ matrix.group }}
           path: |
             ${{ github.workspace }}/build/cypress/*.log
             ${{ github.workspace }}/build/cypress/pipelines//**/*
