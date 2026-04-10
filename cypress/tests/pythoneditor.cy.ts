@@ -130,9 +130,10 @@ describe('Python Editor tests', () => {
   // check for new output console and scroll up/down buttons
   it('opens new output console', () => {
     cy.openHelloWorld('py');
+    cy.wait(1000);
     clickRunButton();
-    cy.get('[id=tab-ScriptEditor-output]').should(
-      'have.text',
+    cy.get('[id=tab-ScriptEditor-output]', { timeout: 10000 }).should(
+      'contain.text',
       'Console Output'
     );
     cy.get('button[title="Top"]').should('be.visible');

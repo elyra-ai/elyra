@@ -251,8 +251,7 @@ describe('Code Snippet tests', () => {
     insert(snippetName);
 
     // Check if editor has the new code
-    cy.get('.cm-editor:visible');
-    cy.get('.cm-editor .cm-content .cm-line').contains(/test/i);
+    checkCodeMirror();
   });
 
   it('should fail to insert a java code snippet into python editor', () => {
@@ -275,8 +274,8 @@ describe('Code Snippet tests', () => {
     cy.get('.jp-Dialog-button.jp-mod-reject').click();
 
     // Check it did not insert the code
-    cy.get('.cm-editor:visible');
-    cy.get('.cm-editor .cm-content .cm-line').should('not.contain', /test/i);
+    cy.wait(1000);
+    cy.get('.cm-editor:visible .cm-content').should('not.contain.text', 'Code Snippet Test');
   });
 
   it('Test inserting a code snippet into a notebook', () => {
@@ -517,7 +516,11 @@ const editSnippetLanguage = (snippetName: string, lang: string): void => {
 };
 
 const checkCodeMirror = (): void => {
+  // Wait a moment for editor to settle and content to be inserted
+  cy.wait(1000);
+
   // Check that CodeMirror editor contains the expected code snippet
+  // In JupyterLab 4.x, targeting the active editor specifically is more reliable
   cy.get('.cm-editor:visible')
     .find('.cm-content')
     .should('contain.text', 'print("Code Snippet Test")')

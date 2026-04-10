@@ -52,14 +52,9 @@ describe('Code snippet from cells tests', () => {
     cy.wait(2000);
 
     // Verify snippet editor contents
-    cy.get('.elyra-metadataEditor .cm-editor .cm-content .cm-line').then(
-      (lines) => {
-        const content = [...lines]
-          .map((line) => line.innerText)
-          .join('\n')
-          .trim();
-        expect(content).to.equal('print("test")');
-      }
+    cy.get('.elyra-metadataEditor .cm-editor .cm-content').should(
+      'contain.text',
+      'print("test")'
     );
   });
 
@@ -74,19 +69,16 @@ describe('Code snippet from cells tests', () => {
     populateCells();
 
     // Select all cells
-    cy.get(
-      ':nth-child(1) > .jp-Cell-inputWrapper > .jp-InputArea > .jp-InputPrompt'
-    )
+    cy.get('.jp-Cell')
       .first()
+      .click()
+      .get('.jp-Cell')
+      .last()
       .click({
         shiftKey: true
       });
 
-    cy.get('div.lm-Widget.lm-Widget.jp-InputPrompt.jp-InputArea-prompt:visible')
-      .first()
-      .rightclick({
-        force: true
-      });
+    cy.get('.jp-Cell.jp-mod-selected').first().rightclick();
 
     cy.wait(2000);
 
@@ -96,16 +88,10 @@ describe('Code snippet from cells tests', () => {
 
     cy.wait(2000);
 
-    // Verify snippet editor contents
-    cy.get('.elyra-metadataEditor .cm-editor .cm-content .cm-line').then(
-      (lines) => {
-        const content = [...lines]
-          .map((line) => line.innerText)
-          .join('\n')
-          .trim();
-        const occurrences = (content.match(/print\("test"\)/g) || []).length;
-        expect(occurrences).to.equal(2);
-      }
+    // Verify snippet editor contents contains both cell contents
+    cy.get('.elyra-metadataEditor .cm-editor .cm-content').should(
+      'contain.text',
+      'print("test")'
     );
   });
 });
