@@ -139,6 +139,14 @@ Cypress.Commands.add('deleteFile', (name: string): void => {
   });
 });
 
+Cypress.Commands.add('deleteFiles', (patterns: string[]): void => {
+  if (patterns.length === 0) return;
+  const findArgs = patterns.map((p) => `-name "${p}"`).join(' -o ');
+  cy.exec(`find build/cypress/ \\( ${findArgs} \\) -delete`, {
+    failOnNonZeroExit: false
+  });
+});
+
 Cypress.Commands.add(
   'createPipeline',
   ({ name, type, emptyPipeline } = {}): void => {
