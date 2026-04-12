@@ -173,9 +173,7 @@ Cypress.Commands.add(
       cy.openFile(name);
     }
 
-    cy.get('.common-canvas-drop-div');
-    // wait an additional 300ms for the list of items to settle
-    cy.wait(300);
+    cy.get('.common-canvas-drop-div').should('be.visible');
   }
 );
 
@@ -242,6 +240,8 @@ Cypress.Commands.add('resetJupyterLab', (): void => {
   cy.findByRole('tab', { name: /file browser/i, timeout: 25000 }).should(
     'exist'
   );
+  // Wait for the launcher to be fully rendered
+  cy.get('.jp-Launcher', { timeout: 10000 }).should('be.visible');
 });
 
 Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
