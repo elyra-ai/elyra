@@ -82,7 +82,7 @@ describe('@elyra/script-editor', () => {
             'connecting'
           );
         }
-        runner.shutdownSession();
+        await runner.shutdownSession();
       });
 
       it('should shut down a kernel session', async () => {

@@ -185,10 +185,11 @@ export class ScriptRunner {
 
       try {
         await this.sessionConnection.shutdown();
-        this.sessionConnection = null;
-        console.log(name + ' kernel shut down');
       } catch (e) {
         console.log('Exception: session shutdown = ' + JSON.stringify(e));
+      } finally {
+        this.sessionConnection = null;
+        console.log(name + ' kernel shut down');
       }
     }
   };
