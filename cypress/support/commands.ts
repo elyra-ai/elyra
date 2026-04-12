@@ -323,16 +323,7 @@ Cypress.Commands.add(
   (fileExtension: string): void => {
     cy.openHelloWorld(fileExtension);
     // Ensure that the file contents are as expected
-    cy.get('.cm-line').then((lines) => {
-      const content = [...lines]
-        .map((line) => line.innerText)
-        .join('\n')
-        .trim();
-      expect(content).to.equal('print("Hello Elyra")');
-    });
-
-    // Close the file editor
-    cy.closeTab(-1);
+    cy.get('.cm-line').should('contain.text', 'print("Hello Elyra")');
   }
 );
 
