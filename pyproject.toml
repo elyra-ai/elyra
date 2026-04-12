@@ -57,7 +57,7 @@ dependencies = [
     "pygithub",
     "black>=22.8.0",
     # AI assistant dependencies
-    "jupyter-ai>=2.0.0",
+    "jupyter-ai>=2.0.0,<3.0.0",  # 3.0 pulls in jupyter-collaboration which breaks session shutdown in tests
     "jupyterlab-magic-wand>=0.1.0",
 ]
 classifiers = [
