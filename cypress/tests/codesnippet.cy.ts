@@ -110,8 +110,6 @@ describe('Code Snippet tests', () => {
   it('should delete existing Code Snippet', () => {
     createValidCodeSnippet(snippetName);
 
-    cy.wait(500);
-
     getSnippetByName(snippetName);
 
     deleteSnippet(snippetName);
@@ -120,19 +118,16 @@ describe('Code Snippet tests', () => {
   // Duplicate snippet
   it('should duplicate existing Code Snippet', () => {
     createValidCodeSnippet(snippetName);
-    cy.wait(500);
     let snippetRef = getSnippetByName(snippetName);
     expect(snippetRef).to.not.be.null;
 
     // create a duplicate of this snippet
     duplicateSnippet(snippetName);
-    cy.wait(100);
     snippetRef = getSnippetByName(`${snippetName}-Copy1`);
     expect(snippetRef).to.not.be.null;
 
     // create another duplicate of this snippet
     duplicateSnippet(snippetName);
-    cy.wait(100);
     snippetRef = getSnippetByName(`${snippetName}-Copy2`);
     expect(snippetRef).to.not.be.null;
 
@@ -207,8 +202,6 @@ describe('Code Snippet tests', () => {
       .type(newSnippetName);
     saveAndCloseMetadataEditor();
 
-    cy.wait(500);
-
     // Check new snippet name is displayed
     const updatedSnippetItem = getSnippetByName(newSnippetName);
 
@@ -222,9 +215,6 @@ describe('Code Snippet tests', () => {
   });
 
   it('should fail to insert a code snippet into unsupported widget', () => {
-    // Give time for the Launcher tab to load
-    cy.wait(2000);
-
     createValidCodeSnippet(snippetName);
 
     // Insert snippet into launcher widget
@@ -233,19 +223,16 @@ describe('Code Snippet tests', () => {
     // Check if insertion failed and dismiss dialog
     cy.get('.jp-Dialog-header').contains('Error');
     cy.get('button.jp-mod-accept').click();
-    cy.wait(100);
   });
 
   it('should insert a python code snippet into python editor', () => {
-    // Give time for the Launcher tab to load
-    cy.wait(2000);
-
     createValidCodeSnippet(snippetName);
 
     // Open blank python file
     cy.createNewScriptEditor('Python');
 
-    cy.wait(1500);
+    // Wait for script editor to be ready
+    cy.get('.elyra-ScriptEditor', { timeout: 10000 }).should('be.visible');
 
     // Insert snippet into python editor
     insert(snippetName);
@@ -256,15 +243,13 @@ describe('Code Snippet tests', () => {
   });
 
   it('should fail to insert a java code snippet into python editor', () => {
-    // Give time for the Launcher tab to load
-    cy.wait(2000);
-
     createValidCodeSnippet(snippetName, 'Java');
 
     // Open blank python file
     cy.createNewScriptEditor('Python');
 
-    cy.wait(500);
+    // Wait for script editor to be ready
+    cy.get('.elyra-ScriptEditor', { timeout: 10000 }).should('be.visible');
 
     // Insert snippet into python editor
     insert(snippetName);
@@ -287,12 +272,12 @@ describe('Code Snippet tests', () => {
 
     saveAndCloseMetadataEditor();
 
-    cy.wait(500);
-
     // Close Code Snippets sidebar and open File Browser
     cy.get('.jp-SideBar [title*="Code Snippets"]').click();
     cy.get('.jp-SideBar [title*="File Browser"]').click();
-    cy.wait(500);
+    cy.get('.jp-SideBar .lm-mod-current[title*="File Browser"]').should(
+      'exist'
+    );
 
     // Create new notebook via File menu
     cy.get('.lm-MenuBar-itemLabel:contains("File")').first().click();
@@ -303,14 +288,15 @@ describe('Code Snippet tests', () => {
     cy.get('.jp-Dialog', { timeout: 10000 }).should('be.visible');
     cy.get('.jp-Dialog .jp-mod-accept').click();
     cy.get('.jp-Dialog').should('not.exist');
-    cy.wait(500);
 
-    // Check widget is loaded - Update selector for modern JupyterLab
+    // Check widget is loaded
     cy.get('.cm-editor:visible');
 
     // Re-open Code Snippets sidebar as it may have switched when opening notebook
     cy.get('.jp-SideBar [title="Code Snippets"]').click();
-    cy.wait(500);
+    cy.get('.jp-SideBar .lm-mod-current[title*="Code Snippets"]').should(
+      'exist'
+    );
 
     insert(snippetName);
 
@@ -328,12 +314,12 @@ describe('Code Snippet tests', () => {
 
     saveAndCloseMetadataEditor();
 
-    cy.wait(500);
-
     // Close Code Snippets sidebar and open File Browser
     cy.get('.jp-SideBar [title*="Code Snippets"]').click();
     cy.get('.jp-SideBar [title*="File Browser"]').click();
-    cy.wait(500);
+    cy.get('.jp-SideBar .lm-mod-current[title*="File Browser"]').should(
+      'exist'
+    );
 
     // Create new markdown via File menu
     cy.get('.lm-MenuBar-itemLabel:contains("File")').first().click();
@@ -341,14 +327,15 @@ describe('Code Snippet tests', () => {
     cy.get(
       '[data-command="fileeditor:create-new-markdown-file"] > .lm-Menu-itemLabel'
     ).click();
-    cy.wait(500);
 
-    // Check widget is loaded - Update selector for modern JupyterLab
+    // Check widget is loaded
     cy.get('.cm-editor:visible');
 
     // Re-open Code Snippets sidebar as it may have switched when opening markdown
     cy.get('.jp-SideBar [title="Code Snippets"]').click();
-    cy.wait(500);
+    cy.get('.jp-SideBar .lm-mod-current[title*="Code Snippets"]').should(
+      'exist'
+    );
 
     insert(snippetName);
 
@@ -370,7 +357,9 @@ describe('Code Snippet tests', () => {
 const openCodeSnippetExtension = (): void => {
   // In JupyterLab 4, click the Code Snippets tab button
   cy.get('.jp-SideBar [title*="Code Snippets"]').click();
-  cy.get('.jp-SideBar .lm-mod-current[title*="Code Snippets"]');
+  cy.get('.jp-SideBar .lm-mod-current[title*="Code Snippets"]').should(
+    'exist'
+  );
 };
 
 const getSnippetByName = (
@@ -414,7 +403,8 @@ const createValidCodeSnippet = (
 
   saveAndCloseMetadataEditor();
 
-  cy.wait(1000);
+  // Wait for snippet to appear in the list
+  cy.get(`[data-item-id="${snippetName}"]`).should('exist');
 };
 
 const clickCreateNewSnippetButton = (): void => {
@@ -430,7 +420,6 @@ const checkValidationWarnings = (count: number): void => {
 
 const saveAndCloseMetadataEditor = (): void => {
   cy.get('.elyra-metadataEditor-saveButton > button:visible').click();
-  cy.wait(500);
 };
 
 const typeCodeSnippetName = (name: string): void => {
@@ -463,7 +452,6 @@ const deleteSnippet = (snippetName: string): void => {
       cy.get('.jp-Dialog .lm-TabBar-tabCloseIcon')
         .first()
         .click({ force: true });
-      cy.wait(500);
     }
   });
 
@@ -500,7 +488,6 @@ const insert = (snippetName: string): void => {
   getActionButtonsElement(snippetName).within(() => {
     cy.get('button[title="Insert"]').click();
   });
-  cy.wait(500);
 };
 
 const editSnippetLanguage = (snippetName: string, lang: string): void => {
