@@ -163,9 +163,7 @@ describe('Pipeline Editor tests', () => {
     cy.openDirectory('pipelines');
     cy.writeFile('build/cypress/pipelines/complex.pipeline', emptyPipeline);
     cy.openFile('complex.pipeline');
-    cy.get('.common-canvas-drop-div');
-    // wait an additional 300ms for the list of items to settle
-    cy.wait(300);
+    cy.get('.common-canvas-drop-div').should('be.visible');
 
     cy.addFileToPipeline('producer.ipynb');
     cy.addFileToPipeline('consumer.ipynb');
@@ -207,25 +205,19 @@ describe('Pipeline Editor tests', () => {
         );
       });
       cy.get('#root_component_parameters_runtime_image').within(() => {
-        cy.get('select[id="root_component_parameters_runtime_image"]').select(
-          'continuumio/anaconda3:2024.02-1'
-        );
+        selectRuntimeImage();
       });
 
       // consumer props
       cy.findByText('consumer.ipynb').click();
       cy.get('#root_component_parameters_runtime_image').within(() => {
-        cy.get('select[id="root_component_parameters_runtime_image"]').select(
-          'continuumio/anaconda3:2024.02-1'
-        );
+        selectRuntimeImage();
       });
 
       // setup props
       cy.findByText('setup.py').click();
       cy.get('#root_component_parameters_runtime_image').within(() => {
-        cy.get('select[id="root_component_parameters_runtime_image"]').select(
-          'continuumio/anaconda3:2024.02-1'
-        );
+        selectRuntimeImage();
       });
       cy.get('#root_component_parameters_dependencies').within(() => {
         cy.findByRole('button', { name: /add/i }).click();
@@ -243,9 +235,7 @@ describe('Pipeline Editor tests', () => {
       // create-source-files props
       cy.findByText('create-source-files.py').click();
       cy.get('#root_component_parameters_runtime_image').within(() => {
-        cy.get('select[id="root_component_parameters_runtime_image"]').select(
-          'continuumio/anaconda3:2024.02-1'
-        );
+        selectRuntimeImage();
       });
       cy.get('#root_component_parameters_outputs').within(() => {
         cy.findByRole('button', { name: /add/i }).click();
@@ -262,9 +252,7 @@ describe('Pipeline Editor tests', () => {
       // producer-script props
       cy.findByText('producer-script.py').click();
       cy.get('#root_component_parameters_runtime_image').within(() => {
-        cy.get('select[id="root_component_parameters_runtime_image"]').select(
-          'continuumio/anaconda3:2024.02-1'
-        );
+        selectRuntimeImage();
       });
       cy.get('#root_component_parameters_outputs').within(() => {
         cy.findByRole('button', { name: /add/i }).click();
@@ -388,7 +376,12 @@ describe('Pipeline Editor tests', () => {
           .scrollIntoView()
           .find('select')
           .should('be.visible')
-          .select('continuumio/anaconda3:2024.02-1', { force: true });
+          .then(($select) => {
+            cy.wrap($select)
+              .find(`option[value="${RUNTIME_IMAGE}"]`)
+              .should('exist');
+            cy.wrap($select).select(RUNTIME_IMAGE, { force: true });
+          });
         // Generic Node Defaults > Kubernetes Secrets
         cy.get('#root_pipeline_defaults_kubernetes_secrets')
           .scrollIntoView()
@@ -442,10 +435,8 @@ describe('Pipeline Editor tests', () => {
     cy.openDirectory('pipelines');
     cy.writeFile('build/cypress/pipelines/complex.pipeline', emptyPipeline);
     cy.openFile('complex.pipeline');
-    cy.get('.common-canvas-drop-div');
-    cy.wait(300);
+    cy.get('.common-canvas-drop-div').should('be.visible');
     cy.addFileToPipeline('producer.ipynb');
-    cy.wait(300);
 
     // Open notebook node with double-click
     cy.get('#jp-main-dock-panel').within(() => {
@@ -482,8 +473,7 @@ describe('Pipeline Editor tests', () => {
     cy.openDirectory('pipelines');
     cy.writeFile('build/cypress/pipelines/complex.pipeline', emptyPipeline);
     cy.openFile('complex.pipeline');
-    cy.get('.common-canvas-drop-div');
-    cy.wait(300);
+    cy.get('.common-canvas-drop-div').should('be.visible');
     cy.addFileToPipeline('producer.ipynb');
 
     // Open notebook node with right-click menu
@@ -916,6 +906,18 @@ describe('Pipeline Editor tests', () => {
 // ------------------------------
 // ----- Utility Functions
 // ------------------------------
+
+const RUNTIME_IMAGE = 'continuumio/anaconda3:2024.02-1';
+
+// Wait for async-loaded select options before calling .select()
+const selectRuntimeImage = (): void => {
+  cy.get('select[id="root_component_parameters_runtime_image"]')
+    .find(`option[value="${RUNTIME_IMAGE}"]`)
+    .should('exist');
+  cy.get('select[id="root_component_parameters_runtime_image"]').select(
+    RUNTIME_IMAGE
+  );
+};
 
 const checkEnabledToolbarButtons = (buttons: RegExp[]): void => {
   for (const button of buttons) {
