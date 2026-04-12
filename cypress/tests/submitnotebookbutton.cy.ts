@@ -42,6 +42,9 @@ describe('Submit Notebook Button tests', () => {
 
     openNewNotebookFile();
 
+    // Ensure notebook is dirty right before clicking Run as Pipeline
+    cy.get('.cm-content').first().type('# test');
+
     // Click submit notebook button
     cy.findByText(/run as pipeline/i).click();
 
