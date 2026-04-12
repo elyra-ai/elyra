@@ -345,7 +345,24 @@ Cypress.Commands.add('dismissAssistant', (fileType: string): void => {
   });
 });
 
+// Allowlist of known benign JupyterLab errors that should not fail tests.
+// Unknown errors are allowed to propagate so real bugs surface.
+const BENIGN_ERROR_PATTERNS: RegExp[] = [
+  /ResizeObserver loop/,
+  /cancelled/,
+  /Disposed/,
+  /restore\(\) must be called/,
+  /Non-Error promise rejection/,
+  // JupyterLab internal null-pointer errors from extensions
+  /Cannot read properties of null/
+];
+
 Cypress.on('uncaught:exception', (err, _runnable) => {
-  console.log('Uncaught exception:', err);
-  return false; // Prevent Cypress from failing the test
+  const message = err.message ?? String(err);
+  if (BENIGN_ERROR_PATTERNS.some((pattern) => pattern.test(message))) {
+    return false; // Suppress known benign errors
+  }
+  // Let unknown errors fail the test
+  console.error('Uncaught exception (not suppressed):', err);
+  return undefined;
 });
