@@ -42,12 +42,13 @@ export default defineConfig({
       runMode: 1,
       openMode: 1
     },
-    defaultCommandTimeout: 8000,
+    defaultCommandTimeout: 10000,
     execTimeout: 120000,
     pageLoadTimeout: 120000,
     responseTimeout: 60000,
     viewportWidth: 1400,
-    viewportHeight: 800
+    viewportHeight: 800,
+    experimentalMemoryManagement: true
   },
-  numTestsKeptInMemory: 10
+  numTestsKeptInMemory: 5
 });
