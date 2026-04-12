@@ -195,9 +195,24 @@ Cypress.Commands.add('dragAndDropFileToPipeline', (name: string) => {
 });
 
 Cypress.Commands.add('savePipeline', (): void => {
-  cy.findByRole('button', { name: /save pipeline/i }).click();
-  // can take a moment to register as saved in ci
-  cy.wait(1000);
+  cy.intercept('PUT', '**/api/contents/**').as('savePipelineFile');
+
+  // Check if document has unsaved changes before clicking save
+  cy.document().then((doc) => {
+    const isDirty = doc.querySelector('.jp-Document.jp-mod-dirty') !== null;
+
+    cy.findByRole('button', { name: /save pipeline/i }).click();
+
+    if (isDirty) {
+      // Wait for the server to finish writing the file
+      cy.wait('@savePipelineFile');
+    }
+
+    // Confirm document is no longer dirty
+    cy.get('.jp-Document:not(.jp-mod-dirty)', { timeout: 10000 }).should(
+      'exist'
+    );
+  });
 });
 
 Cypress.Commands.add('openFile', (name: string): void => {
