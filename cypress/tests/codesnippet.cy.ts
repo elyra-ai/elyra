@@ -357,9 +357,7 @@ describe('Code Snippet tests', () => {
 const openCodeSnippetExtension = (): void => {
   // In JupyterLab 4, click the Code Snippets tab button
   cy.get('.jp-SideBar [title*="Code Snippets"]').click();
-  cy.get('.jp-SideBar .lm-mod-current[title*="Code Snippets"]').should(
-    'exist'
-  );
+  cy.get('.jp-SideBar .lm-mod-current[title*="Code Snippets"]').should('exist');
 };
 
 const getSnippetByName = (

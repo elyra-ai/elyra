@@ -139,9 +139,7 @@ const populateCells = (): void => {
 // Retry opening context menu until the snippet command is registered.
 // Extension commands register asynchronously; the menu must be
 // re-opened to pick up newly available items.
-const openCellContextMenuWithSnippetItem = (
-  maxRetries: number = 5
-): void => {
+const openCellContextMenuWithSnippetItem = (maxRetries: number = 5): void => {
   const attemptOpen = (remaining: number): void => {
     cy.get('.jp-Cell').first().rightclick();
     cy.get('ul.lm-Menu-content').should('be.visible');
