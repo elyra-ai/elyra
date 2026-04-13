@@ -47,5 +47,6 @@ declare namespace Cypress {
     openFileAndCheckContent(fileExtension: string): Chainable<void>;
     openHelloWorld(fileExtension: string): Chainable<void>;
     dismissAssistant(fileType: string): Chainable<void>;
+    focusPipelineEditor(): Chainable<void>;
   }
 }

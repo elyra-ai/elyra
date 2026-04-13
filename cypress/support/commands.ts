@@ -177,6 +177,13 @@ Cypress.Commands.add(
   }
 );
 
+Cypress.Commands.add('focusPipelineEditor', (): void => {
+  cy.get(
+    '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]'
+  ).click();
+  cy.get('.common-canvas-drop-div').should('be.visible');
+});
+
 Cypress.Commands.add('openDirectory', (name: string): void => {
   cy.findByRole('listitem', {
     name: (n, _el) => n.includes(name)

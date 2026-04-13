@@ -79,34 +79,27 @@ describe('Pipeline Editor tests', () => {
     );
   });
 
-  // TODO: Fix Test is actually failing
-  // it('empty editor should have disabled buttons', () => {
-  //   cy.focusPipelineEditor();
+  it('empty editor should have disabled buttons', () => {
+    cy.focusPipelineEditor();
 
-  //   const disabledButtons = [
-  //     '.run-action',
-  //     '.export-action',
-  //     '.clear-action',
-  //     '.undo-action',
-  //     '.redo-action',
-  //     '.cut-action',
-  //     '.copy-action',
-  //     '.paste-action',
-  //     '.deleteSelectedObjects-action',
-  //     '.arrangeHorizontally-action',
-  //     '.arrangeVertically-action'
-  //   ];
-  //   checkDisabledToolbarButtons(disabledButtons);
+    const disabledButtons = [
+      /run pipeline/i,
+      /export pipeline/i,
+      /clear/i,
+      /undo/i,
+      /redo/i,
+      /cut/i,
+      /copy/i,
+      /paste/i,
+      /delete/i,
+      /arrange horizontally/i,
+      /arrange vertically/i
+    ];
+    checkDisabledToolbarButtons(disabledButtons);
 
-  //   const enabledButtons = [
-  //     '.save-action',
-  //     '.openRuntimes-action',
-  //     '.createAutoComment-action'
-  //   ];
-  //   checkEnabledToolbarButtons(enabledButtons);
-
-  //   closePipelineEditor();
-  // });
+    const enabledButtons = [/save pipeline/i, /open runtimes/i, /add comment/i];
+    checkEnabledToolbarButtons(enabledButtons);
+  });
 
   // Flaky test: Missing expected items in the context menu
   it.skip('populated editor should have enabled buttons', () => {
