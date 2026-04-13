@@ -193,8 +193,12 @@ Cypress.Commands.add('openDirectory', (name: string): void => {
 Cypress.Commands.add('addFileToPipeline', (name: string): void => {
   cy.findByRole('listitem', {
     name: (n, _el) => n.includes(name)
-  }).rightclick();
-  cy.findByRole('menuitem', { name: /add file to pipeline/i }).click();
+  })
+    .should('be.visible')
+    .rightclick();
+  cy.findByRole('menuitem', { name: /add file to pipeline/i })
+    .should('be.visible')
+    .click();
 });
 
 Cypress.Commands.add('dragAndDropFileToPipeline', (name: string) => {
