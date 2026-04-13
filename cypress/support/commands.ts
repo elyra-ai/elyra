@@ -258,6 +258,8 @@ Cypress.Commands.add('closeTab', (index: number): void => {
 });
 
 Cypress.Commands.add('createNewScriptEditor', (language: string): void => {
+  // Ensure launcher is visible (may take a moment after closing a previous tab)
+  cy.get('.jp-Launcher', { timeout: 10000 }).should('be.visible');
   cy.get(
     `.jp-LauncherCard[data-category="Elyra"][title="Create a new ${language} Editor"]:visible`
   ).click();
