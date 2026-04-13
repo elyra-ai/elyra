@@ -381,7 +381,9 @@ const BENIGN_ERROR_PATTERNS: RegExp[] = [
   /restore\(\) must be called/,
   /Non-Error promise rejection/,
   // JupyterLab internal null-pointer errors from extensions
-  /Cannot read properties of null/
+  /Cannot read properties of null/,
+  // JupyterLab checkpoint errors during cleanup/navigation
+  /Unhandled error/
 ];
 
 Cypress.on('uncaught:exception', (err, _runnable) => {

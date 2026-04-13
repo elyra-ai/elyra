@@ -911,13 +911,13 @@ const selectRuntimeImage = (): void => {
 
 const checkEnabledToolbarButtons = (buttons: RegExp[]): void => {
   for (const button of buttons) {
-    cy.findByRole('jp-button', { name: button }).should('not.be.disabled');
+    cy.findByRole('button', { name: button }).should('not.be.disabled');
   }
 };
 
 const checkDisabledToolbarButtons = (buttons: RegExp[]): void => {
   for (const button of buttons) {
-    cy.findByRole('jp-button', { name: button }).should('be.disabled');
+    cy.findByRole('button', { name: button }).should('be.disabled');
   }
 };
 
