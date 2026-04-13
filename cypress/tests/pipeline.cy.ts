@@ -84,7 +84,6 @@ describe('Pipeline Editor tests', () => {
 
     const disabledButtons = [
       /run pipeline/i,
-      /export pipeline/i,
       /clear/i,
       /undo/i,
       /redo/i,
@@ -97,7 +96,12 @@ describe('Pipeline Editor tests', () => {
     ];
     checkDisabledToolbarButtons(disabledButtons);
 
-    const enabledButtons = [/save pipeline/i, /open runtimes/i, /add comment/i];
+    const enabledButtons = [
+      /save pipeline/i,
+      /export pipeline/i,
+      /open runtimes/i,
+      /add comment/i
+    ];
     checkEnabledToolbarButtons(enabledButtons);
   });
 

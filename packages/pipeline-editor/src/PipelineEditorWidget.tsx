@@ -1131,7 +1131,7 @@ const PipelineWrapper: React.FC<
       {
         action: 'export',
         label: 'Export Pipeline',
-        enable: hasNodes,
+        enable: true,
         iconEnabled: IconUtil.encode(exportPipelineIcon),
         iconDisabled: IconUtil.encode(exportPipelineIcon)
       },
