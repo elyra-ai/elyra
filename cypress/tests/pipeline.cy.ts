@@ -101,8 +101,7 @@ describe('Pipeline Editor tests', () => {
     checkEnabledToolbarButtons(enabledButtons);
   });
 
-  // Flaky test: Missing expected items in the context menu
-  it.skip('populated editor should have enabled buttons', () => {
+  it('populated editor should have enabled buttons', () => {
     cy.createPipeline({ emptyPipeline });
 
     cy.checkTabMenuOptions('Pipeline');
