@@ -31,12 +31,12 @@ describe('Code snippet from cells tests', () => {
   it('test empty cell', () => {
     cy.get('.jp-Notebook').should('have.length', 1);
 
-    // For the empty cell, the snippet command is already registered (just disabled).
-    // No retry helper needed — just rightclick and wait for the menu item.
-    cy.get('.jp-Cell').first().rightclick();
-    cy.get('li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]', {
-      timeout: 10000
-    }).should('have.class', 'lm-mod-disabled');
+    // Extension commands register asynchronously — use retry helper
+    openCellContextMenuWithSnippetItem();
+
+    cy.get(
+      'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
+    ).should('have.class', 'lm-mod-disabled');
   });
 
   it('test 1 cell', () => {
