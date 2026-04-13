@@ -1112,12 +1112,14 @@ const PipelineWrapper: React.FC<
     ]
   );
 
+  const hasNodes = (pipeline?.pipelines?.[0]?.nodes?.length ?? 0) > 0;
+
   const toolbar = {
     leftBar: [
       {
         action: 'run',
         label: 'Run Pipeline',
-        enable: true
+        enable: hasNodes
       },
       {
         action: 'save',
@@ -1129,14 +1131,14 @@ const PipelineWrapper: React.FC<
       {
         action: 'export',
         label: 'Export Pipeline',
-        enable: true,
+        enable: hasNodes,
         iconEnabled: IconUtil.encode(exportPipelineIcon),
         iconDisabled: IconUtil.encode(exportPipelineIcon)
       },
       {
         action: 'clear',
         label: 'Clear Pipeline',
-        enable: true,
+        enable: hasNodes,
         iconEnabled: IconUtil.encode(clearPipelineIcon),
         iconDisabled: IconUtil.encode(clearPipelineIcon)
       },
@@ -1171,12 +1173,12 @@ const PipelineWrapper: React.FC<
       {
         action: 'arrangeHorizontally',
         label: 'Arrange Horizontally',
-        enable: true
+        enable: hasNodes
       },
       {
         action: 'arrangeVertically',
         label: 'Arrange Vertically',
-        enable: true
+        enable: hasNodes
       }
     ],
     rightBar: [
