@@ -395,10 +395,10 @@ describe('Pipeline Editor tests', () => {
     });
   });
 
-  // Flaky test: Sometimes cannot create/open files
-  it.skip('should open notebook on double-clicking the node', () => {
+  it('should open notebook on double-clicking the node', () => {
     // Open a pipeline in root directory
     cy.openFile('generic-test.pipeline');
+    cy.get('.common-canvas-drop-div').should('be.visible');
 
     // Open notebook node with double-click
     cy.get('.common-canvas-drop-div').within(() => {
@@ -410,9 +410,9 @@ describe('Pipeline Editor tests', () => {
     // close tabs
     cy.closeTab(-1); // notebook tab
 
-    cy.get(
-      '.jp-Dialog-buttonLabel[aria-label="Discard changes to file"]'
-    ).click();
+    cy.get('.jp-Dialog-buttonLabel[aria-label="Discard changes to file"]', {
+      timeout: 10000
+    }).click();
 
     cy.closeTab(-1); // pipeline tab
 
@@ -426,21 +426,23 @@ describe('Pipeline Editor tests', () => {
 
     // Open notebook node with double-click
     cy.get('#jp-main-dock-panel').within(() => {
-      cy.findByText('producer.ipynb').dblclick();
+      cy.findByText('producer.ipynb').should('be.visible').dblclick();
     });
 
     cy.findAllByRole('tab', { name: /producer\.ipynb/g }).should('exist');
   });
 
-  // Flaky test: Sometimes cannot create/open files
-  it.skip('should open notebook from node right-click menu', () => {
+  it('should open notebook from node right-click menu', () => {
     // Open a pipeline in root directory
     cy.openFile('generic-test.pipeline');
+    cy.get('.common-canvas-drop-div').should('be.visible');
 
     // Open notebook node with right-click menu
     cy.get('#jp-main-dock-panel').within(() => {
       cy.findByText('helloworld.ipynb').rightclick();
-      cy.findByRole('menuitem', { name: /open file/i }).click();
+      cy.findByRole('menuitem', { name: /open file/i })
+        .should('be.visible')
+        .click();
     });
 
     cy.findAllByRole('tab', { name: /helloworld\.ipynb/g }).should('exist');
@@ -448,9 +450,9 @@ describe('Pipeline Editor tests', () => {
     // close tabs
     cy.closeTab(-1); // notebook tab
 
-    cy.get(
-      '.jp-Dialog-buttonLabel[aria-label="Discard changes to file"]'
-    ).click();
+    cy.get('.jp-Dialog-buttonLabel[aria-label="Discard changes to file"]', {
+      timeout: 10000
+    }).click();
 
     cy.closeTab(-1); // pipeline tab
 
@@ -464,8 +466,10 @@ describe('Pipeline Editor tests', () => {
 
     // Open notebook node with right-click menu
     cy.get('#jp-main-dock-panel').within(() => {
-      cy.findByText('producer.ipynb').rightclick();
-      cy.findByRole('menuitem', { name: /open file/i }).click();
+      cy.findByText('producer.ipynb').should('be.visible').rightclick();
+      cy.findByRole('menuitem', { name: /open file/i })
+        .should('be.visible')
+        .click();
     });
 
     cy.findAllByRole('tab', { name: /producer\.ipynb/g }).should('exist');
