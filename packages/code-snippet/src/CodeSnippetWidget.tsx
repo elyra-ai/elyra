@@ -35,12 +35,7 @@ import {
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Clipboard, Dialog, showDialog } from '@jupyterlab/apputils';
-import {
-  CodeCell,
-  MarkdownCell,
-  ICodeCellModel,
-  IMarkdownCellModel
-} from '@jupyterlab/cells';
+import { CodeCell, MarkdownCell } from '@jupyterlab/cells';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { EditorLanguageRegistry } from '@jupyterlab/codemirror';
 import { PathExt } from '@jupyterlab/coreutils';
@@ -168,37 +163,15 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
         const notebookContent = notebookWidget.content;
         const activeCellIndex = notebookContent.activeCellIndex ?? -1;
 
-        const contentFactory = new NotebookPanel.ContentFactory({
-          editorFactory:
-            this.props.editorServices.factoryService.newInlineEditor
-        });
-
-        /*
-          interface CodeCellCreatorOption {
-          model: ICodeCellModel | undefined;
-          rendermime: RenderMimeRegistry;
-          contentFactory: any;
-          cell_type: string;
-        }
-        */
-
-        const options: CodeCell.IOptions = {
-          model: notebookContent.activeCell?.model as ICodeCellModel,
-          rendermime: notebookContent.rendermime,
-          contentFactory: contentFactory
+        const newCell: Partial<nbformat.ICodeCell> & { cell_type: string } = {
+          cell_type: 'code',
+          source: '',
+          metadata: {},
+          outputs: [],
+          execution_count: null
         };
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API mismatch
-        const codeCell: any = contentFactory.createCodeCell(options);
-        codeCell.cell_type = 'code';
-        //insert the new code cell into the notebook at the specified index
-
-        // codeCell: CodeCell
-        // codeCell: SharedCell.Cell
-        widget.content.model?.sharedModel.insertCell(
-          activeCellIndex,
-          codeCell as Partial<nbformat.ICodeCell> & { cell_type: string }
-        );
+        notebookContent.model?.sharedModel.insertCell(activeCellIndex, newCell);
 
         //update the active cell index to the newly inserted cell
         notebookWidget.content.activeCellIndex = activeCellIndex + 1;
@@ -400,7 +373,7 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
   ): boolean {
     const dx = Math.abs(nextX - prevX);
     const dy = Math.abs(nextY - prevY);
-    return dx >= 0 || dy >= DRAG_THRESHOLD;
+    return dx >= DRAG_THRESHOLD || dy >= DRAG_THRESHOLD;
   }
 
   private async startDrag(
@@ -409,52 +382,23 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
     clientX: number,
     clientY: number
   ): Promise<void> {
-    const widget: NotebookPanel =
-      this.props.getCurrentWidget() as NotebookPanel;
-
-    const notebookContent = widget.content;
-    //const activeCellIndex = notebookContent.activeCellIndex ?? -1;
-
-    const contentFactory = new NotebookPanel.ContentFactory({
-      editorFactory: this.props.editorServices.factoryService.newInlineEditor
-    });
-
-    const options: CodeCell.IOptions = {
-      model: notebookContent.activeCell?.model as ICodeCellModel,
-      rendermime: notebookContent.rendermime,
-      contentFactory: contentFactory
-    };
-
-    const options2: MarkdownCell.IOptions = {
-      model: notebookContent.activeCell?.model as IMarkdownCellModel,
-      rendermime: notebookContent.rendermime,
-      contentFactory: contentFactory
-    };
-
-    const codeCell = contentFactory.createCodeCell(options);
-
-    const markdownCell = contentFactory.createMarkdownCell(options2);
-
     const language = this.extractMetadataLanguage(metadata);
-    const model =
-      language.toLowerCase() !== 'markdown' ? codeCell : markdownCell;
-
     const content = this.extractMetadataCodeSnippet(metadata);
 
-    if (language.toLowerCase() !== 'markdown') {
-      if (model.model.type === 'code') {
-        (model.model as ICodeCellModel).sharedModel.setSource(content);
-      } else {
-        // Handle other cases if needed
-      }
-    }
-    if (language.toLowerCase() === 'markdown') {
-      if (model.model.type === 'markdown') {
-        (model.model as IMarkdownCellModel).sharedModel.setSource(content);
-      } else {
-        // Handle other cases if needed
-      }
-    }
+    const cellData: nbformat.ICell =
+      language.toLowerCase() !== 'markdown'
+        ? ({
+            cell_type: 'code',
+            source: content,
+            metadata: {},
+            outputs: [],
+            execution_count: null
+          } as nbformat.ICodeCell)
+        : ({
+            cell_type: 'markdown',
+            source: content,
+            metadata: {}
+          } as nbformat.IMarkdownCell);
 
     this._drag = new Drag({
       mimeData: new MimeData(),
@@ -464,8 +408,7 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
       source: this
     });
 
-    const selected: nbformat.ICell[] = [model.model.toJSON()];
-    this._drag.mimeData.setData(JUPYTER_CELL_MIME, selected);
+    this._drag.mimeData.setData(JUPYTER_CELL_MIME, [cellData]);
     this._drag.mimeData.setData('text/plain', content);
 
     return this._drag.start(clientX, clientY).then(() => {

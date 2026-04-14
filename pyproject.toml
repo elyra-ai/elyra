@@ -55,7 +55,7 @@ dependencies = [
     "kfp>=2.0.0", # Cap kfp for protobuf compatibility
     "kfp-kubernetes>=1.0.0",
     "pygithub",
-    "black>=22.8.0",
+    "black~=26.1",
     # AI assistant dependencies
     "jupyter-ai>=2.0.0,<3.0.0",  # 3.0 pulls in jupyter-collaboration which breaks session shutdown in tests
     "jupyterlab-magic-wand>=0.1.0",
