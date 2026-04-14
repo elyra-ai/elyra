@@ -35,10 +35,7 @@ import {
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Clipboard, Dialog, showDialog } from '@jupyterlab/apputils';
-import {
-  CodeCell,
-  MarkdownCell
-} from '@jupyterlab/cells';
+import { CodeCell, MarkdownCell } from '@jupyterlab/cells';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { EditorLanguageRegistry } from '@jupyterlab/codemirror';
 import { PathExt } from '@jupyterlab/coreutils';
@@ -174,10 +171,7 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
           execution_count: null
         };
 
-        notebookContent.model?.sharedModel.insertCell(
-          activeCellIndex,
-          newCell
-        );
+        notebookContent.model?.sharedModel.insertCell(activeCellIndex, newCell);
 
         //update the active cell index to the newly inserted cell
         notebookWidget.content.activeCellIndex = activeCellIndex + 1;
