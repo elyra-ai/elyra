@@ -263,8 +263,6 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
       return;
     }
 
-    event.preventDefault();
-
     this._dragData = {
       pressX: event.clientX,
       pressY: event.clientY,
