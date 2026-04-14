@@ -37,9 +37,7 @@ import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Clipboard, Dialog, showDialog } from '@jupyterlab/apputils';
 import {
   CodeCell,
-  MarkdownCell,
-  ICodeCellModel,
-  IMarkdownCellModel
+  MarkdownCell
 } from '@jupyterlab/cells';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { EditorLanguageRegistry } from '@jupyterlab/codemirror';
@@ -168,36 +166,17 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
         const notebookContent = notebookWidget.content;
         const activeCellIndex = notebookContent.activeCellIndex ?? -1;
 
-        const contentFactory = new NotebookPanel.ContentFactory({
-          editorFactory:
-            this.props.editorServices.factoryService.newInlineEditor
-        });
-
-        /*
-          interface CodeCellCreatorOption {
-          model: ICodeCellModel | undefined;
-          rendermime: RenderMimeRegistry;
-          contentFactory: any;
-          cell_type: string;
-        }
-        */
-
-        const options: CodeCell.IOptions = {
-          model: notebookContent.activeCell?.model as ICodeCellModel,
-          rendermime: notebookContent.rendermime,
-          contentFactory: contentFactory
+        const newCell: Partial<nbformat.ICodeCell> & { cell_type: string } = {
+          cell_type: 'code',
+          source: '',
+          metadata: {},
+          outputs: [],
+          execution_count: null
         };
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API mismatch
-        const codeCell: any = contentFactory.createCodeCell(options);
-        codeCell.cell_type = 'code';
-        //insert the new code cell into the notebook at the specified index
-
-        // codeCell: CodeCell
-        // codeCell: SharedCell.Cell
-        widget.content.model?.sharedModel.insertCell(
+        notebookContent.model?.sharedModel.insertCell(
           activeCellIndex,
-          codeCell as Partial<nbformat.ICodeCell> & { cell_type: string }
+          newCell
         );
 
         //update the active cell index to the newly inserted cell
