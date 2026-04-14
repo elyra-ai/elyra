@@ -27,7 +27,7 @@ A runtime configuration requires connectivity details for
 * A Kubeflow Pipelines deployment or an Apache Airflow deployment
 * S3-based Object Storage (e.g. Minio or IBM Cloud Object Storage)
 
-Note: Elyra is only tested with Kubeflow v1.5.x (Kubeflow Pipelines v1) and Apache Airflow v1.10.x.
+Note: Elyra 4.x is tested with Kubeflow Pipelines v2 and Apache Airflow 2.7.0+ and 3.x. Airflow 1.x is no longer supported.
 
 ### Managing runtime configurations using the JupyterLab UI
 
@@ -385,7 +385,7 @@ Example: `minio`
 
 ##### Cloud Object Storage password (cos_password)
 
-Password for cos_username, if credentials are required for the selected authentication type.
+Password for cos_username, if credentials are required for the selected authentication type. The password must be at least 8 characters long.
 
 Example: `minio123`
 

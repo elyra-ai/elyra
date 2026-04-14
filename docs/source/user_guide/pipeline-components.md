@@ -436,6 +436,8 @@ Examples (CLI):
 
 #### Apache Airflow package catalog
 
+> **Deprecated in Elyra 4.** This catalog connector requires Apache Airflow 1.x, which Elyra 4 no longer supports. The section is retained for users of earlier Elyra releases.
+
 The [Apache Airflow package catalog connector](https://github.com/elyra-ai/elyra/tree/main/elyra/pipeline/airflow/package_catalog_connector) provides access to operators that are stored in Apache Airflow [built distributions](https://packaging.python.org/en/latest/glossary/#term-built-distribution):
 - Only the [wheel distribution format](https://packaging.python.org/en/latest/glossary/#term-Wheel) is supported.
 - Only Airflow < 2 is supported. Use of that functionality is not working in Elyra >=4, which is no longer supporting Airflow 1.x.
@@ -453,6 +455,9 @@ Examples:
    ``` 
 
 #### Apache Airflow provider package catalog
+
+> **Deprecated in Elyra 4.** This catalog connector requires Apache Airflow 1.x, which Elyra 4 no longer supports. The section is retained for users of earlier Elyra releases.
+
 The [Apache Airflow provider package catalog connector](https://github.com/elyra-ai/elyra/tree/main/elyra/pipeline/airflow/provider_package_catalog_connector) provides access to operators that are stored in [Apache Airflow provider packages](https://airflow.apache.org/docs/apache-airflow-providers/):
 - Only the [wheel distribution format](https://packaging.python.org/en/latest/glossary/#term-Wheel) is supported.
 - Only Airflow < 2 and operators for Airflow < 2 are supported. Use of that functionality is not working in Elyra >=4, which is no longer supporting Airflow 1.x. 

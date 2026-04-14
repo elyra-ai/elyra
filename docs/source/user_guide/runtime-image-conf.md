@@ -228,6 +228,7 @@ If `Image Name` references a container image in a secured registry (requiring cr
 
 Restrictions:
  - Only supported for generic components.
+ - The secret name must conform to Kubernetes naming conventions: lowercase alphanumeric characters, hyphens, or dots, starting and ending with an alphanumeric character. Maximum length is 253 characters.
 
 Example:
 
