@@ -23,14 +23,16 @@ describe('Code snippet from cells tests', () => {
       '.jp-LauncherCard[data-category="Notebook"][title="Python 3 (ipykernel)"]'
     ).click();
 
-    cy.wait(2000);
+    // Wait for notebook and kernel to be ready
+    cy.get('.jp-Notebook', { timeout: 10000 }).should('exist');
+    waitForKernelIdle();
   });
 
   it('test empty cell', () => {
-    cy.get('.jp-Notebook', { timeout: 10000 }).should('have.length', 1);
-    cy.get('.jp-Cell').first().rightclick();
+    cy.get('.jp-Notebook').should('have.length', 1);
 
-    cy.wait(2000);
+    // Extension commands register asynchronously — use retry helper
+    openCellContextMenuWithSnippetItem();
 
     cy.get(
       'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
@@ -40,16 +42,16 @@ describe('Code snippet from cells tests', () => {
   it('test 1 cell', () => {
     populateCells();
 
-    cy.get('.jp-Notebook', { timeout: 10000 }).should('have.length', 1);
-    cy.get('.jp-Cell').first().rightclick();
+    cy.get('.jp-Notebook').should('have.length', 1);
 
-    cy.wait(2000);
+    openCellContextMenuWithSnippetItem();
 
     cy.get(
       'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
     ).click();
 
-    cy.wait(2000);
+    // Wait for snippet editor to open
+    cy.get('.elyra-metadataEditor', { timeout: 10000 }).should('be.visible');
 
     // Verify snippet editor contents
     cy.get('.elyra-metadataEditor .cm-editor .cm-content .cm-line').then(
@@ -69,7 +71,7 @@ describe('Code snippet from cells tests', () => {
       '.jp-NotebookPanel-toolbar > div:nth-child(2) > jp-button:nth-child(1)'
     ).click();
 
-    cy.wait(2000);
+    waitForKernelIdle();
 
     populateCells();
 
@@ -88,13 +90,14 @@ describe('Code snippet from cells tests', () => {
         force: true
       });
 
-    cy.wait(2000);
+    openCellContextMenuWithSnippetItem();
 
     cy.get(
       'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
     ).click();
 
-    cy.wait(2000);
+    // Wait for snippet editor to open
+    cy.get('.elyra-metadataEditor', { timeout: 10000 }).should('be.visible');
 
     // Verify snippet editor contents
     cy.get('.elyra-metadataEditor .cm-editor .cm-content .cm-line').then(
@@ -114,14 +117,48 @@ describe('Code snippet from cells tests', () => {
 // ----- Utility Functions
 // ------------------------------
 
-// Populate cells
+// Wait for kernel to reach idle status
+const waitForKernelIdle = (): void => {
+  cy.get('[data-status="idle"]', { timeout: 30000 }).should('exist');
+};
+
+// Populate cells by re-querying each by index to avoid stale DOM references
 const populateCells = (): void => {
-  cy.get('.jp-Cell').each(($cell) => {
-    cy.wrap($cell).click();
-    cy.wrap($cell).should('have.class', 'jp-mod-selected');
-    cy.wrap($cell)
-      .find('.jp-InputArea')
-      .click()
-      .type('print("test")', { delay: 100 });
+  cy.get('.jp-Cell').then(($cells) => {
+    for (let i = 0; i < $cells.length; i++) {
+      cy.get('.jp-Cell')
+        .eq(i)
+        .click()
+        .should('have.class', 'jp-mod-selected')
+        .find('.jp-InputArea')
+        .click()
+        .type('print("test")', { delay: 100 });
+    }
   });
+};
+
+// Retry opening context menu until the snippet command is registered.
+// Extension commands register asynchronously; the menu must be
+// re-opened to pick up newly available items.
+const openCellContextMenuWithSnippetItem = (maxRetries: number = 5): void => {
+  const attemptOpen = (remaining: number): void => {
+    cy.get('.jp-Cell').first().rightclick();
+    cy.get('ul.lm-Menu-content').should('exist');
+
+    cy.get('body').then(($body) => {
+      const hasItem =
+        $body.find(
+          'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
+        ).length > 0;
+
+      if (!hasItem && remaining > 0) {
+        // Dismiss menu and retry
+        cy.get('body').click(0, 0, { force: true });
+        cy.get('ul.lm-Menu-content').should('not.exist');
+        attemptOpen(remaining - 1);
+      }
+    });
+  };
+
+  attemptOpen(maxRetries);
 };

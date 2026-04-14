@@ -13,7 +13,8 @@
   "scripts": {
     "graph": "ts-node etc/scripts/generate-make-graph.ts",
     "cy:open": "npx cypress open",
-    "cy:run": "npx nyc npx cypress run --headed",
+    "cy:run": "npx nyc npx cypress run",
+    "cy:debug": "npx cypress run --headed",
     "eslint": "eslint . --fix --ignore-path .gitignore --ext .ts,.tsx,.js",
     "eslint:check": "eslint . --ignore-path .gitignore --ext .ts,.tsx,.js",
     "prettier": "prettier --ignore-path .gitignore --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",

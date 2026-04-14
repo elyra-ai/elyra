@@ -22,7 +22,6 @@ describe('Submit Notebook Button tests', () => {
 
   beforeEach(() => {
     cy.resetJupyterLab();
-    cy.wait(2000);
   });
 
   after(() => {
@@ -72,5 +71,6 @@ const openNewNotebookFile = (): void => {
   )
     .first()
     .click();
-  cy.wait(500);
+  // Wait for notebook to be ready
+  cy.get('.jp-Notebook', { timeout: 10000 }).should('exist');
 };

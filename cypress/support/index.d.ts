@@ -27,6 +27,7 @@ declare namespace Cypress {
       type: 'kfp' | 'airflow';
     }): Chainable<void>;
     deleteFile(fileName: string): Chainable<void>;
+    deleteFiles(patterns: string[]): Chainable<void>;
     openDirectory(fileName: string): Chainable<void>;
     addFileToPipeline(fileName: string): Chainable<void>;
     dragAndDropFileToPipeline(fileName: string): Chainable<void>;
@@ -46,5 +47,6 @@ declare namespace Cypress {
     openFileAndCheckContent(fileExtension: string): Chainable<void>;
     openHelloWorld(fileExtension: string): Chainable<void>;
     dismissAssistant(fileType: string): Chainable<void>;
+    focusPipelineEditor(): Chainable<void>;
   }
 }

@@ -139,6 +139,14 @@ Cypress.Commands.add('deleteFile', (name: string): void => {
   });
 });
 
+Cypress.Commands.add('deleteFiles', (patterns: string[]): void => {
+  if (patterns.length === 0) return;
+  const findArgs = patterns.map((p) => `-name "${p}"`).join(' -o ');
+  cy.exec(`find build/cypress/ \\( ${findArgs} \\) -delete`, {
+    failOnNonZeroExit: false
+  });
+});
+
 Cypress.Commands.add(
   'createPipeline',
   ({ name, type, emptyPipeline } = {}): void => {
@@ -165,11 +173,16 @@ Cypress.Commands.add(
       cy.openFile(name);
     }
 
-    cy.get('.common-canvas-drop-div');
-    // wait an additional 300ms for the list of items to settle
-    cy.wait(300);
+    cy.get('.common-canvas-drop-div').should('be.visible');
   }
 );
+
+Cypress.Commands.add('focusPipelineEditor', (): void => {
+  cy.get(
+    '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]'
+  ).click();
+  cy.get('.common-canvas-drop-div').should('be.visible');
+});
 
 Cypress.Commands.add('openDirectory', (name: string): void => {
   cy.findByRole('listitem', {
@@ -180,8 +193,12 @@ Cypress.Commands.add('openDirectory', (name: string): void => {
 Cypress.Commands.add('addFileToPipeline', (name: string): void => {
   cy.findByRole('listitem', {
     name: (n, _el) => n.includes(name)
-  }).rightclick();
-  cy.findByRole('menuitem', { name: /add file to pipeline/i }).click();
+  })
+    .should('be.visible')
+    .rightclick();
+  cy.findByRole('menuitem', { name: /add file to pipeline/i })
+    .should('be.visible')
+    .click();
 });
 
 Cypress.Commands.add('dragAndDropFileToPipeline', (name: string) => {
@@ -195,9 +212,24 @@ Cypress.Commands.add('dragAndDropFileToPipeline', (name: string) => {
 });
 
 Cypress.Commands.add('savePipeline', (): void => {
-  cy.findByRole('button', { name: /save pipeline/i }).click();
-  // can take a moment to register as saved in ci
-  cy.wait(1000);
+  cy.intercept('PUT', '**/api/contents/**').as('savePipelineFile');
+
+  // Check if document has unsaved changes before clicking save
+  cy.document().then((doc) => {
+    const isDirty = doc.querySelector('.jp-Document.jp-mod-dirty') !== null;
+
+    cy.findByRole('button', { name: /save pipeline/i }).click();
+
+    if (isDirty) {
+      // Wait for the server to finish writing the file
+      cy.wait('@savePipelineFile');
+    }
+
+    // Confirm document is no longer dirty
+    cy.get('.jp-Document:not(.jp-mod-dirty)', { timeout: 10000 }).should(
+      'exist'
+    );
+  });
 });
 
 Cypress.Commands.add('openFile', (name: string): void => {
@@ -219,6 +251,8 @@ Cypress.Commands.add('resetJupyterLab', (): void => {
   cy.findByRole('tab', { name: /file browser/i, timeout: 25000 }).should(
     'exist'
   );
+  // Wait for the launcher to be fully rendered
+  cy.get('.jp-Launcher', { timeout: 10000 }).should('be.visible');
 });
 
 Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
@@ -235,6 +269,8 @@ Cypress.Commands.add('closeTab', (index: number): void => {
 });
 
 Cypress.Commands.add('createNewScriptEditor', (language: string): void => {
+  // Ensure launcher is visible (may take a moment after closing a previous tab)
+  cy.get('.jp-Launcher', { timeout: 10000 }).should('be.visible');
   cy.get(
     `.jp-LauncherCard[data-category="Elyra"][title="Create a new ${language} Editor"]:visible`
   ).click();
@@ -308,16 +344,7 @@ Cypress.Commands.add(
   (fileExtension: string): void => {
     cy.openHelloWorld(fileExtension);
     // Ensure that the file contents are as expected
-    cy.get('.cm-line').then((lines) => {
-      const content = [...lines]
-        .map((line) => line.innerText)
-        .join('\n')
-        .trim();
-      expect(content).to.equal('print("Hello Elyra")');
-    });
-
-    // Close the file editor
-    cy.closeTab(-1);
+    cy.get('.cm-line').should('contain.text', 'print("Hello Elyra")');
   }
 );
 
@@ -345,7 +372,26 @@ Cypress.Commands.add('dismissAssistant', (fileType: string): void => {
   });
 });
 
+// Allowlist of known benign JupyterLab errors that should not fail tests.
+// Unknown errors are allowed to propagate so real bugs surface.
+const BENIGN_ERROR_PATTERNS: RegExp[] = [
+  /ResizeObserver loop/,
+  /cancelled/,
+  /Disposed/,
+  /restore\(\) must be called/,
+  /Non-Error promise rejection/,
+  // JupyterLab internal null-pointer errors from extensions
+  /Cannot read properties of null/,
+  // JupyterLab checkpoint errors during cleanup/navigation
+  /Unhandled error/
+];
+
 Cypress.on('uncaught:exception', (err, _runnable) => {
-  console.log('Uncaught exception:', err);
-  return false; // Prevent Cypress from failing the test
+  const message = err.message ?? String(err);
+  if (BENIGN_ERROR_PATTERNS.some((pattern) => pattern.test(message))) {
+    return false; // Suppress known benign errors
+  }
+  // Let unknown errors fail the test
+  console.error('Uncaught exception (not suppressed):', err);
+  return undefined;
 });

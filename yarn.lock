@@ -2265,7 +2265,7 @@ __metadata:
   dependencies:
     "@elyra/metadata-common": 4.0.1-dev
     "@elyra/pipeline-editor": 1.13.0
-    "@elyra/pipeline-services": 1.12.1
+    "@elyra/pipeline-services": 1.13.0
     "@elyra/services": 4.0.1-dev
     "@elyra/ui-components": 4.0.1-dev
     "@jupyterlab/application": ^4.4.2
@@ -2341,17 +2341,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@elyra/pipeline-services@npm:1.12.1":
-  version: 1.12.1
-  resolution: "@elyra/pipeline-services@npm:1.12.1"
-  dependencies:
-    immer: "npm:^9.0.7"
-    jsonc-parser: "npm:^3.0.0"
-  checksum: 69e021c775faabd616e28f8035e2b89e38248e679a7e4d4fb675b60ee41c21732ee5c9fd4475a1e22f995d263e437c540400ad7266038c602999894404d2e6dc
-  languageName: node
-  linkType: hard
-
-"@elyra/pipeline-services@npm:^1.13.0":
+"@elyra/pipeline-services@npm:1.13.0, @elyra/pipeline-services@npm:^1.13.0":
   version: 1.13.0
   resolution: "@elyra/pipeline-services@npm:1.13.0"
   dependencies:

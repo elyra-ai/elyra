@@ -42,7 +42,6 @@ describe('Python Editor tests', () => {
     cy.createNewScriptEditor('Python');
     // Wait for editor to fully load before testing right-click
     cy.get('.elyra-ScriptEditor').should('be.visible');
-    cy.wait(500);
     cy.checkRightClickTabContent('Python');
     cy.closeTab(-1);
   });
@@ -103,12 +102,12 @@ describe('Python Editor tests', () => {
     cy.createNewScriptEditor('Python');
 
     // Add some text to the editor (wait code editor to load)
-    cy.wait(1000);
-    cy.get('.cm-content[contenteditable="true"]')
+    cy.get('.cm-content[contenteditable="true"]', { timeout: 10000 })
       .first()
       .click({ force: true })
       .type('print("test")', { delay: 100 });
 
+    // Brief pause for LSP debounce before dismissing assistant
     cy.wait(500);
     cy.dismissAssistant('scripteditor');
 
@@ -154,8 +153,7 @@ describe('Python Editor tests', () => {
   it('checks for valid output', () => {
     cy.openHelloWorld('py');
     clickRunButton();
-    cy.wait(2000); // Increased wait time for stability
-    cy.get('.elyra-ScriptEditor-OutputArea-output').should(
+    cy.get('.elyra-ScriptEditor-OutputArea-output', { timeout: 15000 }).should(
       'contain.text',
       'Hello Elyra'
     );
@@ -170,14 +168,14 @@ describe('Python Editor tests', () => {
   // check for error message running an invalid code
   it('checks for Error message', () => {
     cy.createNewScriptEditor('Python');
-    cy.wait(1000);
 
     // Add some code with syntax error to the editor (wait code editor to load)
-    cy.get('.cm-editor .cm-content')
+    cy.get('.cm-editor .cm-content', { timeout: 10000 })
       .first()
       .should('be.visible')
       .type('print"test"');
 
+    // Brief pause for LSP debounce before dismissing assistant
     cy.wait(500);
     cy.dismissAssistant('scripteditor');
     clickRunButton();
