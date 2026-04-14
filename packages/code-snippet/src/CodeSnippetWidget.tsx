@@ -411,52 +411,23 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
     clientX: number,
     clientY: number
   ): Promise<void> {
-    const widget: NotebookPanel =
-      this.props.getCurrentWidget() as NotebookPanel;
-
-    const notebookContent = widget.content;
-    //const activeCellIndex = notebookContent.activeCellIndex ?? -1;
-
-    const contentFactory = new NotebookPanel.ContentFactory({
-      editorFactory: this.props.editorServices.factoryService.newInlineEditor
-    });
-
-    const options: CodeCell.IOptions = {
-      model: notebookContent.activeCell?.model as ICodeCellModel,
-      rendermime: notebookContent.rendermime,
-      contentFactory: contentFactory
-    };
-
-    const options2: MarkdownCell.IOptions = {
-      model: notebookContent.activeCell?.model as IMarkdownCellModel,
-      rendermime: notebookContent.rendermime,
-      contentFactory: contentFactory
-    };
-
-    const codeCell = contentFactory.createCodeCell(options);
-
-    const markdownCell = contentFactory.createMarkdownCell(options2);
-
     const language = this.extractMetadataLanguage(metadata);
-    const model =
-      language.toLowerCase() !== 'markdown' ? codeCell : markdownCell;
-
     const content = this.extractMetadataCodeSnippet(metadata);
 
-    if (language.toLowerCase() !== 'markdown') {
-      if (model.model.type === 'code') {
-        (model.model as ICodeCellModel).sharedModel.setSource(content);
-      } else {
-        // Handle other cases if needed
-      }
-    }
-    if (language.toLowerCase() === 'markdown') {
-      if (model.model.type === 'markdown') {
-        (model.model as IMarkdownCellModel).sharedModel.setSource(content);
-      } else {
-        // Handle other cases if needed
-      }
-    }
+    const cellData: nbformat.ICell =
+      language.toLowerCase() !== 'markdown'
+        ? ({
+            cell_type: 'code',
+            source: content,
+            metadata: {},
+            outputs: [],
+            execution_count: null
+          } as nbformat.ICodeCell)
+        : ({
+            cell_type: 'markdown',
+            source: content,
+            metadata: {}
+          } as nbformat.IMarkdownCell);
 
     this._drag = new Drag({
       mimeData: new MimeData(),
@@ -466,8 +437,7 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
       source: this
     });
 
-    const selected: nbformat.ICell[] = [model.model.toJSON()];
-    this._drag.mimeData.setData(JUPYTER_CELL_MIME, selected);
+    this._drag.mimeData.setData(JUPYTER_CELL_MIME, [cellData]);
     this._drag.mimeData.setData('text/plain', content);
 
     return this._drag.start(clientX, clientY).then(() => {
