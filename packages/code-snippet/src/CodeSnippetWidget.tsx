@@ -400,7 +400,7 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
   ): boolean {
     const dx = Math.abs(nextX - prevX);
     const dy = Math.abs(nextY - prevY);
-    return dx >= 0 || dy >= DRAG_THRESHOLD;
+    return dx >= DRAG_THRESHOLD || dy >= DRAG_THRESHOLD;
   }
 
   private async startDrag(
