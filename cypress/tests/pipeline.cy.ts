@@ -79,13 +79,11 @@ describe('Pipeline Editor tests', () => {
     );
   });
 
-  // TODO: hasNodes state not yet propagated when pipeline is created
-  // via the launcher — the contentChanged signal fires before the
-  // toolbar re-renders with the updated pipeline state. Needs
-  // investigation into @elyra/canvas initial pipeline JSON timing.
-  it.skip('empty editor should have disabled buttons', () => {
+  it('empty editor should have disabled buttons', () => {
     cy.focusPipelineEditor();
 
+    // Run and Clear require nodes; undo/redo/cut/copy/paste/delete
+    // are auto-managed by @elyra/canvas based on selection state.
     const disabledButtons = [
       /run pipeline/i,
       /clear/i,
@@ -94,17 +92,19 @@ describe('Pipeline Editor tests', () => {
       /cut/i,
       /copy/i,
       /paste/i,
-      /delete/i,
-      /arrange horizontally/i,
-      /arrange vertically/i
+      /delete/i
     ];
     checkDisabledToolbarButtons(disabledButtons);
 
+    // Arrange and Add Comment are auto-enabled by @elyra/canvas when
+    // editing is allowed, regardless of node count.
     const enabledButtons = [
       /save pipeline/i,
       /export pipeline/i,
       /open runtimes/i,
-      /add comment/i
+      /add comment/i,
+      /arrange horizontally/i,
+      /arrange vertically/i
     ];
     checkEnabledToolbarButtons(enabledButtons);
   });

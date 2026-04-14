@@ -1173,12 +1173,12 @@ const PipelineWrapper: React.FC<
       {
         action: 'arrangeHorizontally',
         label: 'Arrange Horizontally',
-        enable: hasNodes
+        enable: true
       },
       {
         action: 'arrangeVertically',
         label: 'Arrange Vertically',
-        enable: hasNodes
+        enable: true
       }
     ],
     rightBar: [
