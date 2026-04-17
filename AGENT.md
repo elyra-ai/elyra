@@ -140,6 +140,75 @@ make lint
 - `pyproject.toml` - Python project configuration
 - `package.json` - JS/TS workspace configuration
 
+## Documentation Tone & Style
+
+When writing or updating documentation in `docs/source/`, follow the
+established tone and style conventions described below.
+
+### Voice
+
+- Use **third-person, impersonal, product-focused** language. The subject
+  should be "Elyra" or the feature itself, not the reader.
+  - *Yes:* "Elyra provides a Pipeline Visual Editor..."
+  - *No:* "We give you a Pipeline Visual Editor..."
+- Address the reader directly with "you" only in **instructional/procedural**
+  sections (installation steps, recipes, troubleshooting), not in conceptual
+  descriptions.
+
+### Tone
+
+- **Formal-neutral and technical.** No humor, colloquialisms, or
+  personality flourishes.
+- **No enthusiasm markers.** Avoid exclamation points, "exciting",
+  "powerful", or other marketing language. Adjectives should be strictly
+  functional (e.g., "enhanced", "reusable", "generic").
+- **Understated warnings.** Use inline `Note:` or `**NOTE:**` blocks
+  rather than dramatic callouts.
+- **Cautious hedging** where appropriate (e.g., "might work but have not
+  been tested").
+
+### Structure
+
+- Use **bulleted and numbered lists** liberally.
+- Follow a **hierarchical heading structure** (H2 > H3 > H4 > H5) for
+  reference-style content.
+- Write procedural sections as **numbered step-by-step** instructions.
+- Include **screenshots and GIFs** as primary illustration where
+  applicable.
+- Add frequent **cross-references** to other doc pages and external
+  resources using relative links.
+- For property/configuration reference sections, use a
+  **definition-style** format: property name followed by a dash and its
+  description.
+
+### Sentence Style
+
+- Prefer **long, information-dense sentences** that pack multiple related
+  concepts together over short, choppy ones.
+- Favor **noun phrases** over verb phrases where natural (e.g., "the
+  conversion of multiple notebooks" rather than "converting multiple
+  notebooks").
+
+### Terminology
+
+- *Italicize* key terms on first use (e.g., _pipeline_, _nodes_,
+  _component_).
+- **Bold** product names and feature names on first mention.
+- Use technical terms (PVC, DAG, KubernetesPodOperator) without
+  simplification — assume a **technically proficient audience** familiar
+  with Jupyter, Kubernetes, and ML pipeline concepts.
+
+### Summary
+
+| Attribute             | Description                                        |
+|-----------------------|----------------------------------------------------|
+| **Formality**         | High — enterprise product documentation style      |
+| **Personality**       | Minimal — intentionally neutral                    |
+| **Audience**          | Intermediate-to-advanced (Jupyter, K8s, ML)        |
+| **Primary mode**      | Reference/procedural, not tutorial/narrative        |
+| **Brevity**           | Low — thorough, sometimes verbose explanations     |
+| **Consistency**       | High — follow the shared template across sections  |
+
 ## Testing Guidelines
 
 - All new features must include tests

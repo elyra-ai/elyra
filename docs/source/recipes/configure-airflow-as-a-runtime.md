@@ -21,8 +21,6 @@ limitations under the License.
 
 Pipelines in Elyra can be run locally in JupyterLab, or remotely on Kubeflow Pipelines or Apache Airflow to take advantage of shared resources that speed up processing of compute intensive tasks.
 
-**Note: Support for Apache Airflow is experimental.**
-
 This document outlines how to set up a new Elyra-enabled Apache Airflow environment or add Elyra support to an existing deployment.
 Elyra 4 supports Apache Airflow 2.7.0+ and 3.x with automatic version detection and backward compatibility.
 Generic components DAG code generation support for Airflow 1.x is removed in Elyra 4.
