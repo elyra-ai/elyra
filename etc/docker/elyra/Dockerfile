@@ -17,7 +17,7 @@
 
 # Ubuntu 20.04.2 LTS (Focal Fossa)
 # Repository: https://hub.docker.com/r/jupyterhub/k8s-singleuser-sample/tags
-FROM jupyterhub/k8s-singleuser-sample:1.2.0
+FROM jupyterhub/k8s-singleuser-sample:3.3.7
 
 ARG TAG="dev"
 ARG ELYRA_VERSION
