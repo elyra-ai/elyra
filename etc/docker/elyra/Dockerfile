@@ -35,11 +35,13 @@ USER jovyan
 
 RUN ls -al /home/jovyan
 
+RUN python3 -m pip install --quiet --no-cache-dir --upgrade pip setuptools
+
 # Install Elyra
-RUN python3 -m pip install --quiet --no-cache-dir "$ELYRA_PACKAGE""$ELYRA_EXTRAS" && rm "$ELYRA_PACKAGE"
+RUN python3 -m pip install --quiet --no-cache-dir --upgrade "$ELYRA_PACKAGE""$ELYRA_EXTRAS" && rm "$ELYRA_PACKAGE"
 
 # Install custom requirements
-RUN python3 -m pip install -r requirements.txt && rm requirements.txt
+RUN python3 -m pip install --upgrade -r requirements.txt && rm requirements.txt
 
 # Install component examples catalogs
 #  - this wail fail if the 'kfp-examples' pip extra is not installed
