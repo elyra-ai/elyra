@@ -24,7 +24,8 @@ ARG ELYRA_VERSION
 ARG ELYRA_PACKAGE=elyra-"$ELYRA_VERSION"-py3-none-any.whl
 
 # - Include with KFP support and component examples ('kfp-examples')
-ARG ELYRA_EXTRAS=[kfp,kfp-examples,airflow-gitlab]
+# ARG ELYRA_EXTRAS=[kfp,kfp-examples,airflow-gitlab]
+ARG ELYRA_EXTRAS=[kfp,airflow-gitlab]
 
 COPY requirements.txt ${ELYRA_PACKAGE} ./
 
@@ -42,11 +43,11 @@ RUN python3 -m pip install -r requirements.txt && rm requirements.txt
 
 # Install component examples catalogs
 #  - this wail fail if the 'kfp-examples' pip extra is not installed
-RUN elyra-metadata create component-catalogs \
-    --schema_name=elyra-kfp-examples-catalog  \
-    --display_name="Kubeflow Pipelines examples" \
-    --runtime_type=KUBEFLOW_PIPELINES \
-    --categories="['examples']"
+# RUN elyra-metadata create component-catalogs \
+#     --schema_name=elyra-kfp-examples-catalog  \
+#     --display_name="Kubeflow Pipelines examples" \
+#     --runtime_type=KUBEFLOW_PIPELINES \
+#     --categories="['examples']"
 
 # Copy Elyra entrypoint
 COPY --chmod=0755 --chown=root:root start-elyra.sh /usr/local/bin/start-elyra.sh
