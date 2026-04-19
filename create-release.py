@@ -190,8 +190,16 @@ def update_version_to_release() -> None:
         sed(_source("etc/docker/kubeflow/README.md"), r"kf-notebook:dev", f"kf-notebook:{new_version}")
         sed(_source("docs/source/getting_started/installation.md"), r"elyra:dev ", f"elyra:{new_version} ")
         sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), rf"{config.git_branch}", f"{config.tag}")
-        sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), r"tag: dev", f"tag: {new_version}")
-        sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), rf"{config.git_branch}", f"{new_version}")
+        sed(
+            _source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"),
+            r"tag: dev",
+            f"tag: {new_version}",
+        )
+        sed(
+            _source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"),
+            rf"{config.git_branch}",
+            f"{new_version}",
+        )
 
         # Update UI component versions
         sed(_source("README.md"), rf"v{re.escape(old_npm_version)}", f"v{new_version}")
@@ -379,8 +387,16 @@ def update_version_to_dev() -> None:
         sed(_source("etc/docker/kubeflow/README.md"), rf"kf-notebook:{new_version}", "kf-notebook:dev")
         sed(_source("docs/source/getting_started/installation.md"), rf"elyra:{new_version} ", "elyra:dev ")
         sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), rf"{config.tag}", f"{config.git_branch}")
-        sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), rf"tag: {new_version}", "tag: dev")
-        sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), rf"{new_version}", f"{config.git_branch}")
+        sed(
+            _source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"),
+            rf"tag: {new_version}",
+            "tag: dev",
+        )
+        sed(
+            _source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"),
+            rf"{new_version}",
+            f"{config.git_branch}",
+        )
 
         # Update UI component versions
         sed(_source("README.md"), rf"extension v{new_version}", f"extension v{dev_npm_version}")
@@ -557,13 +573,14 @@ def checkout_code() -> None:
     print("-------------------- Retrieving source code ---------------------")
     print("-----------------------------------------------------------------")
 
+    # Validate work_dir path to prevent accidental deletion or creation in unsafe locations
+    work_dir_abs = os.path.abspath(config.work_dir)
+    if not work_dir_abs.startswith(str(Path.home())) or len(work_dir_abs.split(os.sep)) < 3:
+        raise ValueError(f"Unsafe work directory path (must be within user home): {work_dir_abs}")
+
     print(f"Cloning repository: {config.git_url}")
     if os.path.exists(config.work_dir):
         print(f"Removing working directory: {config.work_dir}")
-        # Validate work_dir path to prevent accidental deletion
-        work_dir_abs = os.path.abspath(config.work_dir)
-        if not work_dir_abs.endswith(("/build/release", "\\build\\release")) or len(work_dir_abs.split(os.sep)) < 3:
-            raise ValueError(f"Unsafe work directory path: {work_dir_abs}")
         shutil.rmtree(config.work_dir)
     print(f"Creating working directory: {config.work_dir}")
     os.makedirs(config.work_dir)
@@ -1048,6 +1065,8 @@ def initialize_config(args=None) -> SimpleNamespace:
 
     v = re.search(VERSION_REG_EX, elyra._version.__version__)
 
+    work_dir_path = os.path.abspath(args.work_dir) if args.work_dir else os.path.join(os.getcwd(), DEFAULT_BUILD_DIR)
+
     configuration = {
         "goal": args.goal,
         "git_url": f"git@github.com:{args.org or DEFAULT_GIT_ORG}/elyra.git",
@@ -1056,10 +1075,14 @@ def initialize_config(args=None) -> SimpleNamespace:
         "git_user_name": check_output(["git", "config", "user.name"]),
         "git_user_email": check_output(["git", "config", "user.email"]),
         "base_dir": os.getcwd(),
-        "work_dir": os.path.join(os.getcwd(), DEFAULT_BUILD_DIR),
-        "source_dir": os.path.join(os.getcwd(), DEFAULT_BUILD_DIR, "elyra"),
+        "work_dir": work_dir_path,
+        "source_dir": os.path.join(work_dir_path, "elyra"),
         "old_version": elyra._version.__version__,
-        "old_npm_version": f"{v['major']}.{v['minor']}.{v['patch']}-dev" if v['pre_release'] == 'dev' else f"{v['major']}.{v['minor']}.{v['patch']}",
+        "old_npm_version": (
+            f"{v['major']}.{v['minor']}.{v['patch']}-dev"
+            if v["pre_release"] == "dev"
+            else f"{v['major']}.{v['minor']}.{v['patch']}"
+        ),
         "new_version": (
             args.version
             if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta))
@@ -1121,15 +1144,15 @@ def print_help() -> str:
     DESCRIPTION
     Creates Elyra release based on git commit hash or from HEAD.
     
-    create release prepare-changelog --version 1.3.0 [--beta 0] [--rc 0]
+    create release prepare-changelog --version 1.3.0 [--beta 0] [--rc 0] [--work-dir WORK_DIR]
     This will prepare the release changelog and make it ready for review on the release workdir.
 
-    create-release.py prepare --version 1.3.0 --dev-version 1.4.0 [--beta 0] [--rc 0]
+    create-release.py prepare --version 1.3.0 --dev-version 1.4.0 [--beta 0] [--rc 0] [--work-dir WORK_DIR]
     This will prepare a release candidate, build it locally and make it ready for review on the release workdir.
     
     Note: that one can either use a beta or rc modifier for the release, but not both.
 
-    create-release.py publish --version 1.3.0 [--beta 0] [--rc 0]
+    create-release.py publish --version 1.3.0 [--beta 0] [--rc 0] [--work-dir WORK_DIR]
     This will build a previously prepared release, and publish the artifacts to public repositories.
     
     Required software dependencies for building and publishing a release:
@@ -1141,6 +1164,9 @@ def print_help() -> str:
      Required configurations for publishing a release:
      - GPG with signing key configured
      
+     Parameters:
+     --work-dir: the directory to use as the working directory for the release (default: build/release).
+                 Note: the provided path MUST be within the user home folder.
      
     """
 
@@ -1160,6 +1186,9 @@ def main(args=None):
     parser.add_argument("--rc", help="the release candidate number", type=str, required=False)
     parser.add_argument("--org", help="the github org or username to use", type=str, required=False)
     parser.add_argument("--branch", help="the branch name to use", type=str, required=False)
+    parser.add_argument(
+        "--work-dir", help="the directory to use as the working directory for the release", type=str, required=False
+    )
     args = parser.parse_args()
 
     # can't use both rc and beta parameters
