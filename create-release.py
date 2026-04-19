@@ -740,34 +740,72 @@ def prepare_extensions_release() -> None:
 
     extensions = {
         "elyra-code-snippet-extension": SimpleNamespace(
-            packages=["code-snippet-extension", "metadata-extension", "theme-extension"],
+            packages=[
+                "code-snippet-extension",
+                "metadata-extension",
+                "theme-extension",
+                "services",
+                "ui-components",
+                "metadata-common",
+            ],
             description=f"The Code Snippet editor extension adds support for reusable code fragments, "
             f"making programming in JupyterLab more efficient by reducing repetitive work. "
             f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/code-snippets.html",
         ),
         "elyra-pipeline-editor-extension": SimpleNamespace(
-            packages=["pipeline-editor-extension", "metadata-extension", "theme-extension"],
+            packages=[
+                "pipeline-editor-extension",
+                "metadata-extension",
+                "theme-extension",
+                "services",
+                "ui-components",
+                "metadata-common",
+            ],
             description=f"The Visual Editor Pipeline extension is used to build AI pipelines from notebooks, "
             f"Python scripts and R scripts, simplifying the conversion of multiple notebooks "
             f"or script files into batch jobs or workflows."
             f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/pipelines.html",
         ),
         "elyra-python-editor-extension": SimpleNamespace(
-            packages=["python-editor-extension", "metadata-extension", "theme-extension", "script-debugger-extension"],
+            packages=[
+                "python-editor-extension",
+                "metadata-extension",
+                "theme-extension",
+                "script-debugger-extension",
+                "services",
+                "ui-components",
+                "metadata-common",
+            ],
             description=f"The Python Script editor extension contains support for Python files, "
             f"which can take advantage of the Hybrid Runtime Support enabling users to "
             f"locally edit, execute and debug .py scripts against local or cloud-based resources."
             f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/enhanced-script-support.html",
         ),
         "elyra-r-editor-extension": SimpleNamespace(
-            packages=["r-editor-extension", "metadata-extension", "theme-extension", "script-debugger-extension"],
+            packages=[
+                "r-editor-extension",
+                "metadata-extension",
+                "theme-extension",
+                "script-debugger-extension",
+                "services",
+                "ui-components",
+                "metadata-common",
+            ],
             description=f"The R Script editor extension contains support for R files, which can take "
             f"advantage of the Hybrid Runtime Support enabling users to locally edit .R scripts "
             f"and execute them against local or cloud-based resources."
             f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/enhanced-script-support.html",
         ),
         "elyra-scala-editor-extension": SimpleNamespace(
-            packages=["scala-editor-extension", "metadata-extension", "theme-extension", "script-debugger-extension"],
+            packages=[
+                "scala-editor-extension",
+                "metadata-extension",
+                "theme-extension",
+                "script-debugger-extension",
+                "services",
+                "ui-components",
+                "metadata-common",
+            ],
             description=f"The Scala Language editor extension contains support for Scala files, which can take "
             f"advantage of the Hybrid Runtime Support enabling users to locally edit .scala files "
             f"and execute them against local or cloud-based resources."
@@ -788,21 +826,28 @@ def prepare_extensions_release() -> None:
                 raise ValueError(f"Extension directory outside work directory: {ext_dir_abs}")
             shutil.rmtree(extension_source_dir)
         check_run(["mkdir", "-p", extension_source_dir], cwd=config.work_dir)
-        print(f'Copying : {_source("etc/templates/setup.py")} to {extension_source_dir}')
-        check_run(["cp", _source("etc/templates/setup.py"), extension_source_dir], cwd=config.work_dir)
+        print(f'Copying : {_source("etc/templates/pyproject.toml")} to {extension_source_dir}')
+        check_run(["cp", _source("etc/templates/pyproject.toml"), extension_source_dir], cwd=config.work_dir)
         # update template
-        setup_file = os.path.join(extension_source_dir, "setup.py")
-        sed(setup_file, "{{package-name}}", extension)
-        sed(setup_file, "{{version}}", config.new_version)
-        sed(setup_file, "{{data - files}}", "('share/jupyter/labextensions', 'build/labextensions', '**')")
-        sed(setup_file, "{{install - requires}}", f"'elyra-server=={config.new_version}',")
-        sed(setup_file, "{{description}}", f"'{extensions[extension].description}'")
+        pyproject_file = os.path.join(extension_source_dir, "pyproject.toml")
+        sed(pyproject_file, "{{package-name}}", extension)
+        sed(pyproject_file, "{{version}}", config.new_version)
+        sed(pyproject_file, "{{description}}", extensions[extension].description)
+        sed(pyproject_file, "{{install-requires}}", f'"elyra-server=={config.new_version}"')
+        # generate shared-data mappings for labextension directories
+        shared_data_lines = []
+        for dep in extensions[extension].packages:
+            ext_dir = dep.replace("-", "_")
+            shared_data_lines.append(
+                f'"labextensions/elyra_{ext_dir}/labextension" = ' f'"share/jupyter/labextensions/@elyra/{dep}"'
+            )
+        sed(pyproject_file, "{{shared-data}}", "\n".join(shared_data_lines))
 
         for dependency in extensions[extension].packages:
             copy_extension_dir(dependency, extension_source_dir)
 
         # build extension
-        check_run(["python", "setup.py", "bdist_wheel", "sdist"], cwd=extension_source_dir)
+        check_run(["python", "-m", "build"], cwd=extension_source_dir)
         print("")
 
 
@@ -830,19 +875,18 @@ def prepare_runtime_extensions_package_release() -> None:
                 raise ValueError(f"Package directory outside work directory: {pkg_dir_abs}")
             shutil.rmtree(package_source_dir)
         check_run(["mkdir", "-p", package_source_dir], cwd=config.work_dir)
-        print(f'Copying : {_source("etc/templates/setup.py")} to {package_source_dir}')
-        check_run(["cp", _source("etc/templates/setup.py"), package_source_dir], cwd=config.work_dir)
+        print(f'Copying : {_source("etc/templates/pyproject.toml")} to {package_source_dir}')
+        check_run(["cp", _source("etc/templates/pyproject.toml"), package_source_dir], cwd=config.work_dir)
         # update template
-        setup_file = os.path.join(package_source_dir, "setup.py")
-        sed(setup_file, "{{package-name}}", package)
-        sed(setup_file, "{{version}}", config.new_version)
-        # no data files
-        sed(setup_file, "{{data - files}}", "")
+        pyproject_file = os.path.join(package_source_dir, "pyproject.toml")
+        sed(pyproject_file, "{{package-name}}", package)
+        sed(pyproject_file, "{{version}}", config.new_version)
+        sed(pyproject_file, "{{description}}", f"Elyra {package} package")
         # prepare package specific dependencies
-        requires = ""
-        for dependency in packages[package]:
-            requires += f"'{dependency}',"
-        sed(setup_file, "{{install - requires}}", requires)
+        requires = ", ".join(f'"{dep}"' for dep in packages[package])
+        sed(pyproject_file, "{{install-requires}}", requires)
+        # no shared data for runtime packages
+        sed(pyproject_file, "{{shared-data}}", "")
         # copy source files
         source_dir = os.path.join(config.source_dir, "elyra", packages_source[package])
         dest_dir = os.path.join(package_source_dir, "elyra", packages_source[package])
@@ -850,8 +894,8 @@ def prepare_runtime_extensions_package_release() -> None:
         Path(os.path.join(package_source_dir, "elyra")).mkdir(parents=True, exist_ok=True)
         shutil.copytree(source_dir, dest_dir)
 
-        # build extension
-        check_run(["python", "setup.py", "bdist_wheel", "sdist"], cwd=package_source_dir)
+        # build package
+        check_run(["python", "-m", "build"], cwd=package_source_dir)
         print("")
 
 
