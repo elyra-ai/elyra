@@ -35,7 +35,7 @@
     "clean": "jlpm clean:lib",
     "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
     "clean:lintcache": "rimraf .eslintcache .stylelintcache",
-    "clean:labextension": "rimraf ../../../../labextensions/elyra_pipeline_editor_extension/labextension ../../../../labextensions/elyra_pipeline_editor_extension/_version.py",
+    "clean:labextension": "rimraf ../../labextensions/elyra_pipeline_editor_extension/labextension ../../labextensions/elyra_pipeline_editor_extension/_version.py",
     "clean:all": "jlpm clean:lib && jlpm clean:labextension && jlpm clean:lintcache",
     "cy:instrument": "npx nyc instrument --compact=false --in-place src/ src/",
     "eslint": "jlpm eslint:check --fix",
