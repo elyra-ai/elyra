@@ -189,9 +189,9 @@ def update_version_to_release() -> None:
         sed(_source("README.md"), r"elyra:dev ", f"elyra:{new_version} ")
         sed(_source("etc/docker/kubeflow/README.md"), r"kf-notebook:dev", f"kf-notebook:{new_version}")
         sed(_source("docs/source/getting_started/installation.md"), r"elyra:dev ", f"elyra:{new_version} ")
-        sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), r"main", f"{config.tag}")
-        sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), r"dev", f"{new_version}")
-        sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), r"main", f"{new_version}")
+        sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), rf"{config.git_branch}", f"{config.tag}")
+        sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), r"tag: dev", f"tag: {new_version}")
+        sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), rf"{config.git_branch}", f"{new_version}")
 
         # Update UI component versions
         sed(_source("README.md"), rf"v{re.escape(old_npm_version)}", f"v{new_version}")
@@ -378,9 +378,9 @@ def update_version_to_dev() -> None:
         sed(_source("README.md"), rf"elyra:{new_version} ", "elyra:dev ")
         sed(_source("etc/docker/kubeflow/README.md"), rf"kf-notebook:{new_version}", "kf-notebook:dev")
         sed(_source("docs/source/getting_started/installation.md"), rf"elyra:{new_version} ", "elyra:dev ")
-        sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), rf"{config.tag}", "main")
-        sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), rf"{new_version}", "dev")
-        sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), rf"{new_version}", "main")
+        sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), rf"{config.tag}", f"{config.git_branch}")
+        sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), rf"tag: {new_version}", "tag: dev")
+        sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), rf"{new_version}", f"{config.git_branch}")
 
         # Update UI component versions
         sed(_source("README.md"), rf"extension v{new_version}", f"extension v{dev_npm_version}")
@@ -590,7 +590,7 @@ def build_release():
         # Build container images from tagged release
         check_run(["git", "checkout", f"tags/v{config.new_version}"], cwd=config.source_dir, capture_output=False)
         check_run(["make", "container-images"], cwd=config.source_dir, capture_output=False)
-        check_run(["git", "checkout", "main"], cwd=config.source_dir, capture_output=False)
+        check_run(["git", "checkout", config.git_branch], cwd=config.source_dir, capture_output=False)
 
     print("")
 
@@ -1039,7 +1039,7 @@ def publish_release(working_dir) -> None:
         is_latest = config.git_branch == "main"
         check_run(["git", "checkout", f"tags/v{config.new_version}"], cwd=config.source_dir, capture_output=False)
         check_run(["make", "publish-container-images", f"IMAGE_IS_LATEST={is_latest}"], cwd=config.source_dir)
-        check_run(["git", "checkout", "main"], cwd=config.source_dir, capture_output=False)
+        check_run(["git", "checkout", config.git_branch], cwd=config.source_dir, capture_output=False)
 
 
 def initialize_config(args=None) -> SimpleNamespace:
