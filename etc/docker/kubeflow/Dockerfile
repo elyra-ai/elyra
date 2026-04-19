@@ -15,16 +15,16 @@
 # limitations under the License.
 #
 
-# Ubuntu 20.04.2 LTS (Focal Fossa)
-# Repository: https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.5.0
+# Ubuntu 22.04 LTS (Jammy Jellyfish)
+# Repository: https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers
+FROM ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter:v1.8.0
 
 ARG TAG="dev"
 ARG ELYRA_VERSION
 ARG ELYRA_PACKAGE=elyra-"$ELYRA_VERSION"-py3-none-any.whl
 
 # - Include with KFP support and component examples ('kfp-examples')
-ARG ELYRA_EXTRAS=[kfp,kfp-examples,gitlab]
+ARG ELYRA_EXTRAS=[kfp,kfp-examples,airflow-gitlab]
 
 # Includes the readme as a token file for COPY that always exists, otherwise production builds fail when whl not present
 COPY README.md ${ELYRA_PACKAGE}* ./

@@ -162,7 +162,7 @@ be fully qualified (i.e., prefixed with their package names).
         if git_type == SupportedGitTypes.GITLAB and SupportedGitTypes.is_enabled(SupportedGitTypes.GITLAB) is False:
             raise ValueError(
                 "Python package `python-gitlab` is not installed. "
-                "Please install using `elyra[gitlab]` to use GitLab as DAG repository."
+                "Please install using `elyra[airflow-gitlab]` to use GitLab as DAG repository."
             )
 
         github_api_endpoint = runtime_configuration.metadata.get("github_api_endpoint")
