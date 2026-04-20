@@ -17,5 +17,5 @@ pyzmq==26.4.0
 requests==2.25.1
 tornado==6.1.0
 traitlets==4.3.3
-urllib3==1.26.5
+urllib3==2.6.3
 zebra===0.1.32
