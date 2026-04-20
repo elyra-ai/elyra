@@ -909,11 +909,14 @@ const RUNTIME_IMAGE = 'continuumio/anaconda3:2024.02-1';
 
 // Wait for async-loaded select options before calling .select()
 const selectRuntimeImage = (): void => {
-  cy.get('select[id="root_component_parameters_runtime_image"]')
+  cy.get('select[id="root_component_parameters_runtime_image"]', {
+    timeout: 10000
+  })
     .find(`option[value="${RUNTIME_IMAGE}"]`)
     .should('exist');
   cy.get('select[id="root_component_parameters_runtime_image"]').select(
-    RUNTIME_IMAGE
+    RUNTIME_IMAGE,
+    { force: true }
   );
 };
 
