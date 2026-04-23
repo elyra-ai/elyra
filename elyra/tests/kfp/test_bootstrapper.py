@@ -26,9 +26,9 @@ import sys
 from tempfile import TemporaryFile
 import time
 from typing import Optional
+from unittest import mock
 
 import minio
-import mock
 import nbformat
 import papermill
 import pytest
