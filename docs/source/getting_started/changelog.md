@@ -2,6 +2,68 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 4.1.0rc1 - 04/27/2026
+
+Our 4.1.0 release candidate 1 includes the following high-level changes
+- Add Airflow 3.x support with backward compatibility
+- Add KFP 2.0 support
+- Support optional package installation
+- Add Jupyter AI extensions (requires additional model configuration)
+- Remove Python 3.9 due to EOL
+
+See the full changelog below:
+
+- Fix README.md broken link to jupyter-ai docs - [#3377](https://github.com/elyra-ai/elyra/pull/3377)
+- Resolve urllib3 conflict and update to v2.6.3 - [#3374](https://github.com/elyra-ai/elyra/pull/3374)
+- Update runtime images and fix dependency conflicts - [#3373](https://github.com/elyra-ai/elyra/pull/3373)
+- Bump nbconvert from 7.17.0 to 7.17.1 in /etc/generic - [#3375](https://github.com/elyra-ai/elyra/pull/3375)
+- Bump nbconvert from 7.1.0 to 7.17.0 in /etc/generic - [#3345](https://github.com/elyra-ai/elyra/pull/3345)
+- Tighten the  release script based on codebase updates - [#3372](https://github.com/elyra-ai/elyra/pull/3372)
+- Migrate single extension to use hatchling/pyproject.toml to fix install - [#3349](https://github.com/elyra-ai/elyra/pull/3349)
+- Update docs to align with current Elyra implementation - [#3369](https://github.com/elyra-ai/elyra/pull/3369)
+- Fix codesnippet drap-drop issues - [#3367](https://github.com/elyra-ai/elyra/pull/3367)
+- Bump follow-redirects from 1.15.11 to 1.16.0 - [#3368](https://github.com/elyra-ai/elyra/pull/3368)
+- Improve cypress integration test performance and fix flaky tests - [#3350](https://github.com/elyra-ai/elyra/pull/3350)
+- Update jupyterlab-git to version 0.52.0 - [#3366](https://github.com/elyra-ai/elyra/pull/3366)
+- Bump lodash-es from 4.17.23 to 4.18.1 - [#3358](https://github.com/elyra-ai/elyra/pull/3358)
+- Bump lodash from 4.17.23 to 4.18.1 - [#3361](https://github.com/elyra-ai/elyra/pull/3361)
+- Bump axios from 1.8.3 to 1.15.0 - [#3362](https://github.com/elyra-ai/elyra/pull/3362)
+- Add AI agent guidelines for the project - [#3363](https://github.com/elyra-ai/elyra/pull/3363)
+- Fix race condition in submit notebook button test - [#3365](https://github.com/elyra-ai/elyra/pull/3365)
+- Bump requests from 2.32.4 to 2.33.0 in /etc/generic - [#3355](https://github.com/elyra-ai/elyra/pull/3355)
+- Cap jupyter-ai <3.0 and fix session shutdown race - [#3364](https://github.com/elyra-ai/elyra/pull/3364)
+- Bump picomatch from 2.3.1 to 2.3.2 - [#3354](https://github.com/elyra-ai/elyra/pull/3354)
+- Bump handlebars from 4.7.7 to 4.7.9 - [#3356](https://github.com/elyra-ai/elyra/pull/3356)
+- Bump flatted from 3.2.7 to 3.4.2 - [#3351](https://github.com/elyra-ai/elyra/pull/3351)
+- Update Copyright notice to 2026
+- Update pipeline-editor to version 1.13.0
+- Update link/unlink to based on yarn 3 support
+- Bump tornado from 6.5.1 to 6.5.5 in /etc/generic - [#3347](https://github.com/elyra-ai/elyra/pull/3347)
+- Bump immutable from 4.1.0 to 4.3.8 - [#3346](https://github.com/elyra-ai/elyra/pull/3346)
+- Bump webpack from 5.94.0 to 5.104.1 - [#3344](https://github.com/elyra-ai/elyra/pull/3344)
+- Bump lodash from 4.17.21 to 4.17.23 - [#3342](https://github.com/elyra-ai/elyra/pull/3342)
+- Bump lodash-es from 4.17.21 to 4.17.23 - [#3341](https://github.com/elyra-ai/elyra/pull/3341)
+- Remove Python 3.9 due to EOL and fix lint errors - [#3343](https://github.com/elyra-ai/elyra/pull/3343)
+- Bump nanoid from 3.3.4 to 3.3.11 - [#3340](https://github.com/elyra-ai/elyra/pull/3340)
+- Bump @babel/traverse from 7.19.1 to 7.28.6 - [#3339](https://github.com/elyra-ai/elyra/pull/3339)
+- Bump urllib3 from 2.6.0 to 2.6.3 in /etc/generic - [#3338](https://github.com/elyra-ai/elyra/pull/3338)
+- Bump urllib3 from 2.5.0 to 2.6.0 in /etc/generic - [#3337](https://github.com/elyra-ai/elyra/pull/3337)
+- Add Gitea support for Elyra v4.0.0 including utils, schema updates, a… - [#3335](https://github.com/elyra-ai/elyra/pull/3335)
+- Fix MinIO client initialization and bucket_exists/make_bucket argument errors - [#3336](https://github.com/elyra-ai/elyra/pull/3336)
+- Add Jupyter AI Magic Wand integration to Elyra - [#3329](https://github.com/elyra-ai/elyra/pull/3329)
+- Remove 'elyra/tests' dir from wheel - [#3334](https://github.com/elyra-ai/elyra/pull/3334)
+- Review and fix broken and flaky integration tests - [#3333](https://github.com/elyra-ai/elyra/pull/3333)
+- feat: Upgrade Cypress from v13 to v14 - [#3332](https://github.com/elyra-ai/elyra/pull/3332)
+- Making package installation optional - [#3328](https://github.com/elyra-ai/elyra/pull/3328)
+- Migrate Elyra to KFP v2 - [#3273](https://github.com/elyra-ai/elyra/pull/3273)
+- High-level architectural overview for Elyra components - [#3327](https://github.com/elyra-ai/elyra/pull/3327)
+- Add Airflow 3.x support with backward compatibility - [#3322](https://github.com/elyra-ai/elyra/pull/3322)
+- Update CodeQL version to fix build warnings - [#3326](https://github.com/elyra-ai/elyra/pull/3326)
+- Update release script for Elyra 4.0 release - [#3305](https://github.com/elyra-ai/elyra/pull/3305)
+- Bump urllib3 from 1.26.19 to 2.5.0 in /etc/generic - [#3323](https://github.com/elyra-ai/elyra/pull/3323)
+- Bump Jupyter Core to 5.8.1 based on CVE-2025-30167 - [#3324](https://github.com/elyra-ai/elyra/pull/3324)
+- Make Jupyterlab pin more flexible to new releases - [#3320](https://github.com/elyra-ai/elyra/pull/3320)
+
 ## Release 4.0.0 - 08/15/2025
 
 Our 4.0.0 release includes the following high-level changes
