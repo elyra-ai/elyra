@@ -42,7 +42,7 @@ singleuser:
   image:
     name: elyra/elyra
     # change to a specific release version as appropriate
-    tag: 4.1.0rc1
+    tag: dev
     # disable this in a production environment
     pullPolicy: "Always"
   storage:
@@ -94,7 +94,7 @@ singleuser:
   image:
     name: elyra/elyra
     # change to a specific release version as appropriated
-    tag: 4.1.0rc1
+    tag: dev
     # disable this in a production environment
     pullPolicy: "Always"
   storage:
