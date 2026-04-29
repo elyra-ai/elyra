@@ -2,13 +2,17 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 4.1.0 - 04/29/2026
+
+
 ## Release 4.1.0rc1 - 04/27/2026
 
 Our 4.1.0 release candidate 1 includes the following high-level changes
+- Add Jupyter AI extensions (requires additional model configuration)
 - Add Airflow 3.x support with backward compatibility
 - Add KFP 2.0 support
-- Support optional package installation
-- Add Jupyter AI extensions (requires additional model configuration)
+- Add support optional package installation
+- Fixed installation of Elyra extensions independentently
 - Remove Python 3.9 due to EOL
 
 See the full changelog below:
