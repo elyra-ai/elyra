@@ -172,7 +172,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
     });
 
     commands.addCommand(CommandIDs.releases, {
-      label: "What's new in latest",
+      label: "What's new in v4.1.0",
       caption: "What's new in this release",
       icon: whatsNewIcon,
       execute: () => {
