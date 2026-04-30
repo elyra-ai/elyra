@@ -85,7 +85,7 @@
     "react-toastify": "^11.0.5",
     "redux": "^4.2.0",
     "swr": "^0.5.6",
-    "uuid": "^3.4.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@jupyterlab/testutils": "^4.4.2",
