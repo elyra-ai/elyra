@@ -167,7 +167,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
       label: 'Documentation',
       icon: helpIcon,
       execute: () => {
-        window.open('https://elyra\.readthedocs\.io/en/latest/', '_blank');
+        window.open('https://elyra.readthedocs.io/en/latest/', '_blank');
       }
     });
 
@@ -177,7 +177,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
       icon: whatsNewIcon,
       execute: () => {
         window.open(
-          'https://github\.com/elyra\-ai/elyra/releases/latest/',
+          'https://github.com/elyra-ai/elyra/releases/latest/',
           '_blank'
         );
       }
