@@ -409,13 +409,13 @@ def update_version_to_dev() -> None:
         sed(
             _source("packages/theme/src/index.ts"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
-            re.escape("https://elyra.readthedocs.io/en/latest/"),
+            "https://elyra.readthedocs.io/en/latest/",
         )
 
         sed(
             _source("packages/theme/src/index.ts"),
             rf"https://github.com/elyra-ai/elyra/releases/v{new_version}/",
-            re.escape("https://github.com/elyra-ai/elyra/releases/latest/"),
+            "https://github.com/elyra-ai/elyra/releases/latest/",
         )
 
         sed(
@@ -428,32 +428,32 @@ def update_version_to_dev() -> None:
         sed(
             _source("docs/source/user_guide/jupyterlab-interface.md"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
-            re.escape("https://elyra.readthedocs.io/en/latest/"),
+            "https://elyra.readthedocs.io/en/latest/",
         )
 
         sed(
             _source("elyra/cli/pipeline_app.py"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
-            re.escape("https://elyra.readthedocs.io/en/latest/"),
+            "https://elyra.readthedocs.io/en/latest/",
         )
 
         # Update documentation version for elyra-metadata cli help
         sed(
             _source("elyra/metadata/metadata_app_utils.py"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
-            re.escape("https://elyra.readthedocs.io/en/latest/"),
+            "https://elyra.readthedocs.io/en/latest/",
         )
 
         sed(
             _source("packages/pipeline-editor/src/EmptyPipelineContent.tsx"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
-            re.escape("https://elyra.readthedocs.io/en/latest/user_guide/"),
+            "https://elyra.readthedocs.io/en/latest/user_guide/",
         )
 
         sed(
             _source("packages/pipeline-editor/src/PipelineEditorWidget.tsx"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
-            re.escape("https://elyra.readthedocs.io/en/latest/user_guide/"),
+            "https://elyra.readthedocs.io/en/latest/user_guide/",
         )
 
         # Update GitHub references in documentation
@@ -483,43 +483,43 @@ def update_version_to_dev() -> None:
         sed(
             _source("elyra/metadata/schemas/url-catalog.json"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
-            re.escape("https://elyra.readthedocs.io/en/latest/user_guide/"),
+            "https://elyra.readthedocs.io/en/latest/user_guide/",
         )
 
         sed(
             _source("elyra/metadata/schemas/local-directory-catalog.json"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
-            re.escape("https://elyra.readthedocs.io/en/latest/user_guide/"),
+            "https://elyra.readthedocs.io/en/latest/user_guide/",
         )
 
         sed(
             _source("elyra/metadata/schemas/local-file-catalog.json"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
-            re.escape("https://elyra.readthedocs.io/en/latest/user_guide/"),
+            "https://elyra.readthedocs.io/en/latest/user_guide/",
         )
 
         sed(
             _source("elyra/metadata/schemas/airflow.json"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
-            re.escape("https://elyra.readthedocs.io/en/latest/user_guide/"),
+            "https://elyra.readthedocs.io/en/latest/user_guide/",
         )
 
         sed(
             _source("elyra/metadata/schemas/kfp.json"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
-            re.escape("https://elyra.readthedocs.io/en/latest/user_guide/"),
+            "https://elyra.readthedocs.io/en/latest/user_guide/",
         )
 
         sed(
             _source("elyra/metadata/schemas/code-snippet.json"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
-            re.escape("https://elyra.readthedocs.io/en/latest/user_guide/"),
+            "https://elyra.readthedocs.io/en/latest/user_guide/",
         )
 
         sed(
             _source("elyra/metadata/schemas/runtime-image.json"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
-            re.escape("https://elyra.readthedocs.io/en/latest/user_guide/"),
+            "https://elyra.readthedocs.io/en/latest/user_guide/",
         )
 
         sed(
