@@ -200,8 +200,9 @@ release: yarn-install build-ui-prod build-server ## Build wheel file for release
 
 elyra-image-env: ## Creates a conda env consisting of the dependencies used in images
 	- conda env remove -y -n $(ELYRA_IMAGE_ENV)
-	conda create -y -n $(ELYRA_IMAGE_ENV) python=$(PYTHON_VERSION) --channel conda-forge
+	conda create -y -n $(ELYRA_IMAGE_ENV) python=$(PYTHON_VERSION) pip setuptools wheel python-build jq --channel conda-forge
 	$(CONDA_ACTIVATE) $(ELYRA_IMAGE_ENV) && \
+	$(PYTHON_PIP) install -q --upgrade pip && \
 	$(PYTHON_PIP) install -r etc/generic/requirements-elyra.txt && \
 	conda deactivate;
 
@@ -323,7 +324,7 @@ validate-runtime-images: # Validates delivered runtime-images meet minimum crite
 			echo ERROR: $$file does not define the image_name property ; \
 			exit 1; \
 		fi; \
-		make validate-runtime-image image=$$image ; \
+		$(MAKE) validate-runtime-image image=$$image ; \
 	done
 
 validate-runtime-image: # Validate that runtime image meets minimum criteria
@@ -332,7 +333,6 @@ validate-runtime-image: # Validate that runtime image meets minimum criteria
 		echo "Usage: make validate-runtime-image image=<container-image-name>" ; \
 		exit 1 ; \
 	fi ; \
-	$(PYTHON_PIP) install -q jq ; \
 	fail=0; \
 	echo "***********************************************************" ; \
 	echo "Validating container image $$image" ; \
