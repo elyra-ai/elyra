@@ -1,8 +1,8 @@
 {
-  "display_name": "Pandas 2.2.3",
+  "display_name": "Pandas 2.3.2",
   "metadata": {
-    "description": "Pandas 2.2.3",
-    "image_name": "amancevice/pandas:jupyter-2.2.3",
+    "description": "Pandas 2.3.2",
+    "image_name": "amancevice/pandas:jupyter-2.3.2",
     "tags": ["pandas"]
   },
   "schema_name": "runtime-image"
