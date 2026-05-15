@@ -2291,7 +2291,6 @@ __metadata:
     "@types/react": 18.0.26
     "@types/react-dom": 18.0.9
     "@types/react-toastify": ^4.1.0
-    "@types/uuid": ^3.4.7
     carbon-components: ~10.8.1
     immer: ^9.0.7
     jest: ^29.2.0
@@ -5634,13 +5633,6 @@ __metadata:
   version: 4.0.5
   resolution: "@types/tough-cookie@npm:4.0.5"
   checksum: f19409d0190b179331586365912920d192733112a195e870c7f18d20ac8adb7ad0b0ff69dad430dba8bc2be09593453a719cfea92dc3bda19748fd158fe1498d
-  languageName: node
-  linkType: hard
-
-"@types/uuid@npm:^3.4.7":
-  version: 3.4.10
-  resolution: "@types/uuid@npm:3.4.10"
-  checksum: 9905d559a11dfe046b98cf5ea00f635b3c56b87615a8dedb466787d859dfe3616659e50093b211bc0869154cadfb16fa81e02c5c0402dc1508e54913e0c5a631
   languageName: node
   linkType: hard
 
