@@ -22,7 +22,10 @@ import { LabShell } from '@jupyterlab/application';
 import { PathExt } from '@jupyterlab/coreutils';
 import { Widget } from '@lumino/widgets';
 
-import uuid4 from 'uuid/v4';
+// uuid v14 is ESM-only; webpack handles the ESM/CJS interop at bundle
+// time, so suppress TypeScript's Node16 strict-resolution error here.
+// @ts-expect-error TS1479
+import { v4 as uuid4 } from 'uuid';
 
 import { IConfigDetails } from './runtime-utils';
 
