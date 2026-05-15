@@ -22,7 +22,7 @@ import { LabShell } from '@jupyterlab/application';
 import { PathExt } from '@jupyterlab/coreutils';
 import { Widget } from '@lumino/widgets';
 
-import uuid4 from 'uuid/v4';
+import { v4 as uuid4 } from 'uuid';
 
 import { IConfigDetails } from './runtime-utils';
 
