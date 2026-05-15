@@ -251,8 +251,10 @@ Cypress.Commands.add('resetJupyterLab', (): void => {
   cy.findByRole('tab', { name: /file browser/i, timeout: 25000 }).should(
     'exist'
   );
-  // Wait for the launcher to be fully rendered
-  cy.get('.jp-Launcher', { timeout: 10000 }).should('be.visible');
+  // Wait for the launcher to be the active main-area widget (not just present in DOM).
+  cy.get('.jp-MainAreaWidget.jp-Activity:not(.lm-mod-hidden) .jp-Launcher', {
+    timeout: 10000
+  }).should('be.visible');
 });
 
 Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
@@ -268,9 +270,30 @@ Cypress.Commands.add('closeTab', (index: number): void => {
   cy.get('.lm-TabBar-tabCloseIcon:visible').eq(index).click();
 });
 
+// Closes the active main-area document tab. Lumino disposes nested children
+// (e.g. the script editor's inner output dock), so this avoids the doubled-
+// closeTab race that occurs when an inner TabBar adds a second close icon.
+Cypress.Commands.add('closeCurrentEditor', (): void => {
+  cy.get(
+    '.lm-DockPanel-tabBar .lm-TabBar-tab[data-type="document-title"] .lm-TabBar-tabCloseIcon:visible'
+  )
+    .last()
+    .click();
+});
+
 Cypress.Commands.add('createNewScriptEditor', (language: string): void => {
-  // Ensure launcher is visible (may take a moment after closing a previous tab)
-  cy.get('.jp-Launcher', { timeout: 10000 }).should('be.visible');
+  // Match only a launcher whose parent main-area widget is currently active;
+  // a hidden launcher (lm-mod-hidden parent) would fail be.visible and flake.
+  const visibleLauncherSelector =
+    '.jp-MainAreaWidget.jp-Activity:not(.lm-mod-hidden) .jp-Launcher';
+  cy.get('body').then(($body) => {
+    if ($body.find(visibleLauncherSelector).length === 0) {
+      // Self-heal: no active launcher (e.g. another widget is the active tab).
+      cy.findByRole('menuitem', { name: /^file$/i }).click();
+      cy.findByText(/^new launcher$/i).click({ force: true });
+    }
+  });
+  cy.get(visibleLauncherSelector, { timeout: 10000 }).should('be.visible');
   cy.get(
     `.jp-LauncherCard[data-category="Elyra"][title="Create a new ${language} Editor"]:visible`
   ).click();

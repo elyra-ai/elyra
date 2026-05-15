@@ -137,11 +137,8 @@ describe('Python Editor tests', () => {
     cy.get('button[title="Top"]').should('be.visible');
     cy.get('button[title="Bottom"]').should('be.visible');
 
-    //close console tab
-    cy.closeTab(-1);
-
-    // Close editor tab
-    cy.closeTab(-1);
+    // Closing the editor disposes the inner output dock too.
+    cy.closeCurrentEditor();
   });
 
   it('open Python file with expected content', () => {
@@ -158,11 +155,7 @@ describe('Python Editor tests', () => {
       'Hello Elyra'
     );
 
-    //close console tab
-    cy.closeTab(-1);
-
-    // Close editor tab
-    cy.closeTab(-1);
+    cy.closeCurrentEditor();
   });
 
   // check for error message running an invalid code
@@ -184,11 +177,7 @@ describe('Python Editor tests', () => {
       'SyntaxError'
     );
 
-    //close console tab
-    cy.closeTab(-1);
-
-    // Close editor tab
-    cy.closeTab(-1);
+    cy.closeCurrentEditor();
 
     // Dismiss save your work dialog by discarding changes
     cy.get('button.jp-mod-warn').click();
