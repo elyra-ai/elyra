@@ -101,15 +101,38 @@ make lint
 - JupyterLab extensions follow the `@elyra/<extension-name>` namespace
 - Frontend packages are managed via Lerna monorepo in `packages/`
 
+### Dependency Constraints
+
+- **`uuid` (in `packages/pipeline-editor`):** Pinned to `^3.4.0`. The
+  pipeline-editor package is CommonJS (no `"type": "module"` in its
+  `package.json`) and the build uses TypeScript `module: Node16` /
+  `moduleResolution: Node16`. uuid v7+ removed the `./v4` subpath
+  export, and uuid v11+ is ESM-only — both shapes conflict with the
+  package's CJS+Node16 setup. **Do not bump `uuid` past `^3.x`** in
+  this package unless the pipeline-editor is first migrated to ESM
+  (`"type": "module"`) or the tsconfig is switched to a bundler-aware
+  module resolution. If Dependabot opens a uuid major bump PR for
+  this package, close it with a reference to this constraint.
+- The same constraint applies to any other dependency in this
+  package that goes ESM-only; verify CJS support before accepting
+  major version bumps.
+
 ### General
 
 - Copyright header required on all source files (Apache 2.0)
-- All commits must be signed (`git commit -s`) to comply with the
-  [Developer Certificate of Origin (DCO)](https://developercertificate.org/)
+- **MANDATORY:** Every commit MUST be signed off with `git commit -s`
+  (or `git commit --signoff`) to comply with the
+  [Developer Certificate of Origin (DCO)](https://developercertificate.org/).
+  Commits without a `Signed-off-by:` trailer will be rejected by the
+  DCO check and cannot be merged. Configure `git config commit.gpgsign`
+  separately if cryptographic signing is also desired; the DCO sign-off
+  is a distinct, always-required text trailer.
 - Keep PRs focused on a single concern
 
 ## Git Best Practices
 
+- **Sign off every commit** with `git commit -s`. This is mandatory
+  for DCO compliance; unsigned commits are rejected at PR time.
 - Follow the 7 rules for a great commit message:
   - Separate subject from body with a blank line
   - Limit the subject line to 50 characters
