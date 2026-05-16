@@ -249,6 +249,10 @@ jobs:
 
   upload-artifacts:
     name: Upload Artifacts
+    # Only build and upload the wheel + npm bundle for push events.
+    # The push trigger is scoped to main, release/** branches, and v* tags,
+    # so PRs skip this expensive job entirely.
+    if: github.event_name == 'push'
     needs: prepare-yarn-cache
     runs-on: ubuntu-latest
     steps:
