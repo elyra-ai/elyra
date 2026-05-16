@@ -46,8 +46,16 @@ env:
   NODE_OPTIONS: '--max_old_space_size=4096'
 
 jobs:
-  prepare-yarn-cache:
-    name: Prepare Cache
+  lint-server:
+    name: Lint Server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint
+        run: make lint-server
+
+  lint-ui:
+    name: Lint UI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -61,32 +69,6 @@ jobs:
             node_modules
             */*/node_modules
             /home/runner/.cache/Cypress
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      - name: Install UI dependencies
-        uses: ./.github/actions/install-ui-dependencies
-  lint-server:
-    name: Lint Server
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Lint
-        run: make lint-server
-
-  lint-ui:
-    name: Lint UI
-    needs: prepare-yarn-cache
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
-      - uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            */*/node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install UI dependencies
         uses: ./.github/actions/install-ui-dependencies
@@ -136,7 +118,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
   test-ui:
     name: Test UI
-    needs: prepare-yarn-cache
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -158,6 +139,7 @@ jobs:
           path: |
             node_modules
             */*/node_modules
+            /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install UI dependencies
         uses: ./.github/actions/install-ui-dependencies
@@ -177,7 +159,6 @@ jobs:
 
   test-integration:
     name: Run Integration Tests
-    needs: prepare-yarn-cache
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -271,7 +252,6 @@ jobs:
     # The push trigger is scoped to main, release/** branches, and v* tags,
     # so PRs skip this expensive job entirely.
     if: github.event_name == 'push'
-    needs: prepare-yarn-cache
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
