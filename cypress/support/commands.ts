@@ -33,12 +33,6 @@ const clickActiveLauncherCard = (
   cardTitle: string,
   category = 'Elyra'
 ): void => {
-  cy.get('body').then(($body) => {
-    if ($body.find(VISIBLE_LAUNCHER_SELECTOR).length === 0) {
-      cy.findByRole('menuitem', { name: /^file$/i }).click();
-      cy.findByText(/^new launcher$/i).click({ force: true });
-    }
-  });
   cy.get(VISIBLE_LAUNCHER_SELECTOR, { timeout: 10000 }).should('be.visible');
   cy.get(
     `.jp-LauncherCard[data-category="${category}"][title="${cardTitle}"]:visible`
