@@ -158,8 +158,21 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   test-integration:
-    name: Run Integration Tests
+    # Shard the Cypress suite across three parallel runners so that the
+    # heaviest spec (pipeline.cy.ts, ~9.5 min) no longer blocks the others.
+    # Per-shard CYPRESS_SPEC is read by cypress.config.ts via process.env.
+    name: Run Integration Tests (${{ matrix.name }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: pipeline
+            spec: ./cypress/tests/pipeline.cy.ts
+          - name: editors
+            spec: ./cypress/tests/{codesnippet,codesnippetfromselectedcells,pythoneditor,scriptdebugger,submitnotebookbutton}.cy.ts
+          - name: misc
+            spec: ./cypress/tests/{git,launcher,lsp,reditor,toc}.cy.ts
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -195,17 +208,20 @@ jobs:
           make install-server
           make install-examples
       - name: Cypress
+        env:
+          CYPRESS_SPEC: ${{ matrix.spec }}
         run: make test-integration
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/cobertura-coverage.xml
+          flags: integration-${{ matrix.name }}
       - name: Collect logs
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: elyra_test_artifacts
+          name: elyra_test_artifacts-${{ matrix.name }}
           path: |
             ${{ github.workspace }}/build/cypress/*.log
             ${{ github.workspace }}/build/cypress/pipelines//**/*

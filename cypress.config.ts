@@ -27,7 +27,9 @@ export default defineConfig({
     },
     baseUrl: 'http://localhost:58888/lab',
     supportFile: './cypress/support/commands.ts',
-    specPattern: './cypress/tests/**/*.cy.ts',
+    // Allow CI shards to override the default glob via the CYPRESS_SPEC env var.
+    // Local runs without the override pick up every spec under cypress/tests.
+    specPattern: process.env.CYPRESS_SPEC || './cypress/tests/**/*.cy.ts',
     fixturesFolder: './cypress/fixtures',
     screenshotsFolder: './build/cypress/screenshots',
     videosFolder: './build/cypress/videos',
