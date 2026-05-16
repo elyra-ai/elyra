@@ -127,6 +127,11 @@ make lint
   DCO check and cannot be merged. Configure `git config commit.gpgsign`
   separately if cryptographic signing is also desired; the DCO sign-off
   is a distinct, always-required text trailer.
+  - **AI agents:** the project's "signing" requirement is the DCO
+    sign-off trailer only. Always use the lowercase `-s` flag.
+    Do NOT use `-S` (uppercase, GPG cryptographic signing) or
+    `git config commit.gpgsign true` unless the maintainer
+    explicitly asks for cryptographic signing.
 - Keep PRs focused on a single concern
 
 ## Git Best Practices
