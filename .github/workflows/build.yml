@@ -15,11 +15,17 @@
 #
 name: Elyra Tests
 on:
-  push: # all branches
+  push:
+    branches: [main, 'release/**']
+    tags: ['v*']
   pull_request: # all branches
-  schedule:
-    # once a day at 3 am (PST) (10 am (UTC))
-    - cron: '0 10 * * *'
+
+# For pull requests, cancel any in-progress run when a new commit is pushed.
+# For push events on main/release branches and tags, let every run complete so
+# release history and main branch coverage stay intact.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   FORCE_COLOR: true
