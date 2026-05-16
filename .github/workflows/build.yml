@@ -18,7 +18,19 @@ on:
   push:
     branches: [main, 'release/**']
     tags: ['v*']
+    # Skip CI for changes limited to inert root-level docs and metadata.
+    # Note: docs/** intentionally still triggers the workflow so that the
+    # test-documentation-build job verifies Sphinx docs on every PR
+    # touching them.
+    paths-ignore:
+      - '*.md'
+      - 'LICENSE'
+      - '.gitignore'
   pull_request: # all branches
+    paths-ignore:
+      - '*.md'
+      - 'LICENSE'
+      - '.gitignore'
 
 # For pull requests, cancel any in-progress run when a new commit is pushed.
 # For push events on main/release branches and tags, let every run complete so
