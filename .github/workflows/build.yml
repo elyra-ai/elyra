@@ -42,6 +42,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
       - uses: actions/cache@v4
         with:
           path: |
@@ -68,6 +69,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
       - uses: actions/cache@v4
         with:
           path: |
@@ -92,6 +94,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: |
+            pyproject.toml
+            build_requirements.txt
+            lint_requirements.txt
+            test_requirements.txt
       - name: Install
         # Note: Tests fail if we don't install `wheel` for some reason.
         run: |
@@ -123,9 +131,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: |
+            pyproject.toml
+            build_requirements.txt
+            lint_requirements.txt
+            test_requirements.txt
       - uses: actions/cache@v4
         with:
           path: |
@@ -157,9 +172,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: |
+            pyproject.toml
+            build_requirements.txt
+            lint_requirements.txt
+            test_requirements.txt
       - uses: actions/cache@v4
         with:
           path: |
@@ -234,9 +256,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: |
+            pyproject.toml
+            build_requirements.txt
+            lint_requirements.txt
+            test_requirements.txt
       - uses: actions/cache@v4
         with:
           path: |
