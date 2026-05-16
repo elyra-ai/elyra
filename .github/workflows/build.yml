@@ -232,8 +232,14 @@ jobs:
     name: Validate Image Environment
     runs-on: ubuntu-latest
     strategy:
+      # On pull requests, only validate the default Python version
+      # (keep this in sync with env.PYTHON_VERSION above). Push events
+      # to main, release/** branches, and v* tags still validate the
+      # full matrix so release images cover every supported version.
+      # `env` context is unavailable in matrix expressions, so the
+      # default version is intentionally hardcoded below.
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        python-version: ${{ fromJSON(github.event_name == 'pull_request' && '["3.13"]' || '["3.10", "3.11", "3.12", "3.13"]') }}
     steps:
       - uses: actions/checkout@v4
       - name: Validate image environment
