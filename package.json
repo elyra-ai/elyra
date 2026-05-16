@@ -13,7 +13,7 @@
   "scripts": {
     "graph": "ts-node etc/scripts/generate-make-graph.ts",
     "cy:open": "npx cypress open",
-    "cy:run": "if [ -n \"$CYPRESS_SPEC\" ]; then npx nyc --check-coverage=false npx cypress run; else npx nyc npx cypress run; fi",
+    "cy:run": "npx nyc ${CYPRESS_SPEC:+--check-coverage=false} npx cypress run",
     "cy:debug": "npx cypress run --headed",
     "eslint": "eslint . --fix --ignore-path .gitignore --ext .ts,.tsx,.js",
     "eslint:check": "eslint . --ignore-path .gitignore --ext .ts,.tsx,.js",
