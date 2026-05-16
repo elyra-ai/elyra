@@ -15,11 +15,29 @@
 #
 name: Elyra Tests
 on:
-  push: # all branches
+  push:
+    branches: [main, 'release/**']
+    tags: ['v*']
+    # Skip CI for changes limited to inert root-level docs and metadata.
+    # Note: docs/** intentionally still triggers the workflow so that the
+    # test-documentation-build job verifies Sphinx docs on every PR
+    # touching them.
+    paths-ignore:
+      - '*.md'
+      - 'LICENSE'
+      - '.gitignore'
   pull_request: # all branches
-  schedule:
-    # once a day at 3 am (PST) (10 am (UTC))
-    - cron: '0 10 * * *'
+    paths-ignore:
+      - '*.md'
+      - 'LICENSE'
+      - '.gitignore'
+
+# For pull requests, cancel any in-progress run when a new commit is pushed.
+# For push events on main/release branches and tags, let every run complete so
+# release history and main branch coverage stay intact.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   FORCE_COLOR: true
@@ -28,23 +46,6 @@ env:
   NODE_OPTIONS: '--max_old_space_size=4096'
 
 jobs:
-  prepare-yarn-cache:
-    name: Prepare Cache
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            */*/node_modules
-            /home/runner/.cache/Cypress
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      - name: Install UI dependencies
-        uses: ./.github/actions/install-ui-dependencies
   lint-server:
     name: Lint Server
     runs-on: ubuntu-latest
@@ -55,18 +56,19 @@ jobs:
 
   lint-ui:
     name: Lint UI
-    needs: prepare-yarn-cache
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
       - uses: actions/cache@v4
         with:
           path: |
             node_modules
             */*/node_modules
+            /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install UI dependencies
         uses: ./.github/actions/install-ui-dependencies
@@ -86,6 +88,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: |
+            pyproject.toml
+            build_requirements.txt
+            lint_requirements.txt
+            test_requirements.txt
       - name: Install
         # Note: Tests fail if we don't install `wheel` for some reason.
         run: |
@@ -110,21 +118,28 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
   test-ui:
     name: Test UI
-    needs: prepare-yarn-cache
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: |
+            pyproject.toml
+            build_requirements.txt
+            lint_requirements.txt
+            test_requirements.txt
       - uses: actions/cache@v4
         with:
           path: |
             node_modules
             */*/node_modules
+            /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install UI dependencies
         uses: ./.github/actions/install-ui-dependencies
@@ -143,17 +158,36 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   test-integration:
-    name: Run Integration Tests
-    needs: prepare-yarn-cache
+    # Shard the Cypress suite across three parallel runners so that the
+    # heaviest spec (pipeline.cy.ts, ~9.5 min) no longer blocks the others.
+    # Per-shard CYPRESS_SPEC is read by cypress.config.ts via process.env.
+    name: Run Integration Tests (${{ matrix.name }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: pipeline
+            spec: ./cypress/tests/pipeline.cy.ts
+          - name: editors
+            spec: ./cypress/tests/{codesnippet,codesnippetfromselectedcells,pythoneditor,scriptdebugger,submitnotebookbutton}.cy.ts
+          - name: misc
+            spec: ./cypress/tests/{git,launcher,lsp,reditor,toc}.cy.ts
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: |
+            pyproject.toml
+            build_requirements.txt
+            lint_requirements.txt
+            test_requirements.txt
       - uses: actions/cache@v4
         with:
           path: |
@@ -174,17 +208,20 @@ jobs:
           make install-server
           make install-examples
       - name: Cypress
+        env:
+          CYPRESS_SPEC: ${{ matrix.spec }}
         run: make test-integration
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/cobertura-coverage.xml
+          flags: integration-${{ matrix.name }}
       - name: Collect logs
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: elyra_test_artifacts
+          name: elyra_test_artifacts-${{ matrix.name }}
           path: |
             ${{ github.workspace }}/build/cypress/*.log
             ${{ github.workspace }}/build/cypress/pipelines//**/*
@@ -204,8 +241,14 @@ jobs:
     name: Validate Image Environment
     runs-on: ubuntu-latest
     strategy:
+      # On pull requests, only validate the default Python version
+      # (keep this in sync with env.PYTHON_VERSION above). Push events
+      # to main, release/** branches, and v* tags still validate the
+      # full matrix so release images cover every supported version.
+      # `env` context is unavailable in matrix expressions, so the
+      # default version is intentionally hardcoded below.
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        python-version: ${{ fromJSON(github.event_name == 'pull_request' && '["3.13"]' || '["3.10", "3.11", "3.12", "3.13"]') }}
     steps:
       - uses: actions/checkout@v4
       - name: Validate image environment
@@ -221,16 +264,26 @@ jobs:
 
   upload-artifacts:
     name: Upload Artifacts
-    needs: prepare-yarn-cache
+    # Only build and upload the wheel + npm bundle for push events.
+    # The push trigger is scoped to main, release/** branches, and v* tags,
+    # so PRs skip this expensive job entirely.
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: |
+            pyproject.toml
+            build_requirements.txt
+            lint_requirements.txt
+            test_requirements.txt
       - uses: actions/cache@v4
         with:
           path: |
