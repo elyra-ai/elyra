@@ -168,7 +168,7 @@ uninstall-server-package:
 install-server-package: uninstall-server-package
 	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) "dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl"
 
-install-server: build-dependencies lint-server build-server install-server-package ## Build and install backend
+install-server: build-dependencies build-server install-server-package ## Build and install backend
 
 install-prod: package-ui-prod install-server check-install ## Build and install for production
 
