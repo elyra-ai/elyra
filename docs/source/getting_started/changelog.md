@@ -2,6 +2,28 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 4.1.1 - 05/18/2026
+
+Our 4.1.0 release candidate 1 includes the following high-level changes
+- Code snippets failed to load due to corrupted URLs introduced by release script
+- Multiple reported security vulnerabilities in dependencies
+
+See the full changelog below:
+
+- Fix pipeline.cy.ts flakes via launcher pinning and form-array sync - [#3389](https://github.com/elyra-ai/elyra/pull/3389)
+- Bump @babel/plugin-transform-modules-systemjs from 7.25.0 to 7.29.4 - [#3381](https://github.com/elyra-ai/elyra/pull/3381)
+- Improve CI performance and fix duplicated runs for PR pushes - [#3388](https://github.com/elyra-ai/elyra/pull/3388)
+- Fix flaky pythoneditor Cypress race on launcher visibility - [#3387](https://github.com/elyra-ai/elyra/pull/3387)
+- Document uuid pin and mandate signed commits in AGENT.md - [#3386](https://github.com/elyra-ai/elyra/pull/3386)
+- Bump uuid from 3.4.0 to 14.0.0 - [#3376](https://github.com/elyra-ai/elyra/pull/3376)
+- Bump postcss from 8.4.16 to 8.5.14 - [#3384](https://github.com/elyra-ai/elyra/pull/3384)
+- Fix build issue related to pip not available in Python 3.10 conda-forge package
+- Update pandas runtime image to tag jupyter-2.3.2
+- Bump fast-uri from 3.0.1 to 3.1.2 - [#3380](https://github.com/elyra-ai/elyra/pull/3380)
+- Bump axios from 1.15.0 to 1.16.0 - [#3379](https://github.com/elyra-ai/elyra/pull/3379)
+- Fix release script and Makefile install target
+- Fix corrupted URLs introduced by release script
+
 ## Release 4.1.0 - 04/29/2026
 
 
