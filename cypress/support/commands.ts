@@ -22,6 +22,23 @@ import 'cypress-real-events/support';
 
 import '../utils/snapshots/add-commands';
 
+// JupyterLab keeps every launcher widget in the DOM until Lumino disposes it,
+// so a launcher mid-tear-down can still expose its cards. Pinning to the
+// active main-area widget avoids clicking a card whose owning widget is
+// already hidden.
+const VISIBLE_LAUNCHER_SELECTOR =
+  '.jp-MainAreaWidget.jp-Activity:not(.lm-mod-hidden) .jp-Launcher';
+
+const clickActiveLauncherCard = (
+  cardTitle: string,
+  category = 'Elyra'
+): void => {
+  cy.get(VISIBLE_LAUNCHER_SELECTOR, { timeout: 10000 }).should('be.visible');
+  cy.get(
+    `.jp-LauncherCard[data-category="${category}"][title="${cardTitle}"]:visible`
+  ).click();
+};
+
 Cypress.Commands.add('installRuntimeConfig', ({ type } = {}): void => {
   const kfpRuntimeInstallCommand =
     'elyra-metadata create runtimes \
@@ -153,19 +170,13 @@ Cypress.Commands.add(
     if (name === undefined) {
       switch (type) {
         case 'kfp':
-          cy.get(
-            '.jp-LauncherCard[data-category="Elyra"][title="Kubeflow Pipelines Pipeline Editor"]'
-          ).click();
+          clickActiveLauncherCard('Kubeflow Pipelines Pipeline Editor');
           break;
         case 'airflow':
-          cy.get(
-            '.jp-LauncherCard[data-category="Elyra"][title="Apache Airflow Pipeline Editor"]'
-          ).click();
+          clickActiveLauncherCard('Apache Airflow Pipeline Editor');
           break;
         default:
-          cy.get(
-            '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]'
-          ).click();
+          clickActiveLauncherCard('Generic Pipeline Editor');
           break;
       }
     } else {
@@ -178,9 +189,7 @@ Cypress.Commands.add(
 );
 
 Cypress.Commands.add('focusPipelineEditor', (): void => {
-  cy.get(
-    '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]'
-  ).click();
+  clickActiveLauncherCard('Generic Pipeline Editor');
   cy.get('.common-canvas-drop-div').should('be.visible');
 });
 
@@ -252,9 +261,7 @@ Cypress.Commands.add('resetJupyterLab', (): void => {
     'exist'
   );
   // Wait for the launcher to be the active main-area widget (not just present in DOM).
-  cy.get('.jp-MainAreaWidget.jp-Activity:not(.lm-mod-hidden) .jp-Launcher', {
-    timeout: 10000
-  }).should('be.visible');
+  cy.get(VISIBLE_LAUNCHER_SELECTOR, { timeout: 10000 }).should('be.visible');
 });
 
 Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
@@ -282,22 +289,28 @@ Cypress.Commands.add('closeCurrentEditor', (): void => {
 });
 
 Cypress.Commands.add('createNewScriptEditor', (language: string): void => {
-  // Match only a launcher whose parent main-area widget is currently active;
-  // a hidden launcher (lm-mod-hidden parent) would fail be.visible and flake.
-  const visibleLauncherSelector =
-    '.jp-MainAreaWidget.jp-Activity:not(.lm-mod-hidden) .jp-Launcher';
-  cy.get('body').then(($body) => {
-    if ($body.find(visibleLauncherSelector).length === 0) {
-      // Self-heal: no active launcher (e.g. another widget is the active tab).
-      cy.findByRole('menuitem', { name: /^file$/i }).click();
-      cy.findByText(/^new launcher$/i).click({ force: true });
-    }
-  });
-  cy.get(visibleLauncherSelector, { timeout: 10000 }).should('be.visible');
-  cy.get(
-    `.jp-LauncherCard[data-category="Elyra"][title="Create a new ${language} Editor"]:visible`
-  ).click();
+  clickActiveLauncherCard(`Create a new ${language} Editor`);
 });
+
+// Click an "Add" button inside a form-array section, then type `value` into
+// the newly mounted input. Waits for the input count under `parentSelector`
+// to increase, closing the race where typing starts before React has
+// rendered the new <input>.
+Cypress.Commands.add(
+  'formArrayAdd',
+  (parentSelector: string, value: string): void => {
+    cy.get(parentSelector).then(($parent) => {
+      const prevCount = $parent.find('input').length;
+      cy.get(parentSelector).within(() => {
+        cy.findByRole('button', { name: /add/i }).click();
+      });
+      cy.get(parentSelector)
+        .find('input')
+        .should('have.length.greaterThan', prevCount);
+      cy.get(parentSelector).find('input').last().type(value);
+    });
+  }
+);
 
 Cypress.Commands.add('checkScriptEditorToolbarContent', (): void => {
   cy.get('.elyra-ScriptEditor .jp-Toolbar');

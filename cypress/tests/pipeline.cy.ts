@@ -154,8 +154,11 @@ describe('Pipeline Editor tests', () => {
     cy.bootstrapFile('scripts/setup.txt');
 
     // Do this all manually because our command doesn't support directories yet
-    cy.openDirectory('pipelines');
+    // Write the pipeline file before navigating into the directory so the
+    // file-browser's first listing inside `pipelines/` already contains it,
+    // avoiding a poll-cycle wait inside openFile.
     cy.writeFile('build/cypress/pipelines/complex.pipeline', emptyPipeline);
+    cy.openDirectory('pipelines');
     cy.openFile('complex.pipeline');
     cy.get('.common-canvas-drop-div').should('be.visible');
 
@@ -186,18 +189,10 @@ describe('Pipeline Editor tests', () => {
       cy.openDirectory('producer.ipynb');
     });
 
-    cy.get('#jp-main-dock-panel').within(() => {
-      cy.get('#root_component_parameters_outputs').within(() => {
-        cy.findByRole('button', { name: /add/i }).click();
-        cy.get('input[id="root_component_parameters_outputs_0"]').type(
-          'output-1.csv'
-        );
+    cy.formArrayAdd('#root_component_parameters_outputs', 'output-1.csv');
+    cy.formArrayAdd('#root_component_parameters_outputs', 'output-2.csv');
 
-        cy.findByRole('button', { name: /add/i }).click();
-        cy.get('input[id="root_component_parameters_outputs_1"]').type(
-          'output-2.csv'
-        );
-      });
+    cy.get('#jp-main-dock-panel').within(() => {
       cy.get('#root_component_parameters_runtime_image').within(() => {
         selectRuntimeImage();
       });
@@ -231,35 +226,19 @@ describe('Pipeline Editor tests', () => {
       cy.get('#root_component_parameters_runtime_image').within(() => {
         selectRuntimeImage();
       });
-      cy.get('#root_component_parameters_outputs').within(() => {
-        cy.findByRole('button', { name: /add/i }).click();
-        cy.get('input[id="root_component_parameters_outputs_0"]').type(
-          'input-1.csv'
-        );
+    });
+    cy.formArrayAdd('#root_component_parameters_outputs', 'input-1.csv');
+    cy.formArrayAdd('#root_component_parameters_outputs', 'input-2.csv');
 
-        cy.findByRole('button', { name: /add/i }).click();
-        cy.get('input[id="root_component_parameters_outputs_1"]').type(
-          'input-2.csv'
-        );
-      });
-
+    cy.get('#jp-main-dock-panel').within(() => {
       // producer-script props
       cy.findByText('producer-script.py').click();
       cy.get('#root_component_parameters_runtime_image').within(() => {
         selectRuntimeImage();
       });
-      cy.get('#root_component_parameters_outputs').within(() => {
-        cy.findByRole('button', { name: /add/i }).click();
-        cy.get('input[id="root_component_parameters_outputs_0"]').type(
-          'output-3.csv'
-        );
-
-        cy.findByRole('button', { name: /add/i }).click();
-        cy.get('input[id="root_component_parameters_outputs_1"]').type(
-          'output-4.csv'
-        );
-      });
     });
+    cy.formArrayAdd('#root_component_parameters_outputs', 'output-3.csv');
+    cy.formArrayAdd('#root_component_parameters_outputs', 'output-4.csv');
 
     cy.savePipeline();
 

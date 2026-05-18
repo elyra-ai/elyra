@@ -49,5 +49,6 @@ declare namespace Cypress {
     openHelloWorld(fileExtension: string): Chainable<void>;
     dismissAssistant(fileType: string): Chainable<void>;
     focusPipelineEditor(): Chainable<void>;
+    formArrayAdd(parentSelector: string, value: string): Chainable<void>;
   }
 }
