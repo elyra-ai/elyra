@@ -1,0 +1,11 @@
+{
+  "version": "4.2.0-dev",
+  "npmClient": "yarn",
+  "command": {
+    "publish": {
+      "ignoreChanges": ["ignored-file", "*.md"],
+      "message": "chore(release): publish"
+    }
+  },
+  "packages": ["packages/*"]
+}

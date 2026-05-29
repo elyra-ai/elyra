@@ -1,0 +1,81 @@
+{
+  "type": "object",
+  "properties": {
+    "label": {
+      "type": "string",
+      "title": "Label",
+      "description": "A custom label for the node."
+    },
+    "component_parameters": {
+      "type": "object",
+      "properties": {
+        {% if component.input_properties|length > 0 %}
+        "inputs_header": {
+          "type": "null",
+          "title": "Inputs",
+          "description": "Input properties for this component.",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        {% for property in component.input_properties %}
+        "{{ property.ref }}": {{ render_property_details(property) }},
+        {% endfor %}
+        {% endif %}
+        {% if component.output_properties|length > 0 %}
+        "outputs_header": {
+          "type": "null",
+          "title": "Outputs",
+          "description": "Outputs produced by this component.",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        {% for property in component.output_properties %}
+        "{{ property.ref }}": {{ render_property_details(property) }},
+        {% endfor %}
+        {% endif %}
+        {% if elyra_owned_properties %}
+        "additional_properties_header": {
+          "type": "null",
+          "title": "Additional Properties",
+          "description": "Additional properties used by Elyra that are not given in the component definition.",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        {% for property in elyra_owned_properties|sort(attribute="property_id") %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }}
+          {% if loop.index != loop|length %}
+          ,
+          {% endif %}
+        {% endfor %}
+        {% endif %}
+      },
+      "required": [
+      {% for property in component.required_properties %}
+        "{{ property.ref }}"
+          {% if loop.index != loop|length %}
+          ,
+          {% endif %}
+      {% endfor %}
+      ]
+    },
+    "component_source_header": {
+      "type": "null",
+      "title": "Component Source",
+      "uihints": {
+        "ui:field": "header"
+      }
+    },
+    "component_source": {
+      "type": "string",
+      "title": "Component Source",
+      "default": {{ component.component_source|tojson|safe }},
+      "uihints": {
+        "ui:readonly": true
+      }
+    }
+  },
+  "required": ["component_parameters"]
+}

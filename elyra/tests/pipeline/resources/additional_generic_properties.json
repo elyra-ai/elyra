@@ -1,0 +1,252 @@
+{
+  "kubernetes_pod_annotations": {
+    "title": "Kubernetes Pod Annotations",
+    "description": "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "title": "Key",
+          "default": ""
+        },
+        "value": {
+          "type": "string",
+          "title": "Value",
+          "default": ""
+        }
+      },
+      "required": ["key"]
+    },
+    "uihints": {
+      "items": {
+        "key": {
+          "ui:placeholder": "annotation_key"
+        },
+        "value": {
+          "ui:placeholder": "annotation_value"
+        }
+      }
+    },
+    "default": []
+  },
+  "mounted_volumes": {
+    "title": "Data Volumes",
+    "description": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "title": "Mount Path",
+          "default": ""
+        },
+        "pvc_name": {
+          "type": "string",
+          "title": "Persistent Volume Claim Name",
+          "default": ""
+        },
+        "read_only": {
+          "default": false,
+          "title": "Mount volume read-only",
+          "type": "boolean"
+        },
+        "sub_path": {
+          "default": "",
+          "title": "Sub Path",
+          "type": "string"
+        }
+      },
+      "required": ["path", "pvc_name"]
+    },
+    "uihints": {
+      "items": {
+        "path": {
+          "ui:placeholder": "/mount/path"
+        },
+        "pvc_name": {
+          "ui:placeholder": "pvc-name"
+        },
+        "read_only": {
+          "ui:placeholder": " "
+        },
+        "sub_path": {
+          "ui:placeholder": "relative/path/within/volume"
+        }
+      }
+    },
+    "default": []
+  },
+  "kubernetes_pod_labels": {
+    "title": "Kubernetes Pod Labels",
+    "description": "Metadata to be added to this node. The metadata is exposed as label in the Kubernetes pod that executes this node.",
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "title": "Key",
+          "default": ""
+        },
+        "value": {
+          "type": "string",
+          "title": "Value",
+          "default": ""
+        }
+      },
+      "required": ["key"]
+    },
+    "uihints": {
+      "items": {
+        "key": {
+          "ui:placeholder": "label_key"
+        },
+        "value": {
+          "ui:placeholder": "label_value"
+        }
+      }
+    },
+    "default": []
+  },
+  "kubernetes_secrets": {
+    "title": "Kubernetes Secrets",
+    "description": "Kubernetes secrets to make available as environment variables to this node. The secret name and key given must be present in the Kubernetes namespace where the node is executed or this node will not run.",
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "env_var": {
+          "type": "string",
+          "title": "Environment Variable",
+          "default": ""
+        },
+        "name": {
+          "type": "string",
+          "title": "Secret Name",
+          "default": ""
+        },
+        "key": {
+          "type": "string",
+          "title": "Secret Key",
+          "default": ""
+        }
+      },
+      "required": ["env_var", "name", "key"]
+    },
+    "uihints": {
+      "items": {
+        "env_var": {
+          "ui:placeholder": "ENV_VAR"
+        },
+        "name": {
+          "ui:placeholder": "secret-name"
+        },
+        "key": {
+          "ui:placeholder": "secret-key"
+        }
+      }
+    },
+    "default": []
+  },
+  "env_vars": {
+    "title": "Environment Variables",
+    "description": "Environment variables to be set on the execution environment.",
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "env_var": {
+          "type": "string",
+          "title": "Environment Variable",
+          "default": ""
+        },
+        "value": {
+          "type": "string",
+          "title": "Value",
+          "default": ""
+        }
+      },
+      "required": ["env_var"]
+    },
+    "uihints": {
+      "items": {
+        "env_var": {
+          "ui:placeholder": "ENV_VAR"
+        },
+        "value": {
+          "ui:placeholder": "value"
+        }
+      },
+      "canRefresh": true
+    },
+    "default": []
+  },
+  "kubernetes_shared_mem_size": {
+    "title": "Shared Memory Size",
+    "description": "Configure a custom shared memory size in gigabytes (10^9 bytes) for the pod that executes a node. A custom value is assigned if the size property value is a number greater than zero.",
+    "type": "object",
+    "properties": {
+      "size": {
+        "type": "integer",
+        "title": "Memory Size (GB)",
+        "minimum": 0
+      }
+    },
+    "required": [],
+    "uihints": {
+      "size": {
+        "ui:placeholder": 0
+      }
+    }
+  },
+  "kubernetes_tolerations": {
+    "title": "Kubernetes Tolerations",
+    "description": "Kubernetes tolerations to apply to the pod where the node is executed.",
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "title": "Key",
+          "default": ""
+        },
+        "operator": {
+          "type": "string",
+          "title": "Operator",
+          "default": "Equal",
+          "enum": ["Equal", "Exists"]
+        },
+        "value": {
+          "type": "string",
+          "title": "Value",
+          "default": ""
+        },
+        "effect": {
+          "type": "string",
+          "title": "Effect",
+          "default": "",
+          "enum": ["", "NoExecute", "NoSchedule", "PreferNoSchedule"]
+        }
+      },
+      "required": ["operator"]
+    },
+    "uihints": {
+      "items": {
+        "key": {
+          "ui:placeholder": "key"
+        },
+        "value": {
+          "ui:placeholder": "value"
+        },
+        "effect": {
+          "ui:placeholder": "NoSchedule"
+        }
+      }
+    },
+    "default": []
+  }
+}

@@ -1,0 +1,213 @@
+{
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/metadata-test.json",
+  "title": "Metadata Test",
+  "name": "metadata-test",
+  "schemaspace": "metadata-tests",
+  "schemaspace_id": "8182fc28-899a-4521-8342-1a0e218c3a4d",
+  "metadata_class_name": "elyra.tests.metadata.test_utils.MockMetadataTest",
+  "properties": {
+    "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
+      "type": "string",
+      "const": "metadata-test"
+    },
+    "display_name": {
+      "title": "Display Name",
+      "description": "The display name of the metadata",
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "description": "Additional data specific to this metadata",
+      "type": "object",
+      "properties": {
+        "required_test": {
+          "title": "Required Test",
+          "description": "Property used to test required enforcement",
+          "type": "string",
+          "minLength": 1
+        },
+        "uri_test": {
+          "title": "URI Test",
+          "description": "Property used to test uri formatting",
+          "type": "string",
+          "format": "uri"
+        },
+        "integer_exclusivity_test": {
+          "title": "Integer Exclusivity Test",
+          "description": "Property used to test integers with exclusivity restrictions",
+          "type": "integer",
+          "exclusiveMinimum": 3,
+          "exclusiveMaximum": 10
+        },
+        "integer_multiple_test": {
+          "title": "Integer Multiple Test",
+          "description": "Property used to test integers with multipleOf restrictions",
+          "type": "integer",
+          "multipleOf": 7
+        },
+        "number_range_test": {
+          "title": "Number Range Test",
+          "description": "Property used to test numbers with range",
+          "type": "number",
+          "minimum": 3,
+          "maximum": 10
+        },
+        "number_default_test": {
+          "title": "Number Default Test",
+          "description": "Property used to test numbers with defaults",
+          "type": "number",
+          "default": 42
+        },
+        "const_test": {
+          "title": "Const Test",
+          "description": "Property used to test properties with const",
+          "type": "number",
+          "const": 3.14
+        },
+        "string_length_test": {
+          "title": "String Length Test",
+          "description": "Property used to test strings with length restrictions",
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 10
+        },
+        "string_pattern_test": {
+          "title": "String Pattern Test",
+          "description": "Property used to test strings with pattern restrictions",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-.]*[a-z0-9]$"
+        },
+        "string_complex_test": {
+          "title": "String Complex Test",
+          "description": "Property used to test strings with multiple restrictions",
+          "type": "string",
+          "allOf": [
+            { "minLength": 1 },
+            { "pattern": "^[^ \t]+" },
+            { "pattern": "[^ \t]+$" }
+          ]
+        },
+        "enum_test": {
+          "title": "Enum Test",
+          "description": "Property used to test properties with enums",
+          "type": "string",
+          "enum": ["elyra", "rocks"],
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.dropdown",
+            "default_choices": ["elyra"]
+          }
+        },
+        "array_test": {
+          "title": "Array Test",
+          "description": "Property used to test array with item restrictions",
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 10,
+          "uniqueItems": true,
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.code"
+          }
+        },
+        "object_test": {
+          "title": "Object Test",
+          "description": "Property used to test object elements with properties restrictions",
+          "type": "object",
+          "minProperties": 3,
+          "maxProperties": 10
+        },
+        "boolean_test": {
+          "title": "Boolean Test",
+          "description": "Property used to test boolean values",
+          "type": "boolean"
+        },
+        "null_test": {
+          "title": "Null Test",
+          "description": "Property used to test null types",
+          "type": "null"
+        },
+        "oneOf_test": {
+          "type": "object",
+          "description": "Property used to test behavior when a oneOf construct exists",
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "obj1_prop1": { "type": "string" },
+                "obj1_prop2": { "type": "string" },
+                "obj_switch": { "enum": ["obj1"] }
+              },
+              "required": ["obj_switch", "obj1_prop1", "obj1_prop2"],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "obj2_prop1": { "type": "integer" },
+                "obj2_prop2": { "type": "integer" },
+                "obj_switch": { "enum": ["obj2"] }
+              },
+              "required": ["obj_switch", "obj2_prop1", "obj2_prop2"],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "obj3_prop1": { "type": "number" },
+                "obj3_prop2": { "type": "boolean" },
+                "obj_switch": { "enum": ["obj3"] }
+              },
+              "required": ["obj_switch", "obj3_prop1"],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "allOf_test": {
+          "type": "object",
+          "description": "Property used to test behavior when an allOf construct exists",
+          "allOf": [
+            {
+              "type": "object",
+              "properties": {
+                "obj1_prop1": { "type": "string" },
+                "obj1_prop2": { "type": "string" },
+                "obj1_switch": { "enum": ["obj1"] }
+              },
+              "required": ["obj1_switch", "obj1_prop1", "obj1_prop2"]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "obj2_prop1": { "type": "integer" },
+                "obj2_prop2": { "type": "integer" },
+                "obj2_switch": { "enum": ["obj2"] }
+              },
+              "required": ["obj2_switch", "obj2_prop1", "obj2_prop2"]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "obj3_prop1": { "type": "number" },
+                "obj3_prop2": { "type": "boolean" },
+                "obj3_switch": { "enum": ["obj3"] }
+              },
+              "required": ["obj3_switch", "obj3_prop1"]
+            }
+          ]
+        },
+        "defs_test": { "$ref": "#/$defs/defs_entry" }
+      },
+      "required": ["required_test"]
+    }
+  },
+  "required": ["schema_name", "display_name", "metadata"],
+  "$defs": {
+    "defs_entry": {
+      "title": "Defs Test",
+      "description": "Property used to test $defs elements",
+      "type": "integer"
+    }
+  }
+}

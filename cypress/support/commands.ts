@@ -1,0 +1,433 @@
+/*
+ * Copyright 2018-2026 Elyra Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import '@cypress/code-coverage/support';
+
+import '@testing-library/cypress/add-commands';
+
+import 'cypress-real-events/support';
+
+import '../utils/snapshots/add-commands';
+
+// JupyterLab keeps every launcher widget in the DOM until Lumino disposes it,
+// so a launcher mid-tear-down can still expose its cards. Pinning to the
+// active main-area widget avoids clicking a card whose owning widget is
+// already hidden.
+const VISIBLE_LAUNCHER_SELECTOR =
+  '.jp-MainAreaWidget.jp-Activity:not(.lm-mod-hidden) .jp-Launcher';
+
+const clickActiveLauncherCard = (
+  cardTitle: string,
+  category = 'Elyra'
+): void => {
+  cy.get(VISIBLE_LAUNCHER_SELECTOR, { timeout: 10000 }).should('be.visible');
+  cy.get(
+    `.jp-LauncherCard[data-category="${category}"][title="${cardTitle}"]:visible`
+  ).click();
+};
+
+Cypress.Commands.add('installRuntimeConfig', ({ type } = {}): void => {
+  const kfpRuntimeInstallCommand =
+    'elyra-metadata create runtimes \
+  --schema_name=kfp \
+  --display_name="KFP Test Runtime" \
+  --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
+  --cos_endpoint=http://0.0.0.0:9000 \
+  --cos_username=minioadmin \
+  --cos_password=minioadmin \
+  --cos_bucket=test-bucket';
+
+  const airflowRuntimeInstallCommand =
+    'elyra-metadata create runtimes \
+  --schema_name=airflow \
+  --display_name="Airflow Test Runtime" \
+  --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
+  --github_repo=akchinstc/test-repo \
+  --github_branch=main \
+  --github_repo_token=xxxxxxxx \
+  --github_api_endpoint=https://api.github.com \
+  --cos_endpoint=http://0.0.0.0:9000 \
+  --cos_username=minioadmin \
+  --cos_password=minioadmin \
+  --cos_bucket=test-bucket';
+
+  cy.exec(
+    type === 'kfp' ? kfpRuntimeInstallCommand : airflowRuntimeInstallCommand,
+    { failOnNonZeroExit: false }
+  );
+});
+
+// Only used for testing filling out form for runtime metadata editor
+Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
+  cy.findByRole('tab', { name: /runtimes/i }).click();
+  cy.findByRole('button', { name: /create new runtime/i }).click();
+
+  if (type === 'kfp') {
+    cy.findByRole('menuitem', { name: /kubeflow pipelines/i }).click();
+  } else {
+    cy.findByRole('menuitem', { name: /apache airflow/i }).click();
+  }
+
+  cy.findByLabelText(/^display name/i).type(`${type} Test Runtime`);
+
+  if (type === 'kfp') {
+    cy.findByLabelText(/kubeflow .* endpoint\*/i).type(
+      'https://kubernetes-service.ibm.com/pipeline'
+    );
+  } else {
+    cy.findByLabelText(/airflow .* endpoint/i).type(
+      'https://kubernetes-service.ibm.com/pipeline'
+    );
+    cy.findByLabelText(/github .* repository\*/i).type('akchinstc/test-repo');
+    cy.findByLabelText(/github .* branch/i).type('main');
+    cy.findByLabelText(/personal access token/i).type('xxxxxxxx');
+    // Check the default value is displayed on github api endpoint field
+    cy.findByLabelText(/github .* endpoint/i).should(
+      'have.value',
+      'https://api.github.com'
+    );
+  }
+
+  cy.findByLabelText('Cloud Object Storage Endpoint*').type(
+    'http://0.0.0.0:9000'
+  );
+
+  if (type !== 'invalid') {
+    cy.findByLabelText(/object storage username/i).type('minioadmin');
+    cy.findByLabelText(/object storage password/i).type('minioadmin');
+  }
+
+  cy.findByLabelText(/object storage bucket/i).type('test-bucket');
+
+  // save it
+  cy.findByRole('button', { name: /save/i }).click();
+
+  // reset runtimes widget
+  if (type !== 'invalid') {
+    cy.findByRole('tab', { name: /runtimes/i }).click();
+  }
+});
+
+Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
+  cy.on('fail', (e) => {
+    console.error(
+      `Example catalog connectors do not appear to be installed.\n${e}`
+    );
+    throw new Error(
+      `Example catalog connectors do not appear to be installed.\n${e}`
+    );
+  });
+
+  cy.findByRole('tab', { name: /component catalogs/i }).click();
+  cy.findByRole('button', { name: /create new component catalog/i }).click();
+
+  if (type === 'kfp') {
+    cy.findByRole('menuitem', {
+      name: /new kubeflow pipelines example components catalog/i
+    }).click();
+  } else {
+    cy.findByRole('menuitem', {
+      name: /new apache airflow example components catalog/i
+    }).click();
+  }
+
+  cy.findByLabelText(/^display name/i).type('Example Components');
+
+  // save it
+  cy.findByRole('button', { name: /save/i }).click();
+});
+
+Cypress.Commands.add('deleteFile', (name: string): void => {
+  cy.exec(`find build/cypress/ -name "${name}" -delete`, {
+    failOnNonZeroExit: false
+  });
+});
+
+Cypress.Commands.add('deleteFiles', (patterns: string[]): void => {
+  if (patterns.length === 0) return;
+  const findArgs = patterns.map((p) => `-name "${p}"`).join(' -o ');
+  cy.exec(`find build/cypress/ \\( ${findArgs} \\) -delete`, {
+    failOnNonZeroExit: false
+  });
+});
+
+Cypress.Commands.add(
+  'createPipeline',
+  ({ name, type, emptyPipeline } = {}): void => {
+    if (name === undefined) {
+      switch (type) {
+        case 'kfp':
+          clickActiveLauncherCard('Kubeflow Pipelines Pipeline Editor');
+          break;
+        case 'airflow':
+          clickActiveLauncherCard('Apache Airflow Pipeline Editor');
+          break;
+        default:
+          clickActiveLauncherCard('Generic Pipeline Editor');
+          break;
+      }
+    } else {
+      cy.writeFile(`build/cypress/${name}`, emptyPipeline ?? '');
+      cy.openFile(name);
+    }
+
+    cy.get('.common-canvas-drop-div').should('be.visible');
+  }
+);
+
+Cypress.Commands.add('focusPipelineEditor', (): void => {
+  clickActiveLauncherCard('Generic Pipeline Editor');
+  cy.get('.common-canvas-drop-div').should('be.visible');
+});
+
+Cypress.Commands.add('openDirectory', (name: string): void => {
+  cy.findByRole('listitem', {
+    name: (n, _el) => n.includes(name)
+  }).dblclick();
+});
+
+Cypress.Commands.add('addFileToPipeline', (name: string): void => {
+  cy.findByRole('listitem', {
+    name: (n, _el) => n.includes(name)
+  })
+    .should('be.visible')
+    .rightclick();
+  cy.findByRole('menuitem', { name: /add file to pipeline/i })
+    .should('be.visible')
+    .click();
+});
+
+Cypress.Commands.add('dragAndDropFileToPipeline', (name: string) => {
+  cy.findByRole('listitem', {
+    name: (n, _el) => n.includes(name)
+  }).realMouseDown();
+
+  cy.get('.d3-svg-background')
+    .realMouseMove(50, 50, { position: 'center' })
+    .realMouseUp();
+});
+
+Cypress.Commands.add('savePipeline', (): void => {
+  cy.intercept('PUT', '**/api/contents/**').as('savePipelineFile');
+
+  // Check if document has unsaved changes before clicking save
+  cy.document().then((doc) => {
+    const isDirty = doc.querySelector('.jp-Document.jp-mod-dirty') !== null;
+
+    cy.findByRole('button', { name: /save pipeline/i }).click();
+
+    if (isDirty) {
+      // Wait for the server to finish writing the file
+      cy.wait('@savePipelineFile');
+    }
+
+    // Confirm document is no longer dirty
+    cy.get('.jp-Document:not(.jp-mod-dirty)', { timeout: 10000 }).should(
+      'exist'
+    );
+  });
+});
+
+Cypress.Commands.add('openFile', (name: string): void => {
+  cy.findByRole('listitem', {
+    name: (n, _el) => n.includes(name),
+    timeout: 50000
+  }).dblclick();
+});
+
+Cypress.Commands.add('bootstrapFile', (name: string): void => {
+  cy.readFile(`cypress/fixtures/${name}`).then((file) => {
+    cy.writeFile(`build/cypress/${name}`, file);
+  });
+});
+
+Cypress.Commands.add('resetJupyterLab', (): void => {
+  // open jupyterlab with a clean workspace
+  cy.visit('?token=test&reset');
+  cy.findByRole('tab', { name: /file browser/i, timeout: 25000 }).should(
+    'exist'
+  );
+  // Wait for the launcher to be the active main-area widget (not just present in DOM).
+  cy.get(VISIBLE_LAUNCHER_SELECTOR, { timeout: 10000 }).should('be.visible');
+});
+
+Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
+  cy.findByRole('tab', { name: /\.pipeline/i }).rightclick();
+  cy.findAllByRole('menuitem', { name: new RegExp(fileType, 'i') }).should(
+    'exist'
+  );
+  //dismiss menu
+  cy.get('[aria-label="Canvas"]').click({ force: true });
+});
+
+Cypress.Commands.add('closeTab', (index: number): void => {
+  cy.get('.lm-TabBar-tabCloseIcon:visible').eq(index).click();
+});
+
+// Closes the active main-area document tab. Lumino disposes nested children
+// (e.g. the script editor's inner output dock), so this avoids the doubled-
+// closeTab race that occurs when an inner TabBar adds a second close icon.
+Cypress.Commands.add('closeCurrentEditor', (): void => {
+  cy.get(
+    '.lm-DockPanel-tabBar .lm-TabBar-tab[data-type="document-title"] .lm-TabBar-tabCloseIcon:visible'
+  )
+    .last()
+    .click();
+});
+
+Cypress.Commands.add('createNewScriptEditor', (language: string): void => {
+  clickActiveLauncherCard(`Create a new ${language} Editor`);
+});
+
+// Click an "Add" button inside a form-array section, then type `value` into
+// the newly mounted input. Waits for the input count under `parentSelector`
+// to increase, closing the race where typing starts before React has
+// rendered the new <input>.
+Cypress.Commands.add(
+  'formArrayAdd',
+  (parentSelector: string, value: string): void => {
+    cy.get(parentSelector).then(($parent) => {
+      const prevCount = $parent.find('input').length;
+      cy.get(parentSelector).within(() => {
+        cy.findByRole('button', { name: /add/i }).click();
+      });
+      cy.get(parentSelector)
+        .find('input')
+        .should('have.length.greaterThan', prevCount);
+      cy.get(parentSelector).find('input').last().type(value);
+    });
+  }
+);
+
+Cypress.Commands.add('checkScriptEditorToolbarContent', (): void => {
+  cy.get('.elyra-ScriptEditor .jp-Toolbar');
+
+  // check save button exists and icon
+  cy.get('jp-button[title="Save file contents"]');
+  cy.get('svg[data-icon="ui-components:save"]');
+
+  // check run button exists and icon
+  cy.get('jp-button[title="Run"]');
+  cy.get('svg[data-icon="ui-components:run"]');
+
+  // check interrupt kernel button exists and icon
+  cy.get('jp-button[title="Interrupt the kernel"]');
+  cy.get('svg[data-icon="ui-components:stop"]');
+
+  // check select kernel dropdown exists
+  cy.get('.elyra-ScriptEditor .jp-Toolbar select');
+
+  // check Run as Pipeline button exists
+  cy.contains('Run as Pipeline');
+});
+
+Cypress.Commands.add('checkRightClickTabContent', (fileType: string): void => {
+  // Open right-click context menu
+  cy.get('.lm-TabBar-tab[data-type="document-title"]').rightclick({
+    force: true
+  });
+
+  // Check contents of each menu item
+  cy.get('[data-command="application:close"] > .lm-Menu-itemLabel').contains(
+    'Close Tab'
+  );
+  cy.get(
+    '[data-command="application:close-other-tabs"] > .lm-Menu-itemLabel'
+  ).contains('Close All Other Tabs');
+  cy.get(
+    '[data-command="application:close-right-tabs"] > .lm-Menu-itemLabel'
+  ).contains('Close Tabs to Right');
+  cy.get(
+    '[data-command="filemenu:create-console"] > .lm-Menu-itemLabel'
+  ).contains('Create Console for Editor');
+  cy.get('[data-command="docmanager:rename"] > .lm-Menu-itemLabel').contains(
+    `Rename ${fileType} File…`
+  );
+  cy.get('[data-command="docmanager:delete"] > .lm-Menu-itemLabel').contains(
+    `Delete ${fileType} File`
+  );
+  cy.get('[data-command="docmanager:clone"] > .lm-Menu-itemLabel').contains(
+    `New View for ${fileType} File`
+  );
+  cy.get(
+    '[data-command="docmanager:show-in-file-browser"] > .lm-Menu-itemLabel'
+  ).contains('Show in File Browser');
+  cy.get(
+    '[data-command="__internal:context-menu-info"] > .lm-Menu-itemLabel'
+  ).contains('Shift+Right Click for Browser Menu');
+
+  // Dismiss menu
+  cy.get(
+    '[data-command="docmanager:show-in-file-browser"] > .lm-Menu-itemLabel'
+  ).click();
+});
+
+Cypress.Commands.add(
+  'openFileAndCheckContent',
+  (fileExtension: string): void => {
+    cy.openHelloWorld(fileExtension);
+    // Ensure that the file contents are as expected
+    cy.get('.cm-line').should('contain.text', 'print("Hello Elyra")');
+  }
+);
+
+// Open helloworld.* using file -> open from path
+Cypress.Commands.add('openHelloWorld', (fileExtension: string): void => {
+  cy.findByRole('menuitem', { name: /^file$/i }).click();
+  cy.findByText(/^open from path…$/i).click({ force: true });
+
+  // Search for helloworld file and open
+  cy.get('input#jp-dialog-input-id')
+    .clear()
+    .type(`/helloworld.${fileExtension}`)
+    .should('have.value', `/helloworld.${fileExtension}`);
+  cy.get('.lm-Panel .jp-mod-accept').click();
+});
+
+// Dismiss LSP code assistant box if visible
+Cypress.Commands.add('dismissAssistant', (fileType: string): void => {
+  cy.get('body').then(($body) => {
+    if ($body.find('.lsp-completer').length > 0) {
+      // Dismiss code assistant box
+      const selector = fileType === 'notebook' ? 'body' : '.CodeMirror-lines';
+      cy.get(selector).first().type('{esc}');
+    }
+  });
+});
+
+// Allowlist of known benign JupyterLab errors that should not fail tests.
+// Unknown errors are allowed to propagate so real bugs surface.
+const BENIGN_ERROR_PATTERNS: RegExp[] = [
+  /ResizeObserver loop/,
+  /cancelled/,
+  /Disposed/,
+  /restore\(\) must be called/,
+  /Non-Error promise rejection/,
+  // JupyterLab internal null-pointer errors from extensions
+  /Cannot read properties of null/,
+  // JupyterLab checkpoint errors during cleanup/navigation
+  /Unhandled error/
+];
+
+Cypress.on('uncaught:exception', (err, _runnable) => {
+  const message = err.message ?? String(err);
+  if (BENIGN_ERROR_PATTERNS.some((pattern) => pattern.test(message))) {
+    return false; // Suppress known benign errors
+  }
+  // Let unknown errors fail the test
+  console.error('Uncaught exception (not suppressed):', err);
+  return undefined;
+});

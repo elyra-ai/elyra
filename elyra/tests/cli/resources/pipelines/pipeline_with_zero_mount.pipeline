@@ -1,0 +1,149 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "66338755-bce9-4541-b595-b0210c943b38",
+  "primary_pipeline": "27fd7b90-42de-469a-9bcc-08ba82f48d48",
+  "pipelines": [
+    {
+      "id": "27fd7b90-42de-469a-9bcc-08ba82f48d48",
+      "nodes": [
+        {
+          "id": "cded6818-e601-4fd8-b6b9-c9fdf1fd1fca",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "label": "a",
+            "component_source": "test123",
+            "component_parameters": {
+              "filename": "notebooks/dummy_notebook_1.ipynb",
+              "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
+              "env_vars": [
+                "OP_NAME=a"
+              ],
+              "include_subdirectories": false,
+              "dependencies": [
+                "d.txt",
+                "e.txt",
+                "f.txt"
+              ],
+              "outputs": [
+                "d.txt",
+                "e.txt",
+                "f.txt"
+              ]
+            },
+            "ui_data": {
+              "label": "a",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 72,
+              "y_pos": 272,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "6f5c2ece-1977-48a1-847f-099b327c6ed1",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "label": "c",
+            "component_parameters": {
+              "filename": "scripts/dummy_script_1.py",
+              "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
+              "env_vars": [
+                "OP_NAME=c"
+              ],
+              "include_subdirectories": false
+            },
+            "ui_data": {
+              "label": "c",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 337,
+              "y_pos": 251,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "3fa9ed07-4cf0-4928-9832-1a9e530c1f23",
+                  "node_id_ref": "cded6818-e601-4fd8-b6b9-c9fdf1fd1fca",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "version": 7,
+        "runtime_config": "kfp-yukked1",
+        "source": "pipeline_dependency_complex.json",
+        "runtime_type": "KUBEFLOW_PIPELINES",
+        "properties": {
+          "name": "pipeline_with_zero_mount",
+          "runtime": "Kubeflow Pipelines"
+        }
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

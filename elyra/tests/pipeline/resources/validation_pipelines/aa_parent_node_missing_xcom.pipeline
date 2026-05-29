@@ -1,0 +1,171 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "elyra-auto-generated-pipeline",
+  "primary_pipeline": "primary",
+  "pipelines": [
+    {
+      "id": "primary",
+      "nodes": [
+        {
+          "id": "f16f95e0-192c-4b1c-b42d-310da7a6c0e9",
+          "type": "execution_node",
+          "op": "local-file-catalog:8371f5970c7b:TestOperator",
+          "app_data": {
+            "component_parameters": {
+              "str_no_default": {
+                "widget": "string",
+                "value": "echo 'test one'"
+              },
+              "int_no_default": {
+                "widget": "number",
+                "value": 1
+              },
+              "bool_no_default": {
+                "widget": "boolean",
+                "value": false
+              },
+              "unusual_type_dict": {
+                "widget": "string",
+                "value": "{}"
+              },
+              "unusual_type_list": {
+                "widget": "string",
+                "value": "[]"
+              },
+              "xcom_push": {
+                "widget": "boolean",
+                "value": false
+              }
+            },
+            "label": "",
+            "component_source": "{'catalog_type': 'local-file-catalog', 'component_ref': {'path': 'airflow_test_operator.py'}}",
+            "ui_data": {
+              "label": "TestOperator",
+              "image": "/static/elyra/airflow.svg",
+              "x_pos": 142,
+              "y_pos": 106.5
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "b863d458-21b5-4a46-8420-5a814b7bd525",
+          "type": "execution_node",
+          "op": "local-file-catalog:8371f5970c7b:TestOperator",
+          "app_data": {
+            "component_parameters": {
+              "str_no_default": {
+                "widget": "inputpath",
+                "value": {
+                  "value": "f16f95e0-192c-4b1c-b42d-310da7a6c0e9",
+                  "option": ""
+                }
+              },
+              "int_no_default": {
+                "widget": "number",
+                "value": 1
+              },
+              "bool_no_default": {
+                "widget": "boolean",
+                "value": false
+              },
+              "unusual_type_dict": {
+                "widget": "string",
+                "value": "{}"
+              },
+              "unusual_type_list": {
+                "widget": "string",
+                "value": "[]"
+              }
+            },
+            "label": "",
+            "component_source": "{'catalog_type': 'local-file-catalog', 'component_ref': {'path': 'airflow_test_operator.py'}}",
+            "ui_data": {
+              "label": "TestOperator",
+              "image": "/static/elyra/airflow.svg",
+              "x_pos": 416,
+              "y_pos": 105.5
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "edeb10f0-ae2a-4fe0-ac01-c3d78a2f39da",
+                  "node_id_ref": "f16f95e0-192c-4b1c-b42d-310da7a6c0e9",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "version": 8,
+        "runtime_type": "APACHE_AIRFLOW",
+        "properties": {
+          "name": "aa_parent_node_missing_xcom",
+          "runtime": "Apache Airflow"
+        }
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

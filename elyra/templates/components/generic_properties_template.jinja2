@@ -1,0 +1,150 @@
+{
+  "type": "object",
+  "properties": {
+    "label": {
+      "title": "Label",
+      "description": "A custom label for the node.",
+      "type": "string"
+    },
+    "component_parameters": {
+      "type": "object",
+      "properties": {
+        "inputs_header": {
+          "type": "null",
+          "title": "Inputs",
+          "description": "Input properties for this component.",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        "filename": {
+          "type": "string",
+          "title": "Filename",
+          "description": "The path to the {{ component.name }}.",
+          "uihints": {
+            "ui:widget": "file",
+            "extensions": {{ component.extensions|tojson }}
+          }
+        },
+        "runtime_image": {
+          "type": "string",
+          "title": "Runtime Image",
+          "required": true,
+          "description": "Container image used as execution environment.",
+          "uihints": {
+            "items": []
+          }
+        },
+        "cpu": {
+          "type": "integer",
+          "title": "CPU request",
+          "description": "For CPU-intensive workloads, you can request more than 1 CPU (e.g. 1.5, this is optional).",
+          "minimum": 0
+        },
+        "cpu_limit": {
+          "type": "integer",
+          "title": "CPU limit",
+          "description": "The maximum CPU that can be allocated to this node. This should be equal or higher than the request",
+          "minimum": 0
+        },
+        "memory": {
+          "type": "integer",
+          "title": "RAM request (GB)",
+          "description": "The total amount of RAM requested (optional).",
+          "minimum": 0
+        },
+        "memory_limit": {
+          "type": "integer",
+          "title": "RAM limit (GB)",
+          "description": "The maximum amount of RAM allowed. This should be equal or higher than the request",
+          "minimum": 0
+        },
+        "gpu": {
+          "type": "integer",
+          "title": "GPU",
+          "description": "For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer.",
+          "minimum": 0
+        },
+        "gpu_vendor": {
+          "type": "string",
+          "title": "GPU Vendor",
+          "description": "GPU Vendor, or K8s GPU resource type, default 'nvidia.com/gpu'.",
+          "uihints": {
+            "ui:placeholder": "nvidia.com/gpu"
+          }
+        },
+        "pipeline_parameters": {
+          "type": "array",
+          "title": "Pipeline Parameters",
+          "description": "Pipeline parameters that should be passed to this file.",
+          "items": {
+            "type": "string",
+            "enum": []
+          },
+          "uniqueItems": true
+        },
+        "dependencies": {
+          "title": "File Dependencies",
+          "description": "Local file dependencies that need to be copied to remote execution environment.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": ""
+          },
+          "default": [],
+          "uihints": {
+            "files": true,
+            "items": {
+              "ui:placeholder": "*.py"
+            }
+          }
+        },
+        "include_subdirectories": {
+          "type": "boolean",
+          "title": "Include Subdirectories",
+          "description": "Recursively include subdirectories when submitting a pipeline (This may increase submission time).",
+          "default": false
+        },
+        "outputs_header": {
+          "type": "null",
+          "title": "Outputs",
+          "description": "Outputs produced by this component.",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        "outputs": {
+          "title": "Output Files",
+          "description": "Files generated during execution that will become available to all subsequent pipeline steps.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": ""
+          },
+          "default": [],
+          "uihints": {
+            "items": {
+              "ui:placeholder": "*.csv"
+            }
+          }
+        }
+        {% if elyra_owned_properties %}
+        ,
+        "additional_properties_header": {
+          "type": "null",
+          "title": "Additional Properties",
+          "description": "Additional properties used by Elyra that are not given in the component definition.",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        {% for property in elyra_owned_properties|sort(attribute="property_id") %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }}{% if loop.index != loop|length %},{% endif %}
+        {% endfor %}
+        {% endif %}
+      },
+      "required": ["filename", "runtime_image"]
+    }
+ },
+  "required": ["component_parameters"]
+}

@@ -1,0 +1,164 @@
+{
+  "version": "3.0",
+  "categories": [
+    {
+      "label": "Elyra",
+      "id": "Elyra",
+      "node_types": [
+        {
+          "op": "execute-notebook-node",
+          "description": "Run notebook file",
+          "id": "notebook",
+          "image": "",
+          "label": "Notebook",
+          "type": "execution_node",
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ],
+          "parameters": {},
+          "app_data": {
+            "extensions": [".ipynb"],
+            "parameter_refs": {
+              "filehandler": "filename"
+            },
+            "image": "",
+            "ui_data": {
+              "label": "Notebook",
+              "description": "Run notebook file",
+              "image": "",
+              "x_pos": 0,
+              "y_pos": 0
+            }
+          }
+        },
+        {
+          "op": "execute-python-node",
+          "description": "Run Python script",
+          "id": "python-script",
+          "image": "",
+          "label": "Python Script",
+          "type": "execution_node",
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ],
+          "parameters": {},
+          "app_data": {
+            "extensions": [".py"],
+            "parameter_refs": {
+              "filehandler": "filename"
+            },
+            "image": "",
+            "ui_data": {
+              "label": "Python Script",
+              "description": "Run Python script",
+              "image": "",
+              "x_pos": 0,
+              "y_pos": 0
+            }
+          }
+        },
+        {
+          "op": "execute-r-node",
+          "description": "Run R script",
+          "id": "r-script",
+          "image": "",
+          "label": "R Script",
+          "type": "execution_node",
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ],
+          "parameters": {},
+          "app_data": {
+            "extensions": [".r"],
+            "parameter_refs": {
+              "filehandler": "filename"
+            },
+            "image": "",
+            "ui_data": {
+              "label": "R Script",
+              "description": "Run R script",
+              "image": "",
+              "x_pos": 0,
+              "y_pos": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

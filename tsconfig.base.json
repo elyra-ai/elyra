@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "es2015",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "Node16",
+    "jsx": "react",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "downlevelIteration": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+
+    /* Strict Type-Checking Options */
+    "strict": true,
+
+    /* Additional Checks */
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": false,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+
+    /* Module Resolution Options */
+    "moduleResolution": "Node16",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+
+    /* Uncomment to use local jupyterlab instance */
+    // "paths": { "@jupyterlab/*": ["../jupyterlab/packages/*"] },
+
+    /* Logging */
+    "preserveWatchOutput": true
+  }
+}

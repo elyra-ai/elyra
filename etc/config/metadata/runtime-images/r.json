@@ -1,0 +1,9 @@
+{
+  "display_name": "R Script 4.3.1",
+  "metadata": {
+    "description": "R Script 4.3.1 with Python 3.11",
+    "image_name": "quay.io/jupyter/r-notebook:python-3.11",
+    "tags": ["R"]
+  },
+  "schema_name": "runtime-image"
+}

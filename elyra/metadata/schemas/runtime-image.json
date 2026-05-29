@@ -1,0 +1,83 @@
+{
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/runtime-image.json",
+  "title": "Runtime Image",
+  "name": "runtime-image",
+  "schemaspace": "runtime-images",
+  "schemaspace_id": "119c9740-d73f-48c6-a97a-599d3acaf41d",
+  "uihints": {
+    "icon": "elyra:container",
+    "title": "Runtime Images",
+    "reference_url": "https://elyra.readthedocs.io/en/latest/user_guide/runtime-image-conf.html"
+  },
+  "properties": {
+    "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
+      "type": "string",
+      "const": "runtime-image"
+    },
+    "display_name": {
+      "title": "Display Name",
+      "description": "The display name of the Runtime Image",
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "description": "Additional data specific to this Runtime Image",
+      "type": "object",
+      "properties": {
+        "description": {
+          "title": "Description",
+          "description": "The description of this Runtime Image instance",
+          "type": "string"
+        },
+        "tags": {
+          "title": "Tags",
+          "description": "Tags for categorizing runtime images",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "minLength": 1,
+            "pattern": "^[^ \t]+([ \t]+[^ \t]+)*$"
+          },
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.tags"
+          }
+        },
+        "image_name": {
+          "title": "Image Name",
+          "description": "The image name (including optional tag)",
+          "type": "string",
+          "minLength": 1,
+          "uihints": {
+            "ui:placeholder": "registry/owner/image:tag",
+            "category": "Source"
+          }
+        },
+        "pull_policy": {
+          "title": "Image Pull Policy",
+          "description": "The pull policy to use when selecting this image",
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "uihints": {
+            "category": "Source"
+          }
+        },
+        "pull_secret": {
+          "title": "Image Pull Secret",
+          "description": "Kubernetes secret name containing the container registry credentials, if anonymous pull access is forbidden.",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-.]*[a-z0-9]$",
+          "maxLength": 253,
+          "uihints": {
+            "category": "Source",
+            "ui:field": "@elyra/metadata-extension:plugin.password"
+          }
+        }
+      },
+      "required": ["image_name"]
+    }
+  },
+  "required": ["schema_name", "display_name", "metadata"]
+}

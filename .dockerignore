@@ -1,0 +1,15 @@
+.git
+.gitignore
+node_modules
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.vscode
+*.pyc
+__pycache__
+.venv
+dist
+build
+.env
+rebuild.ps1
+build.ps1

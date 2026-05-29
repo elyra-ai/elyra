@@ -1,0 +1,261 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "elyra-auto-generated-pipeline",
+  "primary_pipeline": "primary",
+  "pipelines": [
+    {
+      "id": "primary",
+      "nodes": [
+        {
+          "id": "668c94fe-5a0e-43a8-b084-7fcd4b4b252e",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "label": "notebookA.ipynb",
+            "component_parameters": {
+              "label": "",
+              "filename": "notebookA.ipynb",
+              "runtime_image": "continuumio/anaconda3:2020.07",
+              "outputs": [],
+              "env_vars": [],
+              "dependencies": [],
+              "include_subdirectories": false
+            },
+            "ui_data": {
+              "label": "notebookA.ipynb",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 182,
+              "y_pos": 141,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "df3ba2de-e710-40da-beb6-282da269751c",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "label": "notebookB.ipynb",
+            "component_parameters": {
+              "label": "",
+              "filename": "notebookB.ipynb",
+              "runtime_image": "amancevice/pandas:1.1.1",
+              "outputs": [],
+              "env_vars": [],
+              "dependencies": [],
+              "include_subdirectories": false
+            },
+            "ui_data": {
+              "label": "notebookB.ipynb",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 436,
+              "y_pos": 63,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "714ed661-4134-4434-a48c-7fde255ef677",
+                  "node_id_ref": "668c94fe-5a0e-43a8-b084-7fcd4b4b252e",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "dbba5938-36e4-464f-9feb-2db7fb725fa1",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "label": "notebookC.ipynb",
+            "component_parameters": {
+              "label": "",
+              "filename": "notebookC.ipynb",
+              "runtime_image": "pytorch/pytorch:1.4-cuda10.1-cudnn7-runtime",
+              "outputs": [],
+              "env_vars": [],
+              "dependencies": [],
+              "include_subdirectories": false
+            },
+            "ui_data": {
+              "label": "notebookC.ipynb",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 427,
+              "y_pos": 237.99998474121094,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "8872ed8f-271f-4308-9a37-d9e72e23c7ed",
+                  "node_id_ref": "668c94fe-5a0e-43a8-b084-7fcd4b4b252e",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "ec625ddb-88ea-4ec1-8cae-8c69600e98ac",
+          "type": "execution_node",
+          "op": "execute-r-node",
+          "app_data": {
+            "label": "untitled1.r",
+            "component_parameters": {
+              "label": "",
+              "filename": "untitled1.r",
+              "runtime_image": "jupyter/r-notebook",
+              "outputs": [],
+              "env_vars": [],
+              "dependencies": [],
+              "include_subdirectories": false
+            },
+            "ui_data": {
+              "label": "untitled1.r",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20preserveAspectRatio%3D%22xMidYMid%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%20724%20561%22%3E%0A%20%20%3Cpath%20class%3D%22jp-icon-selectable%22%20d%3D%22M361.453%2C485.937%20C162.329%2C485.937%200.906%2C377.828%200.906%2C244.469%20C0.906%2C111.109%20162.329%2C3.000%20361.453%2C3.000%20C560.578%2C3.000%20722.000%2C111.109%20722.000%2C244.469%20C722.000%2C377.828%20560.578%2C485.937%20361.453%2C485.937%20ZM416.641%2C97.406%20C265.289%2C97.406%20142.594%2C171.314%20142.594%2C262.484%20C142.594%2C353.654%20265.289%2C427.562%20416.641%2C427.562%20C567.992%2C427.562%20679.687%2C377.033%20679.687%2C262.484%20C679.687%2C147.971%20567.992%2C97.406%20416.641%2C97.406%20Z%22%20fill%3D%22rgb(179%2C179%2C179)%22%20fill-rule%3D%22evenodd%22%2F%3E%0A%20%20%3Cpath%20class%3D%22jp-icon-selectable%22%20d%3D%22M550.000%2C377.000%20C550.000%2C377.000%20571.822%2C383.585%20584.500%2C390.000%20C588.899%2C392.226%20596.510%2C396.668%20602.000%2C402.500%20C607.378%2C408.212%20610.000%2C414.000%20610.000%2C414.000%20L696.000%2C559.000%20L557.000%2C559.062%20L492.000%2C437.000%20C492.000%2C437.000%20478.690%2C414.131%20470.500%2C407.500%20C463.668%2C401.969%20460.755%2C400.000%20454.000%2C400.000%20C449.298%2C400.000%20420.974%2C400.000%20420.974%2C400.000%20L421.000%2C558.974%20L298.000%2C559.026%20L298.000%2C152.938%20L545.000%2C152.938%20C545.000%2C152.938%20657.500%2C154.967%20657.500%2C262.000%20C657.500%2C369.033%20550.000%2C377.000%20550.000%2C377.000%20ZM496.500%2C241.024%20L422.037%2C240.976%20L422.000%2C310.026%20L496.500%2C310.002%20C496.500%2C310.002%20531.000%2C309.895%20531.000%2C274.877%20C531.000%2C239.155%20496.500%2C241.024%20496.500%2C241.024%20Z%22%20fill%3D%22rgb(52%2C101%2C176)%22%20fill-rule%3D%22evenodd%22%2F%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 680,
+              "y_pos": 149.99998474121094,
+              "description": "Run R script"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "0e1b8654-9771-4e06-8751-8f18dbe615fa",
+                  "node_id_ref": "df3ba2de-e710-40da-beb6-282da269751c",
+                  "port_id_ref": "outPort"
+                },
+                {
+                  "id": "225c2677-54ac-4f25-b14d-5ec629caecd9",
+                  "node_id_ref": "dbba5938-36e4-464f-9feb-2db7fb725fa1",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "runtime": null,
+          "comments": []
+        },
+        "version": 8,
+        "properties": {
+          "name": "generic_basic_pipeline_with_scripts",
+          "runtime": "Generic"
+        }
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

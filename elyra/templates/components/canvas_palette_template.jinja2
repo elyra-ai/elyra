@@ -1,0 +1,69 @@
+{
+  "version": "3.0",
+  "categories": [
+{% for category_label, components in category_dict.items() %}
+    {
+      "id": "{{ category_label }}",
+      "label": "{{ category_label }}",
+      "node_types": [
+{% set ns = namespace(first_match=true) %}
+{% for component in components %}
+  {% if not ns.first_match %},{% endif %}{% set ns.first_match = False %}
+        {
+          "op": "{{ component.op }}",
+          "description": {{ component.description|tojson|safe }},
+          "id": "{{ component.id }}",
+          "image": "",
+          "label": "{{ component.name }}",
+          {% if component.runtime_type_name %}
+          "runtime_type": "{{ component.runtime_type_name }}",
+          {% endif %}
+          "type": "execution_node",
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ],
+          "parameters": {},
+          "app_data": {
+          {% if component.extensions %}
+            "extensions": {{ component.extensions|tojson }},
+            "parameter_refs": {{ component.parameter_refs|tojson }},
+          {% endif %}
+            "image": "",
+            "ui_data": {
+              "description": {{ component.description|tojson|safe }},
+              "label": "{{ component.name }}",
+              "image": "",
+              "x_pos": 0,
+              "y_pos": 0
+            }
+          }
+        }{% endfor %}
+      ]
+    }{% if loop.index != category_dict|length %},{% endif %}{% endfor %}
+  ]
+}

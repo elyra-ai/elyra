@@ -1,0 +1,40 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+name: Download data
+inputs:
+- {name: Url, type: String}
+- {name: curl options, type: String, default: '--location', description: 'Additional options given to the curl program. See https://curl.haxx.se/docs/manpage.html'}
+outputs:
+- {name: Data}
+metadata:
+  annotations:
+    author: Alexey Volkov <alexey.volkov@ark-kun.com>
+implementation:
+  container:
+    # image: curlimages/curl  # Sets a non-root user which cannot write to mounted volumes. See https://github.com/curl/curl-docker/issues/22
+    image: byrnedo/alpine-curl@sha256:548379d0a4a0c08b9e55d9d87a592b7d35d9ab3037f4936f5ccd09d0b625a342
+    command:
+    - sh
+    - -exc
+    - |
+      url="$0"
+      output_path="$1"
+      curl_options="$2"
+
+      mkdir -p "$(dirname "$output_path")"
+      curl --get "$url" --output "$output_path" $curl_options
+    - inputValue: Url
+    - outputPath: Data
+    - inputValue: curl options

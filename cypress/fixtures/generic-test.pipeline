@@ -1,0 +1,141 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "4f1735a1-3fa9-4103-9532-b165f9f7d6f0",
+  "primary_pipeline": "8aefd326-f2de-4357-be8c-eedc916e8643",
+  "pipelines": [
+    {
+      "id": "8aefd326-f2de-4357-be8c-eedc916e8643",
+      "nodes": [
+        {
+          "id": "66b715e0-f898-425d-8a41-52f39390570c",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "label": "helloworld.ipynb",
+            "component_parameters": {
+              "filename": "helloworld.ipynb",
+              "runtime_image": "continuumio/anaconda3:2020.07",
+              "env_vars": [
+                {
+                  "env_var": "TEST_ENV_1",
+                  "value": "1"
+                },
+                {
+                  "env_var": "TEST_ENV_2",
+                  "value": "2"
+                }
+              ],
+              "include_subdirectories": false,
+              "outputs": [],
+              "dependencies": []
+            },
+            "ui_data": {
+              "label": "helloworld.ipynb",
+              "image": "/static/elyra/notebook.svg",
+              "x_pos": 85,
+              "y_pos": 95,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "812e153b-d128-4979-bacb-c5919780a538",
+          "type": "execution_node",
+          "op": "execute-python-node",
+          "app_data": {
+            "label": "helloworld.py",
+            "component_parameters": {
+              "filename": "helloworld.py",
+              "runtime_image": "continuumio/anaconda3:2020.07",
+              "include_subdirectories": false
+            },
+            "ui_data": {
+              "label": "helloworld.py",
+              "image": "/static/elyra/py-logo.svg",
+              "x_pos": 369,
+              "y_pos": 261,
+              "description": "Run Python script"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "c545eb38-5299-4869-a5ba-dacfc763befc",
+                  "node_id_ref": "66b715e0-f898-425d-8a41-52f39390570c",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "version": 8,
+        "properties": {
+          "name": "generic-test",
+          "runtime": "Generic"
+        }
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

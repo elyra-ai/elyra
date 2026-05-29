@@ -1,0 +1,204 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "elyra-auto-generated-pipeline",
+  "primary_pipeline": "primary",
+  "pipelines": [
+    {
+      "id": "primary",
+      "nodes": [
+        {
+          "id": "65ef3a01-569a-4ea4-bd3d-842ca6ce47ac",
+          "type": "execution_node",
+          "op": "elyra-kfp-examples-catalog:737915b826e9",
+          "app_data": {
+            "component_parameters": {
+              "component_description": "Filter input text according to the given regex pattern using shell and grep.",
+              "pattern": {
+                "widget": "string",
+                "value": ".*"
+              },
+              "output_filtered_text": "",
+              "text": {
+                "widget": "inputpath",
+                "value": {
+                  "value": "4ca98ef2-2e1a-4266-a6e7-6a1a42ec471a",
+                  "option": "elyra_output_data"
+                }
+              }
+            },
+            "label": "",
+            "component_source": "/Users/akchin/opt/anaconda3/envs/test-package/share/jupyter/components/kfp/filter_text_using_shell_and_grep.yaml",
+            "ui_data": {
+              "label": "Filter text",
+              "image": "/static/elyra/kubeflow.svg",
+              "x_pos": 475,
+              "y_pos": 150.5,
+              "description": "Filter input text according to the given regex pattern using shell and grep."
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "35fe4607-a8bc-4b31-a077-395af6680851",
+                  "node_id_ref": "4ca98ef2-2e1a-4266-a6e7-6a1a42ec471a",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "4ca98ef2-2e1a-4266-a6e7-6a1a42ec471a",
+          "type": "execution_node",
+          "op": "elyra-kfp-examples-catalog:a08014f9252f",
+          "app_data": {
+            "component_parameters": {
+              "curl_options": {
+                "widget": "string",
+                "value": "--location"
+              },
+              "output_data": "",
+              "url": {
+                "widget": "string",
+                "value": "https://raw.githubusercontent.com/elyra-ai/examples/main/pipelines/kubeflow_pipelines_component_examples/filter_file_component/data.csv"
+              }
+            },
+            "label": "",
+            "component_source": "https://raw.githubusercontent.com/kubeflow/pipelines/sdk-2.9.0/components/contrib/web/Download/component-sdk-v2.yaml",
+            "ui_data": {
+              "label": "Download data",
+              "image": "/static/elyra/kubeflow.svg",
+              "x_pos": 213.9999771118164,
+              "y_pos": 146.5
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "5b78ea0a-e5fc-4022-94d4-7b9dc170d794",
+          "type": "execution_node",
+          "op": "elyra-kfp-examples-catalog:d68ec7fcdf46",
+          "app_data": {
+            "component_parameters": {
+              "hash_algorithm": {
+                "widget": "string",
+                "value": "SHA256"
+              },
+              "output_hash": "",
+              "data": {
+                "widget": "inputpath",
+                "value": {
+                  "value": "4ca98ef2-2e1a-4266-a6e7-6a1a42ec471a",
+                  "option": "elyra_output_data"
+                }
+              }
+            },
+            "label": "",
+            "component_source": "https://raw.githubusercontent.com/kubeflow/pipelines/sdk-2.9.0/components/contrib/basics/Calculate_hash/component.yaml",
+            "ui_data": {
+              "label": "Calculate data hash",
+              "image": "/static/elyra/kubeflow.svg",
+              "x_pos": 733,
+              "y_pos": 150.5
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "version": 8,
+        "runtime_type": "KUBEFLOW_PIPELINES",
+        "properties": {
+          "name": "kf_invalid_inputpath_missing_connection",
+          "runtime": "Kubeflow Pipelines"
+        }
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

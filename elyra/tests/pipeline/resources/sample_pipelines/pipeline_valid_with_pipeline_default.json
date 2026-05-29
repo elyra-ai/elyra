@@ -1,0 +1,114 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "c06ad0e7-8c86-462b-b3fc-a7d771f75707",
+  "primary_pipeline": "primary",
+  "pipelines": [
+    {
+      "id": "primary",
+      "nodes": [
+        {
+          "id": "{{uuid-Notebook}}",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "label": "{{label}}",
+            "component_parameters": {
+              "filename": "{{filename}}",
+              "env_vars": [
+                { "env_var": "var1", "value": "var1" },
+                { "env_var": "var2", "value": "var2" }
+              ],
+              "include_subdirectories": false,
+              "dependencies": ["a.txt", "b.txt", "c.txt"],
+              "outputs": ["d.txt", "e.txt", "f.txt"]
+            },
+            "ui_data": {
+              "label": "{{label}}",
+              "description": "Notebook file"
+            }
+          }
+        },
+        {
+          "id": "{{uuid-TestOperator1}}",
+          "type": "execution_node",
+          "op": "local-file-catalog:8371f5970c7b:TestOperator",
+          "app_data": {
+            "label": "{{label}}",
+            "component_parameters": {
+              "mounted_volumes": "a component-parsed property"
+            },
+            "component_source": "{{component_source}}",
+            "ui_data": {
+              "label": "{{label}}",
+              "description": "A test operator"
+            }
+          }
+        },
+        {
+          "id": "{{uuid-DeriveFromTestOperator1}}",
+          "type": "execution_node",
+          "op": "local-file-catalog:8371f5970c7b:DeriveFromTestOperator",
+          "app_data": {
+            "label": "{{label}}",
+            "component_parameters": {
+              "mounted_volumes": [
+                { "path": "/mnt/vol1", "pvc_name": "pvc-claim-1" }
+              ],
+              "disable_node_caching": false
+            },
+            "component_source": "{{component_source}}",
+            "ui_data": {
+              "label": "{{label}}",
+              "description": "An operator that derives from TestOperator"
+            }
+          }
+        },
+        {
+          "id": "{{uuid-DeriveFromTestOperator2}}",
+          "type": "execution_node",
+          "op": "local-file-catalog:8371f5970c7b:DeriveFromTestOperator",
+          "app_data": {
+            "label": "{{label}}",
+            "component_parameters": {
+              "mounted_volumes": [],
+              "disable_node_caching": "False"
+            },
+            "component_source": "{{component_source}}",
+            "ui_data": {
+              "label": "{{label}}",
+              "description": "An operator that derives from TestOperator"
+            }
+          }
+        }
+      ],
+      "app_data": {
+        "runtime": "{{runtime}}",
+        "runtime_config": "{{runtime-config}}",
+        "runtime_type": "APACHE_AIRFLOW",
+        "ui_data": {
+          "comments": []
+        },
+        "properties": {
+          "name": "{{name}}",
+          "pipeline_defaults": {
+            "runtime_image": "{{ default_image }}",
+            "env_vars": [
+              { "env_var": "var1", "value": "var_one" },
+              { "env_var": "var2", "value": "var_two" },
+              { "env_var": "var3", "value": "var_three" }
+            ],
+            "mounted_volumes": [
+              { "path": "/mnt/vol2", "pvc_name": "pvc-claim-2" }
+            ],
+            "disable_node_caching": "True"
+          },
+          "runtime": "{{runtime description}}"
+        },
+        "version": 5
+      }
+    }
+  ],
+  "schemas": []
+}

@@ -1,0 +1,8 @@
+{
+    "doc_type": "pipeline",
+    "version": "3.0",
+    "id": "0",
+    "primary_pipeline": "1",
+    "pipelines": [],
+    "schemas": []
+}

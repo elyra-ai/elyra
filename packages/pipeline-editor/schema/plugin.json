@@ -1,0 +1,16 @@
+{
+  "jupyter.lab.setting-icon": "elyra:pipeline",
+  "jupyter.lab.setting-icon-label": "Elyra Pipeline Editor",
+  "title": "Elyra Pipeline Editor",
+  "description": "Elyra Pipeline Editor Configuration.",
+  "properties": {
+    "doubleClickToOpenProperties": {
+      "title": "Double-click on pipeline node opens properties.",
+      "description": "If enabled, double-clicking a node opens the node's properties. If disabled (the default), the node's source file is opened.",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "additionalProperties": false,
+  "type": "object"
+}

@@ -1,0 +1,8 @@
+ipykernel==6.9.1
+ipython==7.15.0
+ipython-genutils==0.2.0
+papermill==1.2.2
+jupyter-client=4.0.1
+#jedi==0.17.0
+#Jinja2==2.11.2
+#jsonschema==3.2.0

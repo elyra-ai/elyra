@@ -1,0 +1,370 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "66338755-bce9-4541-b595-b0210c943b38",
+  "primary_pipeline": "27fd7b90-42de-469a-9bcc-08ba82f48d48",
+  "pipelines": [
+    {
+      "id": "27fd7b90-42de-469a-9bcc-08ba82f48d48",
+      "nodes": [
+        {
+          "id": "6214dcbc-3617-4c37-9c8e-cefeeeab05d5",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "component_parameters": {
+              "filename": "notebooks/notebook_1.ipynb",
+              "outputs": [],
+              "env_vars": [],
+              "kubernetes_secrets": [
+                {
+                  "env_var": "USER_NAME",
+                  "name": "secret-1",
+                  "key": "myuserid"
+                },
+                {
+                  "env_var": "USER_PASSWORD",
+                  "name": "secret-1",
+                  "key": "mypassword"
+                }
+              ],
+              "dependencies": [],
+              "include_subdirectories": false,
+              "mounted_volumes": [
+                {
+                  "path": "/mnt/vol2",
+                  "pvc_name": "pvc-claim-2"
+                }
+              ]
+            },
+            "label": "",
+            "ui_data": {
+              "label": "notebook_1.ipynb",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 195,
+              "y_pos": 67,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "ab0417ac-5d2d-4835-a474-189328c6c95d",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "component_parameters": {
+              "filename": "notebooks/notebook_2.ipynb",
+              "outputs": [],
+              "env_vars": [],
+              "kubernetes_secrets": [],
+              "dependencies": [],
+              "include_subdirectories": false,
+              "mounted_volumes": [
+                {
+                  "path": "/mnt/vol2",
+                  "pvc_name": "pvc-claim-2"
+                }
+              ]
+            },
+            "label": "",
+            "ui_data": {
+              "label": "notebook_2.ipynb",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 517.0000305175781,
+              "y_pos": 214,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "2c1b4c8d-fa2a-496b-b825-26915dc54040",
+                  "node_id_ref": "3858d57c-3235-4c9b-839c-100ede4d54c3",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "69ddd986-43b4-46b3-9223-ccbf70aba01e",
+          "type": "execution_node",
+          "op": "execute-python-node",
+          "app_data": {
+            "component_parameters": {
+              "filename": "scripts/script_1.py",
+              "outputs": [],
+              "env_vars": [],
+              "kubernetes_secrets": [
+                {
+                  "env_var": "API_KEY",
+                  "name": "secret-2",
+                  "key": "myapikey"
+                }
+              ],
+              "dependencies": [],
+              "include_subdirectories": false,
+              "mounted_volumes": [],
+              "runtime_image": "tensorflow/tensorflow:2.8.0-gpu"
+            },
+            "label": "",
+            "ui_data": {
+              "label": "script_1.py",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%20238%20237%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20overflow%3D%22hidden%22%3E%0A%20%20%20%20%3Cg%20transform%3D%22translate(-706%20314)%22%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20class%3D%22jp-icon-selectable%22%20d%3D%22M792.441-295.763C786.496-295.763%20781.697-290.979%20781.697-285.062%20781.697-279.166%20786.496-274.382%20792.441-274.382%20798.365-274.382%20803.184-279.166%20803.184-285.062%20803.184-290.979%20798.365-295.763%20792.441-295.763ZM823.472-312.998C833.277-313.043%20843.484-312.329%20853.336-310.724%20868.899-308.185%20882-296.728%20882-281.516L882-228.072C882-212.398%20869.282-199.557%20853.336-199.557L796.03-199.557C776.58-199.557%20760.189-183.169%20760.189-164.641L760.189-139%20740.485-139C723.817-139%20714.114-150.877%20710.037-167.494%20704.538-189.82%20704.772-203.124%20710.037-224.505%20714.602-243.159%20729.189-253%20745.857-253L767.365-253%20824.693-253%20824.693-260.134%20767.365-260.134%20767.365-281.516C767.365-297.715%20771.76-306.527%20796.03-310.724%20804.268-312.151%20813.668-312.953%20823.472-312.998Z%22%20fill%3D%22%23366A96%22%20fill-rule%3D%22evenodd%22%2F%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20class%3D%22jp-icon-selectable%22%20d%3D%22M857.377-117.071C851.466-117.071%20846.655-112.267%20846.655-106.348%20846.655-100.406%20851.466-95.6026%20857.377-95.6026%20863.31-95.6026%20868.099-100.406%20868.099-106.348%20868.099-112.267%20863.31-117.071%20857.377-117.071ZM889.563-253%20911.007-253C927.662-253%20935.502-240.696%20939.614-224.39%20945.334-201.743%20945.589-184.804%20939.614-167.148%20933.828-150%20927.642-138.539%20911.007-138.539L882.402-138.539%20825.211-138.539%20825.211-131.375%20882.402-131.375%20882.402-109.908C882.402-93.6435%20868.205-85.4055%20853.796-81.2973%20832.12-75.1034%20814.722-76.0513%20796.606-81.2973%20781.476-85.6801%20768-94.6332%20768-109.908L768-163.568C768-179.01%20780.947-192.199%20796.606-192.199L853.796-192.199C872.846-192.199%20889.563-208.568%20889.563-227.971Z%22%20fill%3D%22%23FFC836%22%20fill-rule%3D%22evenodd%22%2F%3E%0A%20%20%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 519,
+              "y_pos": 70,
+              "description": "Run Python script"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "47930592-4222-4274-9349-85914750cb50",
+                  "node_id_ref": "6214dcbc-3617-4c37-9c8e-cefeeeab05d5",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "3858d57c-3235-4c9b-839c-100ede4d54c3",
+          "type": "execution_node",
+          "op": "execute-python-node",
+          "app_data": {
+            "component_parameters": {
+              "filename": "scripts/script_2.py",
+              "outputs": [],
+              "env_vars": [],
+              "kubernetes_secrets": [
+                {
+                  "env_var": "API_KEY",
+                  "name": "secret-2",
+                  "key": "myapikey"
+                }
+              ],
+              "dependencies": [],
+              "include_subdirectories": false,
+              "mounted_volumes": [],
+              "runtime_image": "tensorflow/tensorflow:2.8.0"
+            },
+            "label": "",
+            "ui_data": {
+              "label": "script_2.py",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%20238%20237%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20overflow%3D%22hidden%22%3E%0A%20%20%20%20%3Cg%20transform%3D%22translate(-706%20314)%22%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20class%3D%22jp-icon-selectable%22%20d%3D%22M792.441-295.763C786.496-295.763%20781.697-290.979%20781.697-285.062%20781.697-279.166%20786.496-274.382%20792.441-274.382%20798.365-274.382%20803.184-279.166%20803.184-285.062%20803.184-290.979%20798.365-295.763%20792.441-295.763ZM823.472-312.998C833.277-313.043%20843.484-312.329%20853.336-310.724%20868.899-308.185%20882-296.728%20882-281.516L882-228.072C882-212.398%20869.282-199.557%20853.336-199.557L796.03-199.557C776.58-199.557%20760.189-183.169%20760.189-164.641L760.189-139%20740.485-139C723.817-139%20714.114-150.877%20710.037-167.494%20704.538-189.82%20704.772-203.124%20710.037-224.505%20714.602-243.159%20729.189-253%20745.857-253L767.365-253%20824.693-253%20824.693-260.134%20767.365-260.134%20767.365-281.516C767.365-297.715%20771.76-306.527%20796.03-310.724%20804.268-312.151%20813.668-312.953%20823.472-312.998Z%22%20fill%3D%22%23366A96%22%20fill-rule%3D%22evenodd%22%2F%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20class%3D%22jp-icon-selectable%22%20d%3D%22M857.377-117.071C851.466-117.071%20846.655-112.267%20846.655-106.348%20846.655-100.406%20851.466-95.6026%20857.377-95.6026%20863.31-95.6026%20868.099-100.406%20868.099-106.348%20868.099-112.267%20863.31-117.071%20857.377-117.071ZM889.563-253%20911.007-253C927.662-253%20935.502-240.696%20939.614-224.39%20945.334-201.743%20945.589-184.804%20939.614-167.148%20933.828-150%20927.642-138.539%20911.007-138.539L882.402-138.539%20825.211-138.539%20825.211-131.375%20882.402-131.375%20882.402-109.908C882.402-93.6435%20868.205-85.4055%20853.796-81.2973%20832.12-75.1034%20814.722-76.0513%20796.606-81.2973%20781.476-85.6801%20768-94.6332%20768-109.908L768-163.568C768-179.01%20780.947-192.199%20796.606-192.199L853.796-192.199C872.846-192.199%20889.563-208.568%20889.563-227.971Z%22%20fill%3D%22%23FFC836%22%20fill-rule%3D%22evenodd%22%2F%3E%0A%20%20%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 201,
+              "y_pos": 214,
+              "description": "Run Python script"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "648cc074-65f7-4702-ba99-3ac282cada9d",
+          "type": "execution_node",
+          "op": "execute-python-node",
+          "app_data": {
+            "component_parameters": {
+              "filename": "scripts/script_3.py",
+              "outputs": [],
+              "env_vars": [],
+              "kubernetes_secrets": [
+                {
+                  "env_var": "TOKEN",
+                  "name": "secret-3",
+                  "key": "mytoken"
+                }
+              ],
+              "dependencies": [],
+              "include_subdirectories": false,
+              "mounted_volumes": [
+                {
+                  "path": "/mnt/vol3",
+                  "pvc_name": "pvc-claim-3"
+                }
+              ],
+              "runtime_image": "amancevice/pandas:1.4.1"
+            },
+            "label": "",
+            "ui_data": {
+              "label": "script_3.py",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%20238%20237%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20overflow%3D%22hidden%22%3E%0A%20%20%20%20%3Cg%20transform%3D%22translate(-706%20314)%22%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20class%3D%22jp-icon-selectable%22%20d%3D%22M792.441-295.763C786.496-295.763%20781.697-290.979%20781.697-285.062%20781.697-279.166%20786.496-274.382%20792.441-274.382%20798.365-274.382%20803.184-279.166%20803.184-285.062%20803.184-290.979%20798.365-295.763%20792.441-295.763ZM823.472-312.998C833.277-313.043%20843.484-312.329%20853.336-310.724%20868.899-308.185%20882-296.728%20882-281.516L882-228.072C882-212.398%20869.282-199.557%20853.336-199.557L796.03-199.557C776.58-199.557%20760.189-183.169%20760.189-164.641L760.189-139%20740.485-139C723.817-139%20714.114-150.877%20710.037-167.494%20704.538-189.82%20704.772-203.124%20710.037-224.505%20714.602-243.159%20729.189-253%20745.857-253L767.365-253%20824.693-253%20824.693-260.134%20767.365-260.134%20767.365-281.516C767.365-297.715%20771.76-306.527%20796.03-310.724%20804.268-312.151%20813.668-312.953%20823.472-312.998Z%22%20fill%3D%22%23366A96%22%20fill-rule%3D%22evenodd%22%2F%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20class%3D%22jp-icon-selectable%22%20d%3D%22M857.377-117.071C851.466-117.071%20846.655-112.267%20846.655-106.348%20846.655-100.406%20851.466-95.6026%20857.377-95.6026%20863.31-95.6026%20868.099-100.406%20868.099-106.348%20868.099-112.267%20863.31-117.071%20857.377-117.071ZM889.563-253%20911.007-253C927.662-253%20935.502-240.696%20939.614-224.39%20945.334-201.743%20945.589-184.804%20939.614-167.148%20933.828-150%20927.642-138.539%20911.007-138.539L882.402-138.539%20825.211-138.539%20825.211-131.375%20882.402-131.375%20882.402-109.908C882.402-93.6435%20868.205-85.4055%20853.796-81.2973%20832.12-75.1034%20814.722-76.0513%20796.606-81.2973%20781.476-85.6801%20768-94.6332%20768-109.908L768-163.568C768-179.01%20780.947-192.199%20796.606-192.199L853.796-192.199C872.846-192.199%20889.563-208.568%20889.563-227.971Z%22%20fill%3D%22%23FFC836%22%20fill-rule%3D%22evenodd%22%2F%3E%0A%20%20%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 865,
+              "y_pos": 151,
+              "description": "Run Python script"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "aa4c6e6e-ee40-4f76-8235-d7001b1a4cf4",
+                  "node_id_ref": "69ddd986-43b4-46b3-9223-ccbf70aba01e",
+                  "port_id_ref": "outPort"
+                },
+                {
+                  "id": "204bba59-6b1a-4ae6-a709-18a0e543c095",
+                  "node_id_ref": "ab0417ac-5d2d-4835-a474-189328c6c95d",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "runtime": null,
+          "comments": []
+        },
+        "version": 7,
+        "properties": {
+          "pipeline_defaults": {
+            "runtime_image": "tensorflow/tensorflow:2.8.0-gpu",
+            "mounted_volumes": [
+              {
+                "path": "/mnt/vol1",
+                "pvc_name": "pvc-claim-1"
+              }
+            ]
+          },
+          "name": "pipeline_with_notebooks_and_scripts",
+          "runtime": "Generic",
+          "description": "Generic pipeline with scripts and notebooks"
+        }
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

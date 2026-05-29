@@ -1,0 +1,1042 @@
+/*
+ * Copyright 2018-2026 Elyra Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+body {
+  --elyra-border-radius: 0;
+  --elyra-color-icon: var(--jp-icon-contrast-color3);
+  --elyra-color-panel-bg: var(--jp-layout-color1);
+  --elyra-color-panel-border: var(--jp-border-color0);
+
+  --elyra-color-focus: var(--jp-border-color1);
+
+  --elyra-color-text-primary: var(--jp-ui-font-color0);
+
+  --elyra-color-button-text: var(--jp-ui-font-color0);
+  --elyra-color-button-bg: var(--jp-input-active-background);
+  --elyra-color-button-hover-bg: var(--jp-input-hover-background);
+
+  /* ======================================================================== */
+  /* PIPELINE */
+  /* ======================================================================== */
+
+  /* comment */
+  --elyra-color-comment-text: var(--jp-ui-font-color0);
+  --elyra-color-comment-link: var(--jp-border-color1);
+  --elyra-color-comment-bg: var(--jp-editor-selected-background);
+  --elyra-color-comment-border: var(--jp-border-color1);
+
+  /* node */
+  --elyra-color-node-text: var(--jp-ui-font-color0);
+  --elyra-color-node-link: var(--jp-content-link-color);
+  --elyra-color-node-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-node-border: transparent;
+  --elyra-color-node-hover-bg: var(--jp-input-hover-background);
+  --elyra-color-node-hover-border: transparent;
+
+  /* errors */
+  --elyra-color-text-error: var(--jp-rendermime-error-background);
+  --elyra-color-error-border: var(--jp-error-color0);
+
+  /* tooltip */
+  --elyra-color-tooltip-text: var(--jp-content-font-color0);
+  --elyra-color-tooltip-text-bold: var(--jp-editor-selected-background);
+  --elyra-color-tooltip-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-tooltip-border: var(--jp-border-color1);
+
+  /* ======================================================================== */
+  /* FORM */
+  /* ======================================================================== */
+
+  --elyra-color-formLabel-text: var(--jp-content-font-color0);
+  --elyra-color-formDescription-text: var(--jp-content-font-color0);
+
+  /* text input */
+  --elyra-color-textInput-text: var(--jp-content-font-color0);
+  --elyra-color-textInput-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-textInput-border: var(--jp-border-color1);
+  --elyra-color-textInput-disabled-text: var(--jp-inverse-layout-color4);
+
+  /* array input */
+  --elyra-color-arrayInput-text: var(--jp-content-font-color0);
+  --elyra-color-arrayInput-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-arrayInput-border: var(--jp-border-color1);
+
+  /* dropdown */
+  --elyra-color-dropdown-text: var(--jp-content-font-color0);
+  --elyra-color-dropdown-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-dropdown-border: var(--jp-border-color1);
+  --elyra-color-dropdownItem-hover-bg: var(--jp-input-hover-background);
+
+  /* checkbox */
+  --elyra-color-checkbox-text: var(--jp-content-font-color0);
+  --elyra-color-checkbox-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-checkbox-border: var(--jp-border-color1);
+
+  /* primary button */
+  --elyra-color-formButton-text: var(--jp-ui-font-color0);
+  --elyra-color-formButton-bg: var(--jp-layout-color3);
+  --elyra-color-formButton-border: transparent;
+  --elyra-color-formButton-hover-bg: var(--jp-content-font-color3);
+  --elyra-color-formButton-hover-border: transparent;
+
+  /* ======================================================================== */
+  /* PALETTE */
+  /* ======================================================================== */
+  --elyra-color-palette-text: var(--jp-ui-font-color0);
+  --elyra-color-palette-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-palette-border: transparent;
+
+  /* ======================================================================== */
+  /* FONTS */
+  /* ======================================================================== */
+
+  /* sans */
+  --elyra-font-family-sans: var(--jp-ui-font-family);
+  --elyra-font-weight-sans: normal;
+  --elyra-font-size-sans: var(--jp-code-font-size);
+
+  /* mono */
+  --elyra-font-family-mono: var(--jp-ui-font-family);
+  --elyra-font-weight-mono: normal;
+  --elyra-font-size-mono: var(--jp-code-font-size);
+}
+
+body {
+  background-color: var(--jp-editor-selected-background);
+}
+
+.elyra-empty-text {
+  color: rgba(0, 0, 0, 0.68);
+  cursor: default;
+  font-family: -apple-system, system-ui, sans-serif;
+  font-size: 13px;
+  height: 19px;
+  letter-spacing: 0.52px;
+  line-height: 18.2px;
+  user-select: none;
+}
+
+.elyra-empty-image {
+  opacity: 0.05;
+  margin-bottom: 50px;
+}
+
+.properties-control-panel[data-id='properties-nodeGroupInfo']
+  > .properties-control-panel
+  > .properties-control-item {
+  position: relative;
+}
+
+.properties-control-panel[data-id='properties-nodeGroupInfo']
+  > .properties-control-panel
+  > .properties-control-item
+  .error::before {
+  display: block;
+  content: ' ';
+  position: absolute;
+  width: 6px;
+  border-left-width: 2px;
+  border-left-style: solid;
+  left: 5px;
+  top: 15px;
+  bottom: 18px;
+  border-color: var(--elyra-color-error-border);
+}
+
+.elyra-stringArrayControl-inputWrapper {
+  height: 35px;
+}
+
+.elyra-PipelineEditor .elyra-stringArrayControl-input {
+  width: 100%;
+  height: 100%;
+  margin-bottom: 5px;
+}
+
+.properties-input-control.error input:not([disabled]) {
+  box-shadow: none;
+}
+
+span.bx--list-box__label {
+  color: var(--elyra-color-formLabel-text);
+}
+
+.properties-dropdown.error .bx--list-box__field:not([disabled]) {
+  box-shadow: none;
+}
+
+.elyra-PipelineEditor .properties-wrapper .bx--list-box__field {
+  height: 100%;
+}
+
+.elyra-PipelineEditor .properties-wrapper input[type='text']:disabled {
+  height: 39px;
+  padding-left: 8px;
+}
+
+.properties-dropdown .bx--list-box--expanded .bx--list-box__menu {
+  top: auto;
+}
+
+.properties-wrapper .bx--list-box__menu-item {
+  display: contents;
+}
+
+.properties-required-indicator {
+  display: none;
+}
+
+.properties-control-panel[data-id='properties-elyra_resources']
+  .properties-custom-ctrl {
+  position: absolute;
+  bottom: 18px;
+  padding-right: 14px;
+}
+
+.properties-control-panel[data-id='properties-elyra_resources']
+  .properties-control-description {
+  padding-bottom: 35px;
+}
+
+.elyra-stringArrayControl-listItem {
+  padding: 5px;
+}
+
+.elyra-stringArrayControl-listRow:hover {
+  position: relative;
+  background-color: var(--jp-border-color2);
+}
+
+/* ======================================================== */
+/* ======================================================== */
+/* ======================================================== */
+
+.properties-control-panel[data-id='properties-nodeGroupInfo']
+  > .properties-control-panel
+  > .properties-control-item {
+  position: relative;
+}
+
+.properties-control-panel[data-id='properties-nodeGroupInfo']
+  > .properties-control-panel
+  > .properties-control-item:hover {
+  background-color: var(--jp-cell-editor-background);
+}
+
+.properties-control-panel[data-id='properties-nodeGroupInfo']
+  > .properties-control-panel
+  > .properties-control-item.selected {
+  background-color: var(--jp-editor-selected-focused-background);
+}
+
+.properties-control-panel[data-id='properties-nodeGroupInfo']
+  > .properties-control-panel
+  > .properties-control-item.selected::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--jp-border-color2);
+}
+
+.elyra-stringArrayControl-listRow {
+  background-color: var(--jp-border-color3);
+  margin-bottom: 5px;
+}
+
+.properties-control-panel[data-id='properties-nodeGroupInfo']
+  > .properties-control-panel
+  > .properties-control-item.selected::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--jp-border-color2);
+}
+
+.elyra-resourcesWrapper {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  height: 110px;
+}
+
+.elyra-resourceInput {
+  width: 22%;
+  display: flex;
+  flex-direction: column;
+  padding-right: 9px;
+}
+/* ======================================================== */
+/* ======================================================== */
+/* ======================================================== */
+
+.d3-node-port-input,
+.d3-node-port-output,
+.d3-node-port-input[connected='yes'],
+.d3-node-port-output[connected='yes'] {
+  stroke: var(--elyra-color-comment-text);
+  fill: var(--elyra-color-comment-text);
+  stroke-width: 4;
+}
+
+.d3-node-port-input:hover,
+.d3-node-port-output:hover,
+.d3-node-port-input[connected='yes']:hover,
+.d3-node-port-output[connected='yes']:hover {
+  stroke: var(--elyra-color-node-text);
+  fill: var(--elyra-color-node-text);
+  stroke-width: 4;
+}
+
+.d3-node-port-input-arrow {
+  display: none;
+}
+
+.elyra-PipelineEditor .palette-flyout-div,
+.elyra-PipelineEditor
+  .palette-flyout-search-container
+  .palette-flyout-search
+  input {
+  background-color: var(--jp-layout-color1);
+  color: var(--jp-content-font-color1);
+}
+
+.elyra-PipelineEditor .palette-flyout-div {
+  border-right: 1px solid var(--jp-layout-color3);
+}
+
+.elyra-PipelineEditor .palette-flyout-content .palette-list-item:hover {
+  background-color: var(--jp-border-color1);
+}
+
+.elyra-PipelineEditor .bx--search-magnifier {
+  stroke: var(--jp-inverse-layout-color1);
+}
+
+.elyra-PipelineEditor svg.palette-flyout-category-caret,
+.elyra-PipelineEditor .palette-flyout-category-item-icon {
+  background: none;
+  fill: var(--jp-inverse-layout-color1);
+}
+
+.elyra-PipelineEditor span.palette-flyout-category-text {
+  color: var(--jp-content-font-color0);
+}
+
+.elyra-PipelineEditor .bx--accordion__item svg.bx--accordion__arrow,
+.arrangeHorizontally-action .toolbar-icon svg,
+.arrangeVertically-action .toolbar-icon svg {
+  fill: var(--jp-inverse-layout-color1);
+}
+
+.tip-palette-item,
+.tip-palette-category,
+.tip-palette-label,
+.tip-palette-desc {
+  color: var(--elyra-color-tooltip-text) !important;
+}
+
+.elyra-PipelineEditor
+  .palette-flyout-category
+  .elyra-PipelineEditor
+  .palette-content-list {
+  border-bottom: 1px solid var(--jp-content-font-color0);
+}
+
+/* tabs */
+.elyra-tabPanel > .elyra-actionBar {
+  padding: 0 8px;
+}
+
+.elyra-tab {
+  cursor: pointer;
+  user-select: none;
+  text-transform: uppercase;
+  padding: 4px 10px 3px;
+}
+
+.elyra-tabText {
+  line-height: 27px;
+  font-family: var(--elyra-font-family-sans);
+  font-size: 11px;
+  font-weight: var(--elyra-font-weight-sans);
+  color: var(--jp-border-color1);
+}
+
+.elyra-tabText:hover {
+  color: var(--jp-ui-font-color0);
+}
+
+.elyra-tabText.activeTab {
+  color: var(--jp-ui-font-color0);
+  border-bottom: 1px solid var(--jp-border-color2);
+}
+
+.elyra-icon {
+  font: normal normal normal 16px/1 codicon;
+  font-size: 16px;
+  text-decoration: none;
+  text-rendering: auto;
+  text-align: center;
+  -webkit-font-smoothing: antialiased;
+}
+
+.elyra-actionItem {
+  cursor: pointer;
+  user-select: none;
+  display: inline-block;
+  transition: transform 50ms ease;
+  position: relative;
+  padding: 3px;
+}
+
+.elyra-actionItem:active {
+  transform: scale(1.272019649);
+}
+
+.elyra-verticalTabGroup .elyra-tabItem {
+  margin: 3px 0;
+}
+
+.elyra-verticalTabGroup .elyra-tabItem:hover {
+  background-color: var(--jp-cell-editor-background);
+}
+
+.elyra-verticalTabGroup .elyra-tabItem:active {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.elyra-actionBar .elyra-actionItemIcon {
+  color: var(--elyra-color-arrayInput-text);
+  display: block;
+  height: 35px;
+  line-height: 35px;
+  min-width: 28px;
+  margin-right: 4px;
+}
+
+.elyra-PipelineEditor .elyra-formEditor .field-object > fieldset > legend,
+.elyra-PipelineEditor
+  .elyra-formEditor:not(#pipeline-parameters)
+  .form-group.field.field-oneOf
+  .form-group.field-object
+  .label-header,
+.elyra-formEditor#pipeline-parameters
+  .field-oneOf
+  .field-object
+  > .label-header {
+  display: none;
+}
+
+.elyra-PipelineEditor .form-group.field.field-integer {
+  width: 100%;
+}
+
+.elyra-PipelineEditor .array-pipelineDefaults.form-control {
+  display: flex;
+  justify-content: space-between;
+  background-color: var(--jp-border-color3);
+}
+
+.elyra-PipelineEditor .nodeDescription {
+  display: block;
+  margin: 10px 47px;
+  font-size: var(--jp-content-font-size1);
+  color: var(--jp-content-font-color0);
+  white-space: normal;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  cursor: text;
+}
+
+.elyra-PipelineEditor .array-item .errorIndicator {
+  left: -10px;
+}
+
+.elyra-PipelineEditor .elyra-formEditor .label-header.category-header label {
+  font-size: var(--jp-content-font-size2);
+}
+
+.elyra-PipelineEditor .errorIndicator {
+  width: 2px;
+  background: var(--jp-error-color0);
+  height: 92%;
+  position: absolute;
+  left: -2px;
+  bottom: 0px;
+  top: 0px;
+}
+
+.elyra-PipelineEditor .form-group.field {
+  min-width: auto;
+  width: 100%;
+}
+
+.elyra-PipelineEditor .elyra-formEditor select.form-control {
+  padding-right: 1.5em;
+}
+
+.elyra-PipelineEditor #root > .form-group.field:not(.field-object) {
+  padding-left: 14px;
+  padding-right: 14px;
+  padding-top: 12px;
+  padding-bottom: 18px;
+}
+
+.elyra-PipelineEditor #root > .form-group.field > fieldset > .form-group.field {
+  padding-left: 14px;
+}
+
+.elyra-PipelineEditor
+  #root
+  > .form-group.field
+  > fieldset
+  > .form-group.field.field-null,
+.elyra-PipelineEditor #root > .form-group.field.field-null {
+  padding-left: 0;
+}
+
+.elyra-PipelineEditor .elyra-formEditor {
+  padding: 10px 47px;
+}
+
+.elyra-stringArrayControl-listRow:hover .elyra-stringArrayControl-listActions {
+  height: 100%;
+  align-items: center;
+  margin-right: 3px;
+}
+
+.elyra-formEditor#pipeline-parameters
+  .description-wrapper:hover
+  .field-description {
+  transform: translate(-45%, 145%);
+}
+
+.elyra-formEditor#pipeline-parameters .checkbox label {
+  display: flex;
+  align-items: center;
+  margin: 0px 0 7px 0;
+}
+
+.field-array-of-object .array-item:hover,
+.field-object
+  > fieldset
+  > .field-object
+  > fieldset
+  > .field-object:not(.small-object-field)
+  > fieldset:hover {
+  background-color: var(--jp-border-color3);
+}
+
+.field-array-of-object .array-item,
+.field-object
+  > fieldset
+  > .field-object
+  > fieldset
+  > .field-object:not(.small-object-field)
+  > fieldset {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--jp-border-color2);
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.field-object
+  > fieldset
+  > .field-object
+  > fieldset
+  > .field-object:not(.small-object-field)
+  > fieldset {
+  margin: 5px 0;
+}
+
+.elyra-PipelineEditor
+  .field-object
+  > fieldset
+  > .field-object
+  > fieldset
+  > .field-object
+  .errorIndicator {
+  left: -5px;
+}
+
+.field-array-of-object button.jp-mod-styled.jp-mod-warn {
+  width: fit-content;
+}
+
+.field-array-of-object label.control-label {
+  margin-top: 5px;
+}
+
+.elyra-actionItem:hover {
+  background-color: var(--jp-border-color1);
+}
+
+.elyra-stringArrayControl-listActions .elyra-actionItemIcon {
+  color: var(--elyra-color-arrayInput-text);
+  width: 16px;
+  height: 20px;
+  padding: 2px;
+  margin-right: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-position: center;
+}
+
+.elyra-tabItemIcon {
+  cursor: pointer;
+  user-select: none;
+  color: var(--elyra-color-arrayInput-text);
+  display: inline-block;
+  height: 35px;
+  line-height: 35px;
+  min-width: 28px;
+  margin-right: 4px;
+}
+
+.elyra-icon {
+  background-repeat: no-repeat;
+}
+
+.elyra-icon.elyra-item-delete {
+  background-image: url('data:image/svg+xml;utf8,<svg focusable="false" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" width="15" height="32" viewBox="0 0 32 32"> <title>Delete item</title> <g class="jp-icon3"> <path d="M12 12H14V24H12zM18 12H20V24H18z"></path> <path d="M4 6V8H6V28a2 2 0 002 2H24a2 2 0 002-2V8h2V6zM8 28V8H24V28zM12 2H20V4H12z"></path> </g> </svg>');
+}
+
+.elyra-icon.elyra-item-edit {
+  background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"> <g class="jp-icon3"> <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/> </g> </svg>');
+}
+
+.elyra-icon.elyra-panel-close::before {
+  content: '';
+}
+
+.elyra-icon.properties::before {
+  content: '';
+}
+
+.elyra-icon.palette::before {
+  content: '\eb5c';
+}
+
+.elyra-icon.properties-checkbox {
+  background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"> <g class="jp-icon-none jp-icon-selectable-inverse jp-icon3-hover" fill="none"> <circle cx="12" cy="12" r="11"/></g><g class="jp-icon3 jp-icon-selectable jp-icon-accent2-hover" fill="#616161"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></g><g class="jp-icon-none jp-icon-busy" fill="none"><circle cx="12" cy="12" r="7"/></g></svg>');
+}
+
+.elyra-icon.elyra-item-folder {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" viewBox="0 0 24 24"> <path class="jp-icon3 jp-icon-selectable" d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/> </svg>');
+}
+
+.elyra-stringArrayActions {
+  height: 100%;
+  align-items: center;
+}
+
+.elyra-inputContainer {
+  width: 100%;
+}
+
+.elyra-listRow {
+  margin-bottom: 3px;
+}
+
+.elyra-loader {
+  display: block;
+  position: absolute;
+  left: -200px;
+  width: 200px;
+  height: 4px;
+  border-radius: 4px;
+  background-color: var(--jp-brand-color1);
+  animation: loading 2s linear infinite;
+}
+
+/* context menu */
+
+.d3-node-ellipsis-group {
+  display: none;
+}
+
+.context-menu-popover {
+  margin-top: -6px;
+  margin-left: 2px;
+  padding: 6px 0;
+  backdrop-filter: saturate(180%) blur(20px);
+  border-radius: 6px;
+  /* box-shadow: 0px 4px 17.64px 3.36px rgba(0, 0, 0, 0.2); */
+  user-select: none;
+  cursor: default;
+  /* box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.05),
+    0px 8px 15px 2px rgba(0, 0, 0, 0.18); */
+  box-shadow:
+    0px 1px 2px 0px rgba(0, 0, 0, 0.05),
+    0px 4px 15px 2px rgba(0, 0, 0, 0.18);
+}
+
+.context-menu-popover::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  border-radius: 13px;
+  content: '';
+  transform: scale(0.5);
+  -webkit-transform: scale(0.5);
+  transform-origin: 0 0;
+  -webkit-transform-origin: 0 0;
+}
+
+.react-contextmenu-item {
+  position: relative;
+  margin: 0 6px;
+  width: auto;
+  height: 22px;
+  border-radius: 4px;
+  font-size: 13px;
+  padding: 3px 9px;
+  box-sizing: border-box;
+  cursor: default;
+  z-index: 0;
+}
+
+.react-contextmenu-item:hover::before {
+  content: '';
+
+  /* rgba(10, 130, 255, 0.75); */
+  background-color: rgba(54, 131, 247, 0.75);
+  backdrop-filter: saturate(0%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 4px;
+  z-index: -1;
+}
+
+.react-contextmenu-item:hover::after {
+  content: '';
+  background: var(--elyra-color-panel-bg);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 4px;
+  z-index: -2;
+}
+
+.react-contextmenu-item.contextmenu-divider {
+  margin: 5px 15px;
+}
+
+.react-contextmenu-item.react-contextmenu-item--disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.react-contextmenu-item:active,
+.react-contextmenu-item:focus,
+.react-contextmenu-item.react-contextmenu-item--disabled {
+  background: transparent !important;
+}
+
+.react-contextmenu-item.react-contextmenu-item--disabled::before,
+.react-contextmenu-item.react-contextmenu-item--disabled::after {
+  display: none !important;
+}
+
+/* ========================================================================== */
+/* LIGHT THEME */
+/* ========================================================================== */
+.context-menu-popover {
+  background: rgba(231, 231, 231, 0.76);
+}
+
+.context-menu-popover::before {
+  /* box-shadow: inset 0px 0px 0px 1px rgba(0, 0, 0, 0.22),
+    inset 0px 0px 0px 2px rgba(255, 255, 255, 0.1); */
+  box-shadow:
+    0px 0px 0px 1px rgba(0, 0, 0, 0.22),
+    inset 0px 0px 0px 1px rgba(255, 255, 255, 0.1);
+}
+
+.react-contextmenu-item {
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.react-contextmenu-item:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+.react-contextmenu-item.react-contextmenu-item--disabled {
+  color: rgba(0, 0, 0, 0.315); /* 0.27, 0.36 */
+}
+
+.react-contextmenu-item.contextmenu-divider {
+  background-color: #000000;
+  opacity: 0.13; /* 0.11, 0.15 */
+}
+
+/* ========================================================================== */
+/* DARK THEME */
+/* ========================================================================== */
+
+body.elyra-dark .context-menu-popover {
+  background: rgba(46, 46, 46, 0.72);
+}
+
+body.elyra-dark .context-menu-popover::before {
+  box-shadow:
+    inset 0px 0px 0px 1px rgba(0, 0, 0, 0.86),
+    inset 0px 0px 0px 3px rgba(255, 255, 255, 0.2);
+}
+
+body.elyra-dark .react-contextmenu-item {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+body.elyra-dark .react-contextmenu-item:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+body.elyra-dark .react-contextmenu-item.react-contextmenu-item--disabled {
+  color: rgba(255, 255, 255, 0.355); /* 0.29, 0.42 */
+}
+
+body.elyra-dark .react-contextmenu-item.contextmenu-divider {
+  background-color: #ffffff;
+  opacity: 0.205; /* 0.17, 0.24 */
+}
+
+input.elyra-Dialog-checkbox.jp-mod-styled {
+  appearance: auto;
+  -moz-appearance: checkbox;
+  -webkit-appearance: checkbox;
+  height: auto;
+}
+
+.elyra-dialog-form {
+  max-width: 700px;
+}
+
+.elyra-dialog-form input:not([type='checkbox']) {
+  width: 100%;
+}
+
+.elyra-dialog-form .description-wrapper:hover .field-description {
+  max-width: 25ch;
+  font-size: var(--jp-content-font-size1);
+}
+
+.elyra-formEditor .array-item .field-object .form-group.field {
+  padding: 0;
+}
+
+.elyra-dialog-form input,
+.elyra-dialog-form select.jp-mod-styled {
+  border-radius: 4px;
+}
+
+.elyra-resourceInputDescription {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+div#root_component_parameters_cpu,
+div#root_component_parameters_memory,
+div#root_component_parameters_cpu_limit,
+div#root_component_parameters_memory_limit,
+div#root_component_parameters_gpu,
+div#root_component_parameters_gpu_vendor {
+  width: 50%;
+}
+
+input#root_component_parameters_cpu,
+input#root_component_parameters_memory,
+input#root_component_parameters_cpu_limit,
+input#root_component_parameters_memory_limit,
+input#root_component_parameters_gpu,
+input#root_component_parameters_gpu_vendor {
+  width: 100%;
+}
+
+#cpu,
+#cpu_limit,
+#gpu,
+#memory_limit,
+#memory {
+  position: absolute;
+  vertical-align: baseline;
+  bottom: 0;
+  width: 20%;
+}
+
+/* fix a Safari bug where button margins default to 2px */
+.properties-control-panel button {
+  margin: 0;
+}
+
+.toolbar-item-content .toolbar-icon svg {
+  background: var(--jp-border-color2);
+}
+
+.elyra-PipelineEditor .toolbar-item.default button:disabled:hover svg,
+.toolbar-item.ghost button:disabled:hover svg,
+.toolbar-overflow-menu-item button:disabled:hover svg {
+  background-color: var(--jp-border-color2);
+}
+
+.elyra-PipelineEditor .toolbar-item.default button:hover svg,
+.toolbar-item.ghost button:hover svg,
+.toolbar-overflow-item button:hover svg,
+.toolbar-overflow-menu-item button:hover svg {
+  background: var(--jp-border-color1);
+}
+
+.properties-control-panel[data-id='properties-elyra_resources'] {
+  display: flex;
+}
+
+.properties-control-panel[data-id='properties-elyra_resources']
+  .properties-ctrl-wrapper {
+  width: 33%;
+}
+
+.elyra-PipelineEditor .toolbar-item.default button:hover,
+.toolbar-item.ghost button:hover,
+.toolbar-overflow-item button:hover,
+.toolbar-overflow-menu-item button:hover {
+  background-color: var(--jp-border-color1);
+}
+
+.properties-custom-ctrl div[data-testid='list-row'] {
+  background-color: var(--jp-border-color1);
+  padding: 3px;
+}
+
+.properties-control-item[data-id='properties-ci-runtime_image']
+  ul[role='listbox'] {
+  max-height: 120px;
+  overflow-y: scroll;
+}
+
+.properties-control-item[data-id='properties-ci-runtime_image']
+  ul[role='listbox']::-webkit-scrollbar {
+  width: 10px;
+}
+
+.properties-control-item[data-id='properties-ci-runtime_image']
+  ul[role='listbox']::-webkit-scrollbar-thumb {
+  background-color: var(--jp-border-color1);
+}
+
+.properties-control-item[data-id='properties-ci-runtime_image']
+  ul[role='listbox']::-webkit-scrollbar-thumb:hover {
+  background-color: var(--jp-border-color0);
+}
+
+.properties-control-item[data-id='properties-ci-runtime_image']
+  ul[role='listbox']
+  li {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  margin-left: 5px;
+}
+
+.elyra-PipelineEditor .toolbar-item.tertiary button:disabled,
+.elyra-PipelineEditor .toolbar-item.tertiary button:disabled:hover {
+  background-color: var(--jp-border-color2);
+  color: var(--jp-content-font-color1);
+  border: none;
+  cursor: initial;
+}
+
+.elyra-PipelineEditor .elyra_categoryHeader {
+  padding-left: 33px;
+  padding-right: 24px;
+}
+
+.elyra-PipelineEditor .elyra_categoryHeader .panel-label {
+  font-size: var(--jp-content-font-size2);
+}
+
+.Toastify .elyra-PipelineEditor-toast {
+  white-space: pre-line;
+  width: auto;
+}
+
+.elyra-PipelineEditor-toast .Toastify__toast {
+  cursor: auto;
+}
+
+/* fix font ligatures */
+.lsp-completer-theme-vscode {
+  letter-spacing: normal;
+}
+
+a {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.empty-pipeline-header {
+  color: #8897a2;
+  text-align: center;
+}
+
+h3.empty-pipeline-header {
+  font-size: var(--jp-content-font-size5);
+}
+
+h4.empty-pipeline-header {
+  font-size: var(--jp-content-font-size3);
+}
+
+.empty-pipeline-icon {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.empty-pipeline-button {
+  display: inline-block;
+  vertical-align: middle;
+  pointer-events: auto;
+  cursor: pointer;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--jp-brand-color1);
+}
+
+.empty-pipeline-button:hover {
+  background-color: var(--jp-layout-color2);
+  cursor: pointer;
+}
+
+.empty-pipeline-button .jp-icon3[fill] {
+  fill: var(--jp-brand-color1);
+}

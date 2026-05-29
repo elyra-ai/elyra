@@ -1,0 +1,331 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = [
+    "hatchling>=1.5.0",
+    "jupyterlab~=4.4",
+    "hatch-nodejs-version>=0.3.2"
+]
+
+[project]
+name="elyra"
+description="Elyra provides AI Centric extensions to JupyterLab"
+maintainers = [
+    {name = "Elyra Maintainers"},
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "autopep8>=1.5.0",
+    "click==8.1.8",  # elyra-ai/elyra#2579 -- 8.2.0 dropped support for Python 3.9
+    "colorama",
+    "deprecation",
+    "entrypoints>=0.3",
+    "jinja2>=3",
+    "jsonschema>=3.2.0",
+    "jupyter_core>=5.3.1",
+    "jupyter_client>=7.4.9",
+    "jupyter-events>=0.7.0",
+    "jupyter-packaging>=0.12.3",
+    "jupyter_server>=2.7.3",
+    "jupyterlab~=4.4",  # comment out to use local jupyterlab
+    "jupyterlab-lsp~=5.1.0",  # comment out to use local jupyterlab
+    "jupyterlab-git~=0.52.0",  # Avoid breaking 1.x changes
+    "jupyter-resource-usage~=1.1.0",
+    "MarkupSafe>=2.1",
+    "minio>=7.0.0,!=7.2.1",
+    "nbclient>=0.10.0",
+    "nbconvert>=6.5.1",
+    "nbdime~=4.0.1",  # Cap from jupyterlab-git
+    "nbformat>=5.1.2",
+    "networkx>=2.5.1",
+    "papermill>=2.3.4",
+    "python-lsp-server[all]>=1.11.0",
+    "pyyaml>=5.3.1",
+    "requests>=2.31",
+    "rfc3986-validator>=0.1.1",
+    "tornado>=6.1.0",
+    "traitlets>=4.3.2",
+    "typing-extensions>=3.10",
+    "urllib3>=2.5.0",
+    "watchdog>=2.1.3",
+    "websocket-client",
+    "yaspin",
+    "kfp>=2.0.0", # Cap kfp for protobuf compatibility
+    "kfp-kubernetes>=1.0.0",
+    "pygithub",
+    "black~=26.1",
+    # AI assistant dependencies
+    "jupyter-ai>=2.0.0,<3.0.0",  # 3.0 pulls in jupyter-collaboration which breaks session shutdown in tests
+    "jupyterlab-magic-wand>=0.1.0",
+]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dynamic = ['version']
+
+[project.urls]
+Documentation = "https://elyra.readthedocs.io/en/latest"
+Homepage = "https://github.com/elyra-ai/elyra"
+
+[project.optional-dependencies]
+test = [
+    "elyra-examples-kfp-catalog",
+    "git-python",
+    "importlib-resources",
+    "pytest>=5.4.1",
+    "pytest-cov",
+    "pytest-console-scripts",
+    "pytest_jupyter",
+    "pytest-tornasync",
+    "pytest_virtualenv",
+    "requests-mock",
+    "requests-unixsocket",
+]
+airflow = [
+
+]
+airflow-gitlab = [
+    "python-gitlab"
+]
+airflow-gitea = [
+    "giteapy"
+]
+kfp = [
+    "kfp>=2.0.0", # Cap kfp for protobuf compatibility
+    "typing-extensions>=3.10,<5",  # Cap from kfp
+    "mistune<3.1.0",
+    "kfp-kubernetes>=1.0.0",
+]
+kfp-examples = [
+    "elyra-examples-kfp-catalog",
+]
+# The following is a collection of "non-test" extra dependencies from above.
+all = [
+    "kfp>=2.0.0", # Cap kfp for protobuf compatibility
+    "kfp-kubernetes>=1.0.0",
+    "elyra-examples-kfp-catalog",
+    "python-gitlab",
+    "giteapy",
+    "typing-extensions>=3.10,<5",  # Cap from kfp
+]
+
+# Console scripts
+[project.scripts]
+elyra-metadata = "elyra.metadata.metadata_app:MetadataApp.main"
+elyra-pipeline = "elyra.cli.pipeline_app:pipeline"
+jupyter-elyra = "elyra.elyra_app:launch_instance"
+
+# Elyra entry points
+[project.entry-points."metadata.schemaspaces"]
+runtimes = "elyra.metadata.schemaspaces:Runtimes"
+runtimes-images = "elyra.metadata.schemaspaces:RuntimeImages"
+code-snippets = "elyra.metadata.schemaspaces:CodeSnippets"
+component-catalogs = "elyra.metadata.schemaspaces:ComponentCatalogs"
+metadata-tests = "elyra.tests.metadata.test_utils:MetadataTestSchemaspace"
+
+[project.entry-points."metadata.schemas_providers"]
+runtimes = "elyra.metadata.schemasproviders:RuntimesSchemas"
+runtimes-images = "elyra.metadata.schemasproviders:RuntimeImagesSchemas"
+code-snippets = "elyra.metadata.schemasproviders:CodeSnippetsSchemas"
+component-catalogs = "elyra.metadata.schemasproviders:ComponentCatalogsSchemas"
+airflow-provider-package-catalog-schema = "elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_package_schema_provider:AirflowProviderPackageSchemasProvider"
+airflow-package-catalog-schema = "elyra.pipeline.airflow.package_catalog_connector.airflow_package_schema_provider:AirflowPackageSchemasProvider"
+metadata-tests = "elyra.tests.metadata.test_utils:MetadataTestSchemasProvider"
+
+[project.entry-points."elyra.pipeline.processors"]
+local = "elyra.pipeline.local.local_processor:LocalPipelineProcessor"
+airflow = "elyra.pipeline.airflow.airflow_processor:AirflowPipelineProcessor"
+kfp = "elyra.pipeline.kfp.kfp_processor:KfpPipelineProcessor"
+
+[project.entry-points."elyra.component.catalog_types"]
+url-catalog = "elyra.pipeline.catalog_connector:UrlComponentCatalogConnector"
+local-file-catalog = "elyra.pipeline.catalog_connector:FilesystemComponentCatalogConnector"
+local-directory-catalog = "elyra.pipeline.catalog_connector:DirectoryComponentCatalogConnector"
+airflow-provider-package-catalog = "elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_package_catalog_connector:AirflowProviderPackageCatalogConnector"
+airflow-package-catalog = "elyra.pipeline.airflow.package_catalog_connector.airflow_package_catalog_connector:AirflowPackageCatalogConnector"
+
+[project.entry-points."papermill.engine"]
+ElyraEngine = "elyra.pipeline.elyra_engine:ElyraEngine"
+
+# Include license file in base/root of repository
+[license]
+file = "LICENSE"
+
+[tool.distutils.bdist_wheel]
+universal = true
+
+[tool.hatch.version]
+path = "elyra/_version.py"
+
+[tool.hatch.build]
+include = [
+    "elyra/*",
+    "labextensions/**/*",
+]
+exclude = [
+    "elyra/tests",
+]
+ignore-vcs = true
+
+[tool.hatch.build.targets.wheel]
+core-metadata-version = "2.3"
+
+# Include data files with dist
+[tool.hatch.build.targets.wheel.shared-data]
+"labextensions/elyra_code_snippet_extension/labextension" = "share/jupyter/labextensions/@elyra/code-snippet-extension"
+"labextensions/elyra_metadata_common/labextension" = "share/jupyter/labextensions/@elyra/metadata-common"
+"labextensions/elyra_metadata_extension/labextension" = "share/jupyter/labextensions/@elyra/metadata-extension"
+"labextensions/elyra_pipeline_editor_extension/labextension" = "share/jupyter/labextensions/@elyra/pipeline-editor-extension"
+"labextensions/elyra_python_editor_extension/labextension" = "share/jupyter/labextensions/@elyra/python-editor-extension"
+"labextensions/elyra_r_editor_extension/labextension" = "share/jupyter/labextensions/@elyra/r-editor-extension"
+"labextensions/elyra_scala_editor_extension/labextension" = "share/jupyter/labextensions/@elyra/scala-editor-extension"
+"labextensions/elyra_script_debugger_extension/labextension" = "share/jupyter/labextensions/@elyra/script-debugger-extension"
+"labextensions/elyra_script_editor/labextension" = "share/jupyter/labextensions/@elyra/script-editor"
+"labextensions/elyra_services/labextension" = "share/jupyter/labextensions/@elyra/services"
+"labextensions/elyra_theme_extension/labextension" = "share/jupyter/labextensions/@elyra/theme-extension"
+"labextensions/elyra_ui_components/labextension" = "share/jupyter/labextensions/@elyra/ui-components"
+"etc/config/jupyter_notebook_config.d" = "etc/jupyter/jupyter_notebook_config.d"
+"etc/config/jupyter_server_config.d" = "etc/jupyter/jupyter_server_config.d"
+"etc/config/settings" = "etc/jupyter/labconfig"
+"etc/config/metadata/runtime-images" = "share/jupyter/metadata/runtime-images"
+"etc/config/metadata/component-catalogs" = "share/jupyter/metadata/component-catalogs"
+"etc/config/components" = "share/jupyter/components"
+"etc/config/components/kfp" = "share/jupyter/components/kfp/"
+"etc/config/components/airflow" = "share/jupyter/components/airflow/"
+
+# Specify which files to include and exclude in source distribution
+[tool.hatch.build.targets.sdist]
+core-metadata-version = "2.3"
+artifacts = [
+    "labextensions/elyra_code_snippet_extension/labextension",
+    "labextensions/elyra_metadata_common/labextension",
+    "labextensions/elyra_metadata_extension/labextension",
+    "labextensions/elyra_pipeline_editor_extension/labextension",
+    "labextensions/elyra_python_editor_extension/labextension",
+    "labextensions/elyra_r_editor_extension/labextension",
+    "labextensions/elyra_scala_editor_extension/labextension",
+    "labextensions/elyra_script_debugger_extension/labextension",
+    "labextensions/elyra_script_editor/labextension",
+    "labextensions/elyra_services/labextension",
+    "labextensions/elyra_theme_extension/labextension",
+    "labextensions/elyra_ui_components/labextension",
+]
+include = [
+    "labextensions",
+    "elyra",
+    "etc/config/components/*.json",
+    "etc/config/components/kfp*/.yaml",
+    "etc/config/jupyter_notebook_config.d/*.json",
+    "etc/config/jupyter_server_config.d/*.json",
+    "etc/config/metadata/runtime-images/*.json",
+    "etc/config/metadata/component-registries/*.json",
+    "etc/config/settings/*.json",
+]
+exclude = [
+    "*.ipynb",
+    "*.py[cod]",
+    "__pycache__",
+    ".git",
+    ".gitignore",
+    ".ipynb_checkpoints",
+    ".DS_Store",
+    "*.sh",
+    "docs",
+    "build/release",
+]
+
+# Move flake8 configuration from setup.cfg. Use pflake8 instead of flake8.
+# pflake8 is a flake8 wrapper compatible with pyproject.toml
+[tool.flake8]
+application-import-names = ["elyra", "test"]
+application-package-names = ["elyra", "test"]
+enable-extensions = "G"
+max-line-length = 120
+# References:
+# https://flake8.readthedocs.io/en/latest/user/configuration.html
+# https://flake8.readthedocs.io/en/latest/user/error-codes.html
+ignore = [
+    # Import formatting
+    "E4",
+    # Comparing types instead of isinstance
+    "E721",
+    # Assigning lambda expression
+    "E731",
+    # Ambiguous variable names
+    "E741",
+    # File contains nothing but comments
+    "H104",
+    # Include name with TODOs as in # TODO(yourname)
+    "H101",
+    # Enable mocking
+    "H216",
+    # Multi line docstrings should start without a leading new line
+    "H404",
+    # Multi line docstrings should start with a one line summary followed by an empty line
+    "H405",
+    # Line break before binary operator
+    "W503",
+    # Allow breaks after binary operators
+    "W504"
+]
+import-order-style = "google"
+
+# Configuration parameters for the black code formatting tool
+[tool.black]
+# max line length; same as 'max-line-length' in setup.cfg
+line-length = 120
+
+# Python versions that should be supported by the produced output
+target-version = ['py310', 'py311', 'py312', 'py313']
+
+# Migrate configurations from pytest.ini
+[tool.pytest.ini_options]
+markers = [
+    "script_launch_mode"
+]
+script_launch_mode = "subprocess"
+
+filterwarnings = [
+  # We should get to a place where 'error' is NOT commented out.  This will allow us to
+  # catch warnings when they occur and take action, either by adjusting the code or ignoring
+  # the warning.
+  # error
+
+  # These are produced by upstream (server and tornado) dependencies
+  "ignore:make_current is deprecated:DeprecationWarning",
+  "ignore:clear_current is deprecated:DeprecationWarning",
+  "ignore:There is no current event loop:DeprecationWarning",
+
+  # Papermill has included a parameter into a configurable's init and traitlets detects when
+  # no attributes match the argument (note single-quote required for raw-string interpretation)
+  'ignore:Passing unrecognized arguments to super\(PapermillNotebookClient\):DeprecationWarning',
+
+  # jupyter_core 5.x changes how it locates platform dirs and produces this warning
+  "ignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
+
+  # These are probably deprecated in the next KFP release
+  "ignore:`dsl.ContainerOp.image` will be removed in future releases:PendingDeprecationWarning",
+  "ignore:`dsl.ContainerOp.add_env_variable` will be removed in future releases:PendingDeprecationWarning",
+
+  # The bootstrapper currently looks for version instances of `LegacyVersion`
+  "ignore:Creating a LegacyVersion has been deprecated:DeprecationWarning",
+
+  # networkx will use pandas and numpy if available, otherwise, it produces these ImportWarning
+  "ignore:pandas not found, skipping conversion test:ImportWarning",
+  "ignore:numpy not found, skipping conversion test:ImportWarning",
+
+  # minio/api.py produces these warnings - tests show urllib3==1.26.x in use
+  # test_main_method_with_wildcard_outputs
+  'ignore:HTTPResponse.getheader\(\) is deprecated and will be removed in urllib3 v2.1.0.:DeprecationWarning',
+  'ignore:HTTPResponse.getheaders\(\) is deprecated and will be removed in urllib3 v2.1.0.:DeprecationWarning',
+]

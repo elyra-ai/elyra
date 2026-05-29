@@ -1,0 +1,208 @@
+{
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/kfp.json",
+  "title": "Kubeflow Pipelines",
+  "name": "kfp",
+  "schemaspace": "runtimes",
+  "schemaspace_id": "130b8e00-de7c-4b32-b553-b4a52824a3b5",
+  "metadata_class_name": "elyra.pipeline.kfp.kfp_metadata.KfpMetadata",
+  "runtime_type": "KUBEFLOW_PIPELINES",
+  "uihints": {
+    "title": "Kubeflow Pipelines runtimes",
+    "icon": "elyra:runtimes",
+    "reference_url": "https://elyra.readthedocs.io/en/latest/user_guide/runtime-conf.html"
+  },
+  "properties": {
+    "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
+      "type": "string",
+      "const": "kfp"
+    },
+    "display_name": {
+      "title": "Display Name",
+      "description": "Display name of this Kubeflow Pipelines configuration",
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "description": "Additional data specific to this metadata",
+      "type": "object",
+      "properties": {
+        "runtime_type": {
+          "title": "Runtime Type",
+          "description": "The runtime associated with this instance",
+          "type": "string",
+          "const": "KUBEFLOW_PIPELINES",
+          "uihints": {
+            "hidden": true
+          }
+        },
+        "description": {
+          "title": "Description",
+          "description": "Description of this Kubeflow Pipelines configuration",
+          "type": "string"
+        },
+        "api_endpoint": {
+          "title": "Kubeflow Pipelines API Endpoint",
+          "description": "The Kubeflow Pipelines API endpoint",
+          "type": "string",
+          "format": "uri",
+          "uihints": {
+            "category": "Kubeflow Pipelines",
+            "ui:placeholder": "https://your-kubeflow-service:port/pipeline"
+          }
+        },
+        "public_api_endpoint": {
+          "title": "Public Kubeflow Pipelines API Endpoint",
+          "description": "The public Kubeflow Pipelines API endpoint",
+          "type": "string",
+          "format": "uri",
+          "uihints": {
+            "category": "Kubeflow Pipelines",
+            "ui:placeholder": "https://your-kubeflow-service:port/pipeline"
+          }
+        },
+        "user_namespace": {
+          "title": "Kubeflow Pipelines User Namespace",
+          "description": "The Kubeflow Pipelines user namespace used to create experiments",
+          "type": "string",
+          "pattern": "^[a-z0-9][-a-z0-9]*[a-z0-9]$",
+          "maxLength": 63,
+          "uihints": {
+            "category": "Kubeflow Pipelines"
+          }
+        },
+        "engine": {
+          "title": "Kubeflow Pipelines engine",
+          "description": "The Kubeflow Pipelines engine in use",
+          "type": "string",
+          "enum": ["Argo"],
+          "default": "Argo",
+          "uihints": {
+            "category": "Kubeflow Pipelines"
+          }
+        },
+        "auth_type": {
+          "title": "Authentication Type",
+          "description": "Authentication type Elyra uses to authenticate with Kubeflow",
+          "type": "string",
+          "enum": ["{AUTH_PROVIDER_PLACEHOLDERS}"],
+          "default": "{DEFAULT_AUTH_PROVIDER_PLACEHOLDER}",
+          "uihints": {
+            "category": "Kubeflow Pipelines"
+          }
+        },
+        "api_username": {
+          "title": "Kubeflow Pipelines API Endpoint Username",
+          "description": "The Kubeflow Pipelines API endpoint username. This property is required for all authentication types, except NO_AUTHENTICATION and KUBERNETES_SERVICE_ACCOUNT_TOKEN.",
+          "type": "string",
+          "uihints": {
+            "category": "Kubeflow Pipelines"
+          }
+        },
+        "api_password": {
+          "title": "Kubeflow Pipelines API Endpoint Password Or Token",
+          "description": "Password or token to be used for authentication. This property is required for all authentication types, except NO_AUTHENTICATION and KUBERNETES_SERVICE_ACCOUNT_TOKEN.",
+          "type": "string",
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.password",
+            "category": "Kubeflow Pipelines"
+          }
+        },
+        "cos_endpoint": {
+          "title": "Cloud Object Storage Endpoint",
+          "description": "The Cloud Object Storage endpoint",
+          "type": "string",
+          "format": "uri",
+          "uihints": {
+            "category": "Cloud Object Storage",
+            "ui:placeholder": "https://your-cos-service:port"
+          }
+        },
+        "public_cos_endpoint": {
+          "title": "Public Cloud Object Storage Endpoint",
+          "description": "The public Cloud Object Storage endpoint",
+          "type": "string",
+          "format": "uri",
+          "uihints": {
+            "category": "Cloud Object Storage",
+            "ui:placeholder": "https://your-public-cos-endpoint:port"
+          }
+        },
+        "cos_bucket": {
+          "title": "Cloud Object Storage Bucket Name",
+          "description": "The Cloud Object Storage bucket name",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-.]*[a-z0-9]$",
+          "minLength": 3,
+          "maxLength": 222,
+          "uihints": {
+            "category": "Cloud Object Storage"
+          }
+        },
+        "cos_auth_type": {
+          "title": "Cloud Object Storage Authentication Type",
+          "description": "Authentication type Elyra uses to authenticate with Cloud Object Storage",
+          "type": "string",
+          "enum": [
+            "AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS",
+            "KUBERNETES_SECRET",
+            "USER_CREDENTIALS"
+          ],
+          "default": "USER_CREDENTIALS",
+          "uihints": {
+            "category": "Cloud Object Storage"
+          }
+        },
+        "cos_secret": {
+          "title": "Cloud Object Storage Credentials Secret",
+          "description": "Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password. This property is required for authentication type KUBERNETES_SECRET.",
+          "type": "string",
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.password",
+            "category": "Cloud Object Storage"
+          }
+        },
+        "cos_username": {
+          "title": "Cloud Object Storage Username",
+          "description": "The Cloud Object Storage username. This property is required for authentication type USER_CREDENTIALS and KUBERNETES_SECRET.",
+          "type": "string",
+          "uihints": {
+            "category": "Cloud Object Storage"
+          }
+        },
+        "cos_password": {
+          "title": "Cloud Object Storage Password",
+          "description": "The Cloud Object Storage password. This property is required for authentication type USER_CREDENTIALS and KUBERNETES_SECRET.",
+          "type": "string",
+          "minLength": 8,
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.password",
+            "category": "Cloud Object Storage"
+          }
+        },
+        "tags": {
+          "title": "Tags",
+          "description": "Tags for categorizing Kubeflow pipelines",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "minLength": 1,
+            "pattern": "^[^ \t]+([ \t]+[^ \t]+)*$"
+          },
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.tags"
+          }
+        }
+      },
+      "required": [
+        "api_endpoint",
+        "cos_auth_type",
+        "cos_endpoint",
+        "cos_bucket"
+      ]
+    }
+  },
+  "required": ["schema_name", "display_name", "metadata"]
+}

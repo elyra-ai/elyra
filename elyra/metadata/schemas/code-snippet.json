@@ -1,0 +1,76 @@
+{
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/code-snippet.json",
+  "title": "Code Snippet",
+  "name": "code-snippet",
+  "schemaspace": "code-snippets",
+  "schemaspace_id": "aa60988f-8f7c-4d09-a243-c54ef9c2f7fb",
+  "uihints": {
+    "title": "Code Snippets",
+    "icon": "elyra:code-snippet",
+    "reference_url": "https://elyra.readthedocs.io/en/latest/user_guide/code-snippets.html"
+  },
+  "properties": {
+    "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
+      "type": "string",
+      "const": "code-snippet"
+    },
+    "display_name": {
+      "title": "Display Name",
+      "description": "The display name of the Code Snippet",
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "description": "Additional data specific to this Code Snippet",
+      "type": "object",
+      "properties": {
+        "description": {
+          "title": "Description",
+          "description": "Code snippet description",
+          "type": "string"
+        },
+        "tags": {
+          "title": "Tags",
+          "description": "Tags for categorizing snippets",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "minLength": 1,
+            "pattern": "^[^ \t]+([ \t]+[^ \t]+)*$"
+          },
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.tags"
+          }
+        },
+        "language": {
+          "title": "Language",
+          "description": "Code snippet implementation language",
+          "type": "string",
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.dropdown",
+            "default_choices": ["Python", "Java", "R", "Scala", "Markdown"],
+            "category": "Source"
+          },
+          "minLength": 1
+        },
+        "code": {
+          "title": "Code",
+          "description": "Code snippet code lines",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.code",
+            "category": "Source"
+          }
+        }
+      },
+      "required": ["language", "code"]
+    }
+  },
+  "required": ["schema_name", "display_name", "metadata"]
+}

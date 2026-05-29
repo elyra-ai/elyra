@@ -1,0 +1,39 @@
+name: Test Operator
+description: 'This component description contains an unescaped " character'
+inputs:
+- {name: test_string_no_default, description: , type: String}
+- {name: test_string_default_value, description: 'The test command description', type: String, default: 'default'}
+- {name: test_string_default_empty, description: 'The test command description', type: String, default: ''}
+- {name: test_bool_default, description: 'The test command description', type: Bool}
+- {name: test_bool_false, description: 'The test command description', type: Bool, default: 'False'}
+- {name: test_bool_true, description: 'The test command description', type: Bool, default: 'True'}
+- {name: test_int_default, description: 'The test command description', type: Integer}
+- {name: test_int_zero, description: 'The test command description', type: Integer, default: '0'}
+- {name: test_int_non_zero, description: 'The test command description', type: Integer, default: '1'}
+- {name: test_float_default, description: 'The test command description', type: Float}
+- {name: test_float_zero, description: 'The test command description', type: Float, default: '0.0'}
+- {name: test_float_non_zero, description: 'The test command description', type: Float, default: '1.1'}
+- {name: test_dict_default, description: 'The test command description', type: Dict}
+- {name: test_list_default, description: 'The test command description', type: List}
+- {name: test_required_property, description: 'The test command description', type: String, optional: false}
+- {name: test_optional_property, description: 'The test command description', type: String, optional: true}
+- {name: test_required_property_default, description: 'The test command description', type: String}
+- {name: test_unusual_type_dict, description: 'The test command description', type: Dictionary of arrays}
+- {name: test_unusual_type_list, description: 'The test command description', type: An array}
+- {name: test_unusual_type_string, description: 'The test command description', type: A string}
+- {name: test_unusual_type_notgiven, description: 'The test command description'}
+- {name: mounted_volumes, description: 'A property with the same name as an Elyra system property', type: String}
+outputs:
+- {name: Filtered text}
+implementation:
+  container:
+    image: alpine
+    command:
+    - sh
+    - -ec
+    - |
+      test_string_no_default=$0
+      mkdir -p "$(dirname "test_string_no_default")"
+
+    - {inputValue: test_string_no_default}
+    - {outputPath: Filtered text}

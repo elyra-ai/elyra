@@ -1,0 +1,22 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "id": "0",
+  "primary_pipeline": "1",
+  "pipelines": [
+    {
+      "id": "1",
+      "nodes": [],
+      "app_data": {
+        "version": 7,
+        "properties": {
+          "name": "pipeline_with_zero_nodes",
+          "runtime": "Generic"
+        },
+        "ui_data": {
+          "comments": []
+        }
+      }
+    }
+  ]
+}

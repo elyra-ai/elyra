@@ -1,0 +1,76 @@
+/*
+ * Copyright 2018-2026 Elyra Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+describe('Submit Notebook Button tests', () => {
+  before(() => {
+    cy.deleteFile('*.ipynb');
+
+    cy.bootstrapFile('helloworld.ipynb');
+  });
+
+  beforeEach(() => {
+    cy.resetJupyterLab();
+  });
+
+  after(() => {
+    cy.deleteFile('*.ipynb');
+  });
+
+  it('check Submit Notebook button exists', () => {
+    cy.openFile('helloworld.ipynb');
+    cy.findByText(/run as pipeline/i).should('exist');
+  });
+
+  it('click the "Run as Pipeline" button should display dialog', () => {
+    // Install runtime configuration
+    cy.installRuntimeConfig({ type: 'kfp' });
+
+    cy.findByRole('tab', { name: /file browser/i }).click();
+
+    openNewNotebookFile();
+
+    // Ensure notebook is dirty right before clicking Run as Pipeline
+    cy.get('.cm-content').first().type('# test');
+
+    // Click submit notebook button
+    cy.findByText(/run as pipeline/i).click();
+
+    cy.findByRole('button', { name: /save and submit/i }).click();
+
+    cy.findByText(/run file as pipeline/i).should('exist');
+
+    // Dismiss  dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+
+    // Delete runtime configuration used for testing
+    cy.exec('elyra-metadata remove runtimes --name=kfp_test_runtime', {
+      failOnNonZeroExit: false
+    });
+  });
+});
+
+// ------------------------------
+// ----- Utility Functions
+// ------------------------------
+
+const openNewNotebookFile = (): void => {
+  cy.get(
+    '.jp-LauncherCard[data-category="Notebook"][title*="Python 3"]:visible'
+  )
+    .first()
+    .click();
+  // Wait for notebook to be ready
+  cy.get('.jp-Notebook', { timeout: 10000 }).should('exist');
+};

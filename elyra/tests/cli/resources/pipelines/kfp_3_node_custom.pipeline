@@ -1,0 +1,219 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "elyra-auto-generated-pipeline",
+  "primary_pipeline": "primary",
+  "pipelines": [
+    {
+      "id": "primary",
+      "nodes": [
+        {
+          "id": "4bde6fbe-3935-4fd8-a338-5d15d39d0ddc",
+          "type": "execution_node",
+          "op": "elyra-kfp-examples-catalog:a08014f9252f",
+          "app_data": {
+            "component_parameters": {
+              "url": {
+                "widget": "string",
+                "value": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/error.py"
+              },
+              "curl_options": {
+                "widget": "string",
+                "value": "--location"
+              },
+              "output_data": "",
+              "mounted_volumes": [],
+              "kubernetes_pod_annotations": []
+            },
+            "label": "",
+            "component_source": "{\"catalog_type\": \"elyra-kfp-examples-catalog\", \"component_ref\": {\"component-id\": \"download_data.yaml\"}}",
+            "ui_data": {
+              "label": "Download data",
+              "image": "/static/elyra/kubeflow.svg",
+              "x_pos": 84.00000762939453,
+              "y_pos": 90.5
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "ce91f17a-f5d7-497d-810a-1950260bf60e",
+          "type": "execution_node",
+          "op": "elyra-kfp-examples-catalog:737915b826e9",
+          "app_data": {
+            "component_parameters": {
+              "pattern": {
+                "widget": "string",
+                "value": ".*Error"
+              },
+              "output_filtered_text": "",
+              "mounted_volumes": [],
+              "kubernetes_pod_annotations": [],
+              "text": {
+                "widget": "inputpath",
+                "value": {
+                  "value": "4bde6fbe-3935-4fd8-a338-5d15d39d0ddc",
+                  "option": "output_data"
+                }
+              }
+            },
+            "component_description": "Filter input text according to the given regex pattern using shell and grep.",
+            "label": "",
+            "component_source": "{\"catalog_type\": \"elyra-kfp-examples-catalog\", \"component_ref\": {\"component-id\": \"filter_text_using_shell_and_grep.yaml\"}}",
+            "ui_data": {
+              "label": "Filter text",
+              "image": "/static/elyra/kubeflow.svg",
+              "x_pos": 291,
+              "y_pos": 189.5,
+              "description": "Filter input text according to the given regex pattern using shell and grep."
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "9c75642a-b391-44f6-97af-448569774584",
+                  "node_id_ref": "4bde6fbe-3935-4fd8-a338-5d15d39d0ddc",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "c44f244d-3ca1-4548-8cf0-a76c676849f1",
+          "type": "execution_node",
+          "op": "elyra-kfp-examples-catalog:d68ec7fcdf46",
+          "app_data": {
+            "component_parameters": {
+              "hash_algorithm": {
+                "widget": "string",
+                "value": "SHA256"
+              },
+              "output_hash": "",
+              "mounted_volumes": [],
+              "kubernetes_pod_annotations": [],
+              "data": {
+                "widget": "inputpath",
+                "value": {
+                  "value": "ce91f17a-f5d7-497d-810a-1950260bf60e",
+                  "option": "output_filtered_text"
+                }
+              }
+            },
+            "label": "",
+            "component_source": "{\"catalog_type\": \"elyra-kfp-examples-catalog\", \"component_ref\": {\"component-id\": \"calculate_hash.yaml\"}}",
+            "ui_data": {
+              "label": "Calculate data hash",
+              "image": "/static/elyra/kubeflow.svg",
+              "x_pos": 529,
+              "y_pos": 263.5
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "13bf1e1f-971e-4384-a937-dd78cca6d843",
+                  "node_id_ref": "ce91f17a-f5d7-497d-810a-1950260bf60e",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "version": 8,
+        "runtime_type": "KUBEFLOW_PIPELINES",
+        "properties": {
+          "pipeline_defaults": {},
+          "name": "kfp_3_node_custom",
+          "runtime": "Kubeflow Pipelines",
+          "description": "3-node custom component pipeline"
+        }
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

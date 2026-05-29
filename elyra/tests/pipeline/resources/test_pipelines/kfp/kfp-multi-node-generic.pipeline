@@ -1,0 +1,268 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "elyra-auto-generated-pipeline",
+  "primary_pipeline": "primary",
+  "pipelines": [
+    {
+      "id": "primary",
+      "nodes": [
+        {
+          "id": "c7ce204c-01d2-401d-a343-f95f7985bdd9",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "component_parameters": {
+              "dependencies": [],
+              "include_subdirectories": false,
+              "outputs": [],
+              "env_vars": [],
+              "kubernetes_pod_annotations": [],
+              "kubernetes_pod_labels": [],
+              "kubernetes_secrets": [],
+              "kubernetes_shared_mem_size": {},
+              "kubernetes_tolerations": [],
+              "mounted_volumes": [],
+              "filename": "consumer.ipynb"
+            },
+            "label": "consume a file",
+            "ui_data": {
+              "label": "consume a file",
+              "image": "/static/elyra/notebook.svg",
+              "x_pos": 539,
+              "y_pos": 121,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "c3769d35-5e3f-4d3a-b1c8-bc860ecc6f36",
+                  "node_id_ref": "06192cb4-1037-492c-a87c-bdadd869a649",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "06192cb4-1037-492c-a87c-bdadd869a649",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "component_parameters": {
+              "dependencies": [],
+              "include_subdirectories": false,
+              "outputs": [
+                "consumer_producer_output.csv"
+              ],
+              "env_vars": [],
+              "kubernetes_pod_annotations": [],
+              "kubernetes_pod_labels": [],
+              "kubernetes_secrets": [],
+              "kubernetes_shared_mem_size": {},
+              "kubernetes_tolerations": [],
+              "mounted_volumes": [],
+              "filename": "consumer-producer.ipynb"
+            },
+            "label": "",
+            "ui_data": {
+              "label": "consumer-producer.ipynb",
+              "image": "/static/elyra/notebook.svg",
+              "x_pos": 327,
+              "y_pos": 220,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "8f58dcc3-7aff-4593-8e6f-1ab816742b36",
+                  "node_id_ref": "f7ee2b31-58f4-4e15-853e-6c144b2cde0c",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "f7ee2b31-58f4-4e15-853e-6c144b2cde0c",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "component_parameters": {
+              "dependencies": [],
+              "include_subdirectories": false,
+              "outputs": [
+                "producer_output.csv"
+              ],
+              "env_vars": [],
+              "kubernetes_pod_annotations": [],
+              "kubernetes_pod_labels": [],
+              "kubernetes_secrets": [],
+              "kubernetes_shared_mem_size": {},
+              "kubernetes_tolerations": [],
+              "mounted_volumes": [],
+              "filename": "producer.ipynb",
+              "runtime_image": "tensorflow/tensorflow:2.8.0",
+              "cpu": 1,
+              "gpu": 2,
+              "memory": 3
+            },
+            "label": "produce a file",
+            "ui_data": {
+              "label": "produce a file",
+              "image": "/static/elyra/notebook.svg",
+              "x_pos": 107,
+              "y_pos": 123,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": [
+            {
+              "id": "f4c740cf-ebb3-4bc8-bfd6-cd58eb0a7b3e",
+              "x_pos": 61,
+              "y_pos": 33,
+              "width": 175,
+              "height": 44,
+              "content": "Creates file 'producer_output.csv'",
+              "associated_id_refs": [
+                {
+                  "node_ref": "f7ee2b31-58f4-4e15-853e-6c144b2cde0c"
+                }
+              ]
+            },
+            {
+              "id": "0f3804f0-b3c9-47f3-9e2d-25b26685092d",
+              "x_pos": 247.00000762939453,
+              "y_pos": 340,
+              "width": 326.9861145019531,
+              "height": 72.986083984375,
+              "content": "Reads file 'producer_output.csv'\nCreates file 'consumer_producer_output.csv'",
+              "associated_id_refs": [
+                {
+                  "node_ref": "06192cb4-1037-492c-a87c-bdadd869a649"
+                }
+              ]
+            },
+            {
+              "id": "ebf09b09-4461-4815-8183-fae46d32733a",
+              "x_pos": 608.9999694824219,
+              "y_pos": 33,
+              "width": 300.98614501953125,
+              "height": 44,
+              "content": "Reads file 'consumer_producer_output.csv'",
+              "associated_id_refs": [
+                {
+                  "node_ref": "c7ce204c-01d2-401d-a343-f95f7985bdd9"
+                }
+              ]
+            }
+          ]
+        },
+        "version": 8,
+        "runtime_type": "KUBEFLOW_PIPELINES",
+        "properties": {
+          "pipeline_defaults": {
+            "kubernetes_tolerations": [],
+            "kubernetes_pod_labels": [],
+            "kubernetes_pod_annotations": [],
+            "kubernetes_shared_mem_size": {},
+            "mounted_volumes": [],
+            "kubernetes_secrets": [],
+            "env_vars": [],
+            "runtime_image": "tensorflow/tensorflow:2.8.0"
+          },
+          "name": "kfp-multi-node-generic",
+          "runtime": "Kubeflow Pipelines",
+          "description": "This test pipeline contains multiple generic nodes that are dependent on each other."
+        }
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

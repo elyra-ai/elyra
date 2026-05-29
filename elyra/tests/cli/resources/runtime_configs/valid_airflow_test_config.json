@@ -1,0 +1,19 @@
+{
+  "display_name": "airflow test instance",
+  "metadata": {
+    "api_endpoint": "http://airflowhost:2222",
+    "github_repo": "test-org/test-repo",
+    "github_branch": "test-branch",
+    "github_repo_token": "test-token",
+    "cos_endpoint": "http://miniohost:3333",
+    "cos_bucket": "test-bucket-name",
+    "cos_username": "minio",
+    "cos_password": "minio123",
+    "user_namespace": "default",
+    "git_type": "GITHUB",
+    "github_api_endpoint": "https://api.github.com",
+    "cos_auth_type": "USER_CREDENTIALS",
+    "runtime_type": "APACHE_AIRFLOW"
+  },
+  "schema_name": "airflow"
+}

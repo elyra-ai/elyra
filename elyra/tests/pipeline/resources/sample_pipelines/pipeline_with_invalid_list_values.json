@@ -1,0 +1,53 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "c06ad0e7-8c86-462b-b3fc-a7d771f75707",
+  "primary_pipeline": "c06ad0e7-8c86-462b-b3fc-a7d771f75707",
+  "pipelines": [
+    {
+      "id": "c06ad0e7-8c86-462b-b3fc-a7d771f75707",
+      "nodes": [
+        {
+          "id": "{{uuid}}",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "label": "{{label}}",
+            "component_parameters": {
+              "filename": "{{filename}}",
+              "runtime_image": "{{runtime_image}}",
+              "env_vars": [
+                { "env_var": "var1", "value": "var1" },
+                { "env_var": "var2", "value": "var2" },
+                { "env_var": "" },
+                {},
+                null
+              ],
+              "dependencies": ["a.txt", "b.txt", "", null, "c.txt"],
+              "outputs": ["d.txt", null, "", "e.txt", "f.txt"]
+            },
+            "ui_data": {
+              "label": "{{label}}",
+              "x_pos": 112,
+              "y_pos": 97,
+              "description": "Notebook file"
+            }
+          }
+        }
+      ],
+      "app_data": {
+        "runtime": "{{runtime}}",
+        "runtime_config": "{{runtime-config}}",
+        "ui_data": {
+          "comments": []
+        },
+        "properties": {
+          "name": "{{name}}"
+        },
+        "version": 5
+      }
+    }
+  ],
+  "schemas": []
+}

@@ -1,0 +1,213 @@
+{
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/airflow.json",
+  "title": "Apache Airflow",
+  "name": "airflow",
+  "schemaspace": "runtimes",
+  "schemaspace_id": "130b8e00-de7c-4b32-b553-b4a52824a3b5",
+  "metadata_class_name": "elyra.pipeline.airflow.airflow_metadata.AirflowMetadata",
+  "runtime_type": "APACHE_AIRFLOW",
+  "uihints": {
+    "title": "Apache Airflow runtimes",
+    "icon": "elyra:runtimes",
+    "reference_url": "https://elyra.readthedocs.io/en/latest/user_guide/runtime-conf.html"
+  },
+  "properties": {
+    "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
+      "type": "string",
+      "const": "airflow"
+    },
+    "display_name": {
+      "title": "Display Name",
+      "description": "Display name of this Apache Airflow configuration",
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "description": "Additional data specific to this metadata",
+      "type": "object",
+      "properties": {
+        "runtime_type": {
+          "title": "Runtime Type",
+          "description": "The runtime associated with this instance",
+          "type": "string",
+          "const": "APACHE_AIRFLOW",
+          "uihints": {
+            "hidden": true
+          }
+        },
+        "description": {
+          "title": "Description",
+          "description": "Description of this Apache Airflow configuration",
+          "type": "string"
+        },
+        "api_endpoint": {
+          "title": "Apache Airflow UI Endpoint",
+          "description": "The Apache Airflow UI endpoint",
+          "type": "string",
+          "format": "uri",
+          "uihints": {
+            "category": "Apache Airflow",
+            "ui:placeholder": "https://your-airflow-webserver:port"
+          }
+        },
+        "user_namespace": {
+          "title": "Apache Airflow User Namespace",
+          "description": "The Apache Airflow user namespace used to run DAG workflows",
+          "type": "string",
+          "pattern": "^[a-z0-9][-a-z0-9]*[a-z0-9]$",
+          "maxLength": 63,
+          "default": "default",
+          "uihints": {
+            "category": "Apache Airflow"
+          }
+        },
+        "git_type": {
+          "title": "Git type",
+          "description": "Git provider",
+          "type": "string",
+          "enum": ["{GIT_TYPES_PLACEHOLDER}"],
+          "default": "{GIT_DEFAULT_TYPE_PLACEHOLDER}",
+          "uihints": {
+            "category": "Apache Airflow"
+          }
+        },
+        "github_api_endpoint": {
+          "title": "GitHub or Gitea or GitLab server API Endpoint",
+          "description": "The GitHub or Gitea or GitLab server URL / API endpoint - Public or Enterprise",
+          "type": "string",
+          "format": "uri",
+          "default": "https://api.github.com",
+          "uihints": {
+            "category": "Apache Airflow",
+            "ui:placeholder": "https://your-github-or-gitlab-endpoint"
+          }
+        },
+        "github_repo": {
+          "title": "GitHub or Gitea or GitLab DAG Repository",
+          "description": "Existing repository where DAGs are stored",
+          "type": "string",
+          "uihints": {
+            "category": "Apache Airflow",
+            "ui:placeholder": "user-or-org/dag-repo-name"
+          }
+        },
+        "github_branch": {
+          "title": "GitHub or Gitea or  GitLab DAG Repository Branch",
+          "description": "Existing branch in the repository where DAGs are stored",
+          "type": "string",
+          "uihints": {
+            "category": "Apache Airflow"
+          }
+        },
+        "github_repo_token": {
+          "title": "Personal Access Token",
+          "description": "Token that has permission to push to the DAG repository",
+          "type": "string",
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.password",
+            "category": "Apache Airflow"
+          }
+        },
+        "cos_endpoint": {
+          "title": "Cloud Object Storage Endpoint",
+          "description": "The Cloud Object Storage endpoint",
+          "type": "string",
+          "format": "uri",
+          "uihints": {
+            "category": "Cloud Object Storage",
+            "ui:placeholder": "https://your-cos-service:port"
+          }
+        },
+        "public_cos_endpoint": {
+          "title": "Public Cloud Object Storage Endpoint",
+          "description": "The public Cloud Object Storage endpoint",
+          "type": "string",
+          "format": "uri",
+          "uihints": {
+            "category": "Cloud Object Storage",
+            "ui:placeholder": "https://your-public-cos-endpoint:port"
+          }
+        },
+        "cos_bucket": {
+          "title": "Cloud Object Storage Bucket Name",
+          "description": "The Cloud Object Storage bucket name",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-.]*[a-z0-9]$",
+          "minLength": 3,
+          "maxLength": 222,
+          "uihints": {
+            "category": "Cloud Object Storage"
+          }
+        },
+        "cos_auth_type": {
+          "title": "Cloud Object Storage Authentication Type",
+          "description": "Authentication type Elyra uses to authenticate with Cloud Object Storage",
+          "type": "string",
+          "enum": [
+            "AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS",
+            "KUBERNETES_SECRET",
+            "USER_CREDENTIALS"
+          ],
+          "default": "USER_CREDENTIALS",
+          "uihints": {
+            "category": "Cloud Object Storage"
+          }
+        },
+        "cos_secret": {
+          "title": "Cloud Object Storage Credentials Secret",
+          "description": "Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password. This property is required for authentication type KUBERNETES_SECRET.",
+          "type": "string",
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.password",
+            "category": "Cloud Object Storage"
+          }
+        },
+        "cos_username": {
+          "title": "Cloud Object Storage Username",
+          "description": "The Cloud Object Storage username. This property is required for authentication type USER_CREDENTIALS and KUBERNETES_SECRET.",
+          "type": "string",
+          "uihints": {
+            "category": "Cloud Object Storage"
+          }
+        },
+        "cos_password": {
+          "title": "Cloud Object Storage Password",
+          "description": "The Cloud Object Storage password. This property is required for authentication type USER_CREDENTIALS and KUBERNETES_SECRET.",
+          "type": "string",
+          "minLength": 8,
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.password",
+            "category": "Cloud Object Storage"
+          }
+        },
+        "tags": {
+          "title": "Tags",
+          "description": "Tags for categorizing Apache Airflow",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "minLength": 1,
+            "pattern": "^[^ \t]+([ \t]+[^ \t]+)*$"
+          },
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.tags"
+          }
+        }
+      },
+      "required": [
+        "api_endpoint",
+        "cos_endpoint",
+        "cos_auth_type",
+        "cos_bucket",
+        "github_api_endpoint",
+        "github_branch",
+        "github_repo_token",
+        "github_repo"
+      ]
+    }
+  },
+  "required": ["schema_name", "display_name", "metadata"]
+}

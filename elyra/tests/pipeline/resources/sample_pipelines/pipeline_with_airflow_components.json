@@ -1,0 +1,147 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "66338755-bce9-4541-b595-b0210c943b38",
+  "primary_pipeline": "27fd7b90-42de-469a-9bcc-08ba82f48d48",
+  "pipelines": [
+    {
+      "id": "27fd7b90-42de-469a-9bcc-08ba82f48d48",
+      "nodes": [
+        {
+          "id": "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3",
+          "type": "execution_node",
+          "op": "local-file-catalog:8371f5970c7b:TestOperator",
+          "app_data": {
+            "label": "b",
+            "component_parameters": {
+              "mounted_volumes": {
+                "widget": "string",
+                "value": "a component-defined property"
+              },
+              "str_no_default": {
+                "widget": "file",
+                "value": "resources/sample_pipelines/pipeline_valid.json"
+              },
+              "bool_no_default": {
+                "widget": "boolean",
+                "value": true
+              },
+              "unusual_type_dict": {
+                "widget": "string",
+                "value": "{}"
+              },
+              "unusual_type_list": {
+                "widget": "string",
+                "value": "[1, 2]"
+              },
+              "int_default_non_zero": {
+                "widget": "number",
+                "value": 2
+              }
+            },
+            "ui_data": {
+              "label": "b",
+              "image": "/static/elyra/airflow.svg",
+              "x_pos": 352,
+              "y_pos": 137,
+              "description": "BashOperator"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "bb9473ca-12ec-0472-a36a-45bd2a1f6dc1",
+          "type": "execution_node",
+          "op": "local-file-catalog:8371f5970c7b:DeriveFromTestOperator",
+          "app_data": {
+            "label": "a",
+            "component_parameters": {
+              "mounted_volumes": []
+            },
+            "ui_data": {
+              "label": "a",
+              "image": "/static/elyra/airflow.svg",
+              "x_pos": 242,
+              "y_pos": 37,
+              "description": "BashOperator"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "version": 8,
+        "runtime": "airflow",
+        "runtime_config": "airflow-yukked1",
+        "runtime_type": "APACHE_AIRFLOW",
+        "properties": {
+          "name": "pipeline_with_airflow_components",
+          "runtime": "Apache Airflow",
+          "description": "This is a pipeline description that\nincludes newline characters\n\n\"\"\"Note that it also includes a help string\"\"\""
+        },
+        "name": "pipeline_with_custom_components",
+        "source": "pipeline_with_custom_components.json"
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

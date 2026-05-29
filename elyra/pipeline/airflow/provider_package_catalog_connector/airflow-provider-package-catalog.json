@@ -1,0 +1,91 @@
+{
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/pipeline/airflow/provider_package_catalog_connector/airflow-provider-package-catalog.json",
+  "title": "Apache Airflow provider package operator catalog",
+  "name": "airflow-provider-package-catalog",
+  "schemaspace": "component-catalogs",
+  "schemaspace_id": "8dc89ca3-4b90-41fd-adb9-9510ad346620",
+  "metadata_class_name": "elyra.pipeline.component_metadata.ComponentCatalogMetadata",
+  "uihints": {
+    "title": "Apache Airflow provider package operator catalog",
+    "icon": "",
+    "reference_url": "https://github.com/elyra-ai/elyra/tree/main/elyra/pipeline/airflow/provider_package_catalog_connector"
+  },
+  "properties": {
+    "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
+      "type": "string",
+      "const": "airflow-provider-package-catalog"
+    },
+    "display_name": {
+      "title": "Display Name",
+      "description": "Display name of this Component Catalog",
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "description": "Additional data specific to this metadata",
+      "type": "object",
+      "properties": {
+        "description": {
+          "title": "Description",
+          "description": "Description of this Component Catalog",
+          "type": "string",
+          "default": "Apache Airflow provider package operator catalog"
+        },
+        "runtime_type": {
+          "title": "Runtime",
+          "description": "List of runtime types this catalog supports",
+          "type": "string",
+          "enum": ["APACHE_AIRFLOW"],
+          "default": "APACHE_AIRFLOW"
+        },
+        "categories": {
+          "title": "Category Names",
+          "description": "Assign the operators in the catalog to one or more categories, to group them in the visual pipeline editor palette.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 18
+          },
+          "default": ["provider packages"],
+          "uihints": {
+            "category": "Component Categories"
+          }
+        },
+        "airflow_provider_package_download_url": {
+          "title": "Provider package download URL",
+          "description": "URL where the Airflow provider package wheel can be downloaded.",
+          "type": "string",
+          "format": "uri",
+          "uihints": {
+            "category": "Source",
+            "ui:placeholder": "https://host:port/path/provider_package.whl"
+          }
+        },
+        "auth_id": {
+          "title": "User Id",
+          "description": "User id that has read access for the specified URL resource",
+          "type": "string",
+          "minLength": 1,
+          "uihints": {
+            "category": "Source credentials"
+          }
+        },
+        "auth_password": {
+          "title": "Password",
+          "description": "Password or API key for the specified user id",
+          "type": "string",
+          "minLength": 1,
+          "uihints": {
+            "ui:field": "@elyra/metadata-extension:plugin.password",
+            "category": "Source credentials"
+          }
+        }
+      },
+      "required": ["runtime_type", "airflow_provider_package_download_url"]
+    }
+  },
+  "required": ["schema_name", "display_name", "metadata"]
+}

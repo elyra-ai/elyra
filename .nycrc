@@ -1,0 +1,12 @@
+{
+  "extends": "nyc-config-tsx",
+  "all": true,
+  "include": ["**/src/**/*.{ts,tsx}"],
+  "exclude": ["**/*.spec.ts", "tests/**/*"],
+  "reporter": ["text-summary", "cobertura"],
+  "check-coverage": true,
+  "lines": 70,
+  "functions": 60,
+  "branches": 50,
+  "statements": 70
+}

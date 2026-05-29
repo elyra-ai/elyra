@@ -1,0 +1,102 @@
+{% if airflow_major_version >= 3 %}
+from airflow.sdk import DAG
+{% else %}
+from airflow import DAG
+{% endif %}
+import pendulum
+
+args = {
+    'project_id' : '{{ pipeline_name }}',
+}
+
+dag = DAG(
+    dag_id='{{ pipeline_name }}',
+    default_args=args,
+    schedule='@once',
+    start_date=pendulum.today('UTC').add(days=-1),
+    catchup=False,
+    description="""
+{{ pipeline_description|replace("\"\"\"", "\\\"\\\"\\\"") }}
+    """,
+    is_paused_upon_creation={{ is_paused_upon_creation }},
+)
+
+{% for key, operation in operations_list.items() %}
+{% if not operation.is_generic_operator %}
+{% for import_statement in operation.imports %}
+{{import_statement}}
+{% endfor %}
+{% else %}
+from airflow.providers.cncf.kubernetes.secret import Secret
+from kubernetes.client import models as k8s
+from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+{% endif %}
+
+{% if operation.operator_source %}# Operator source: {{ operation.operator_source }}{% endif %}
+{% if not operation.is_generic_operator %}
+op_{{ operation.id|regex_replace }} = {{ operation.class_name }}(
+                                                           task_id='{{ operation.notebook|regex_replace }}',
+        {% for param, value in operation.component_props.items() %}
+                                                           {{ param }}={{ value }},
+        {% endfor %}
+                                                           executor_config={{ processor.render_elyra_owned_properties(operation.elyra_props) }},
+{% else %}
+op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.notebook|regex_replace }}',
+                                                            namespace='{{ user_namespace }}',
+                                                            image='{{ operation.runtime_image }}',
+        {% if operation.runtime_image_pull_secret %}
+                                                            image_pull_secrets='{{ operation.runtime_image_pull_secret }}',
+        {% endif %}
+                                                            cmds=['sh', '-c'],
+                                                            arguments=["{{ operation.argument_list }}"],
+                                                            task_id='{{ operation.notebook|regex_replace }}',
+                                                            env_vars={{ operation.pipeline_envs }},
+        {% if operation.cpu_request or operation.mem_request or operation.cpu_limit or operation.memory_limit or operation.gpu_limit %}
+                                                            container_resources=k8s.V1ResourceRequirements(
+                                                                requests={
+                                                                    {% if operation.cpu_request %}
+                                                                        'cpu': '{{ operation.cpu_request }}',
+                                                                    {% endif %}
+                                                                    {% if operation.mem_request %}
+                                                                        'memory': '{{ operation.mem_request }}G',
+                                                                    {% endif %}
+                                                                },
+                                                                limits={
+                                                                    {% if operation.cpu_limit %}
+                                                                        'cpu': '{{ operation.cpu_limit }}',
+                                                                    {% endif %}
+                                                                    {% if operation.memory_limit %}
+                                                                        'memory': '{{ operation.memory_limit }}G',
+                                                                    {% endif %}
+                                                                    {% if operation.gpu_limit %}
+                                                                        '{{ operation.gpu_vendor }}': '{{ operation.gpu_limit }}',
+                                                                    {% endif %}
+                                                                }
+                                                            ),
+        {% endif %}
+                                                            volumes=[{{ processor.render_volumes(operation.elyra_props) }}],
+                                                            volume_mounts=[{{ processor.render_mounts(operation.elyra_props) }}],
+                                                            secrets=[{{ processor.render_secrets(operation.elyra_props, cos_secret) }}],
+                                                            annotations={{ processor.render_annotations(operation.elyra_props) }},
+                                                            labels={{ processor.render_labels(operation.elyra_props) }},
+                                                            tolerations=[{{ processor.render_tolerations(operation.elyra_props) }}],
+                                                            in_cluster={{ in_cluster }},
+                                                            config_file={% if kube_config_path is string %}"{{ kube_config_path }}"{% else %}{{ kube_config_path }}{% endif %},
+{% endif %}
+                                                            dag=dag)
+    {% if operation.image_pull_policy %}
+        op_{{ operation.id|regex_replace }}.image_pull_policy = '{{ operation.image_pull_policy }}'
+    {% endif %}
+
+    {% if operation.doc %}
+        op_{{ operation.id|regex_replace }}.doc = """
+        {{ operation.doc|replace("\"\"\"", "\\\"\\\"\\\"") }}
+    """
+    {% endif %}
+
+    {% if operation.parent_operation_ids %}
+        {% for parent_operation_id in operation.parent_operation_ids %}
+            op_{{ operation.id|regex_replace }} << op_{{ parent_operation_id|regex_replace }}
+        {% endfor %}
+    {% endif %}
+{% endfor %}

@@ -1,0 +1,330 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "5c452288-b907-4b7a-936f-947ff980a4ab",
+  "primary_pipeline": "8c5afdd4-0717-40c6-9300-3d3474bf4f2c",
+  "pipelines": [
+    {
+      "id": "8c5afdd4-0717-40c6-9300-3d3474bf4f2c",
+      "nodes": [
+        {
+          "id": "bd1aabf1-9516-4644-b382-0c25e50054c8",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "label": "producer.ipynb",
+            "component_parameters": {
+              "filename": "producer.ipynb",
+              "runtime_image": "elyra/elyra-example-anaconda-py3:latest",
+              "env_vars": [
+                {
+                  "env_var": "NB_USER",
+                  "value": ""
+                }
+              ],
+              "include_subdirectories": false,
+              "outputs": [
+                "output-1.csv",
+                "output-2.csv"
+              ],
+              "dependencies": []
+            },
+            "ui_data": {
+              "label": "producer.ipynb",
+              "image": "/static/elyra/notebook.svg",
+              "x_pos": 508,
+              "y_pos": 61,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "3cc2bd19-0ce7-4480-86a0-c243f08a50d2",
+                  "node_id_ref": "dc46c891-d7e8-4d16-8441-75d369616232",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "242b42e7-7968-4977-b563-1b5c4822cea0",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "label": "consumer.ipynb",
+            "component_parameters": {
+              "filename": "consumer.ipynb",
+              "runtime_image": "elyra/elyra-example-anaconda-py3:latest",
+              "env_vars": [],
+              "include_subdirectories": false,
+              "outputs": [],
+              "dependencies": []
+            },
+            "ui_data": {
+              "label": "consumer.ipynb",
+              "image": "/static/elyra/notebook.svg",
+              "x_pos": 773,
+              "y_pos": 208,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "8777149e-5400-4b7e-bf73-8905ed9dcc28",
+                  "node_id_ref": "bd1aabf1-9516-4644-b382-0c25e50054c8",
+                  "port_id_ref": "outPort"
+                },
+                {
+                  "id": "8c0c3462-fa9a-4dfc-885f-aba36a0b41c9",
+                  "node_id_ref": "e40d29bf-a13b-4783-8bf2-df0c0373e0f3",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "10da9752-fcf6-48c3-a04a-1f3591bca592",
+          "type": "execution_node",
+          "op": "execute-python-node",
+          "app_data": {
+            "label": "setup.py",
+            "component_parameters": {
+              "filename": "../scripts/setup.py",
+              "runtime_image": "elyra/elyra-example-anaconda-py3:latest",
+              "include_subdirectories": false,
+              "outputs": [],
+              "env_vars": [],
+              "dependencies": [
+                "setup.txt"
+              ]
+            },
+            "ui_data": {
+              "label": "setup.py",
+              "image": "/static/elyra/py-logo.svg",
+              "x_pos": 38,
+              "y_pos": 247,
+              "description": "Run Python script"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "dc46c891-d7e8-4d16-8441-75d369616232",
+          "type": "execution_node",
+          "op": "execute-python-node",
+          "app_data": {
+            "label": "create-source-files.py",
+            "component_parameters": {
+              "filename": "create-source-files.py",
+              "runtime_image": "elyra/elyra-example-anaconda-py3:latest",
+              "include_subdirectories": false,
+              "outputs": [
+                "input-1.csv",
+                "input-2.csv"
+              ],
+              "env_vars": [],
+              "dependencies": []
+            },
+            "ui_data": {
+              "label": "create-source-files.py",
+              "image": "/static/elyra/py-logo.svg",
+              "x_pos": 265,
+              "y_pos": 173,
+              "description": "Run Python script"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "9589cd6b-6d4d-4ea5-954f-487880593a19",
+                  "node_id_ref": "10da9752-fcf6-48c3-a04a-1f3591bca592",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "e40d29bf-a13b-4783-8bf2-df0c0373e0f3",
+          "type": "execution_node",
+          "op": "execute-python-node",
+          "app_data": {
+            "label": "producer-script.py",
+            "component_parameters": {
+              "filename": "producer-script.py",
+              "runtime_image": "elyra/elyra-example-anaconda-py3:latest",
+              "include_subdirectories": false,
+              "outputs": [
+                "output-3.csv",
+                "output-4.csv"
+              ],
+              "env_vars": [],
+              "dependencies": []
+            },
+            "ui_data": {
+              "label": "producer-script.py",
+              "image": "/static/elyra/py-logo.svg",
+              "x_pos": 496,
+              "y_pos": 303,
+              "description": "Run Python script"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "99cde7b8-981f-4871-beb0-fa5b53d10bc2",
+                  "node_id_ref": "dc46c891-d7e8-4d16-8441-75d369616232",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "version": 8,
+        "properties": {
+          "name": "producer-consumer",
+          "runtime": "Generic"
+        }
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

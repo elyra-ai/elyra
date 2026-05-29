@@ -1,0 +1,96 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "title": "Pipeline Name",
+      "type": "string",
+      "uihints": {
+        "ui:readonly": true
+      }
+    },
+    "runtime": {
+      "title": "Pipeline Runtime",
+      "type": "string",
+      "uihints": {
+        "ui:readonly": true
+      }
+    },
+    "description": {
+      "title": "Pipeline Description",
+      "type": "string",
+      "uihints": {
+        "ui:placeholder": "Pipeline Description",
+        "ui:widget": "textarea"
+      }
+    },
+    "pipeline_defaults": {
+      "type": "object",
+      "properties": {
+        "cos_object_prefix": {
+          "title": "Object Storage path prefix",
+          "type": "string",
+          "description":
+            "For generic components, this path prefix is used when storing artifacts on Object Storage.",
+          "uihints": {
+            "ui:placeholder": "project/subproject"
+          }
+        },
+        {% if elyra_owned_properties %}
+        "node_defaults_header": {
+          "type": "null",
+          "title": "Node Defaults",
+          "description":
+            "Default values are applied to all nodes in this pipeline and can be customized in each node.",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        {% endif %}
+        {% for property in elyra_owned_properties %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }},
+        {% endfor %}
+        "generic_node_defaults_header": {
+          "type": "null",
+          "title": "Generic Node Defaults",
+          "description":
+            "Default values are applied to all generic nodes in this pipeline and can be customized in each node.",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        "runtime_image": {
+          "title": "Runtime Image",
+          "description": "Container image used as execution environment.",
+          "type": "string"
+        }
+        {% if elyra_owned_generic_properties %}
+        ,
+        {% endif %}
+        {% for property in elyra_owned_generic_properties %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }}
+          {% if loop.index != loop|length %}
+          ,
+          {% endif %}
+        {% endfor %}
+        {% if elyra_owned_custom_properties %}
+        ,
+        "custom_node_defaults_header": {
+          "type": "null",
+          "title": "Custom Node Defaults",
+          "description":
+              "Default values are applied to all custom nodes in this pipeline and can be customized in each node.",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        {% endif %}
+        {% for property in elyra_owned_custom_properties %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }}
+          {% if loop.index != loop|length %}
+          ,
+          {% endif %}
+        {% endfor %}
+      }
+    }
+  }
+}
