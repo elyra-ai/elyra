@@ -250,7 +250,7 @@ class SchemaspaceHandler(HttpErrorMixin, APIHandler):
 
 
 class SchemaspaceResourceHandler(HttpErrorMixin, APIHandler):
-    """Handler for retrieving schemaspace JSON info (id, display name and descripton) for a given schemaspace."""
+    """Handler for retrieving schemaspace JSON info (id, display name and description) for a given schemaspace."""
 
     @web.authenticated
     async def get(self, schemaspace):
