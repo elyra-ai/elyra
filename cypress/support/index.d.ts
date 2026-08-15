@@ -34,6 +34,7 @@ declare namespace Cypress {
     createPipeline(options?: {
       name?: string;
       type?: 'kfp' | 'airflow' | 'generic';
+      emptyPipeline?: string;
     }): Chainable<void>;
     savePipeline(): Chainable<void>;
     openFile(fileName: string): Chainable<void>;
