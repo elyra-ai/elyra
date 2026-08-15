@@ -36,6 +36,12 @@ const emptyPipeline = `{
   "schemas": []
 }`;
 
+// The tab of the document under test. JupyterLab puts jp-mod-dirty on the
+// widget's title, which renders on the tab, so this is where unsaved state is
+// visible -- same element savePipeline checks.
+const CURRENT_TAB_SELECTOR =
+  '#jp-main-dock-panel .lm-TabBar-tab.lm-mod-current';
+
 describe('Pipeline Editor tests', () => {
   beforeEach(() => {
     cy.deleteFiles([
@@ -862,6 +868,29 @@ describe('Pipeline Editor tests', () => {
 
     // Dismiss dialog
     cy.findByRole('button', { name: /cancel/i }).click();
+  });
+
+  it('exporting pipeline with unsaved changes should prompt to save', () => {
+    cy.installRuntimeConfig({ type: 'kfp' });
+
+    cy.openFile('generic-test.pipeline');
+    cy.get('.common-canvas-drop-div').should('be.visible');
+
+    // Adding a comment dirties the document without adding nodes, so the
+    // validation that runs ahead of the prompt still passes. Assert the dirty
+    // state so the prompt below has a precondition rather than a hope.
+    cy.findByRole('button', { name: /add comment/i }).click();
+    cy.get(CURRENT_TAB_SELECTOR).should('have.class', 'jp-mod-dirty');
+
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    cy.contains('.jp-Dialog-buttonLabel', /Save and Submit/i).click();
+
+    // Accepting the prompt saves, then carries on to the export dialog
+    cy.get('.jp-Dialog-header').contains('Export pipeline');
+    cy.findByRole('button', { name: /cancel/i }).click();
+
+    cy.get(CURRENT_TAB_SELECTOR).should('not.have.class', 'jp-mod-dirty');
   });
 
   it('generic pipeline toolbar should display expected runtime', () => {
