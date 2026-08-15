@@ -220,6 +220,9 @@ jobs:
       - name: Collect logs
         uses: actions/upload-artifact@v4
         if: failure()
+        # jupyter_builder writes extension build tracebacks to
+        # /tmp/jupyterlab-debug-*.log and only prints the path, so a failing
+        # `make build-ui-prod` is otherwise undiagnosable from the job log.
         with:
           name: elyra_test_artifacts-${{ matrix.name }}
           path: |
@@ -228,6 +231,7 @@ jobs:
             ${{ github.workspace }}/build/cypress/screenshots//**/*
             ${{ github.workspace }}/build/cypress/videos//**/*
             /home/runner/.npm/_logs/*.log
+            /tmp/jupyterlab-debug-*.log
 
   test-documentation-build:
     name: Test documentation build
