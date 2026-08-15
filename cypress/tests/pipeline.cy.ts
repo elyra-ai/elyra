@@ -771,6 +771,10 @@ describe('Pipeline Editor tests', () => {
 
     cy.installRuntimeConfig({ type: 'kfp' });
 
+    // Save again so the export dialog opens directly, without the prompt to
+    // save that Elyra shows when the editor is dirty.
+    cy.savePipeline();
+
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
     cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
@@ -785,6 +789,8 @@ describe('Pipeline Editor tests', () => {
     cy.savePipeline();
 
     cy.installRuntimeConfig({ type: 'airflow' });
+
+    cy.savePipeline();
 
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
@@ -827,6 +833,11 @@ describe('Pipeline Editor tests', () => {
     // Test Airflow export options
     cy.installRuntimeConfig({ type: 'airflow' });
 
+    // Elyra prompts to save before exporting whenever the editor is dirty.
+    // Installing a runtime configuration may or may not dirty the editor, so
+    // save first to make sure the export dialog opens directly.
+    cy.savePipeline();
+
     cy.findByRole('button', { name: /export pipeline/i }).click();
 
     // Validate all export options are available for airflow
@@ -840,9 +851,9 @@ describe('Pipeline Editor tests', () => {
     // Test KFP export options
     cy.installRuntimeConfig({ type: 'kfp' });
 
-    cy.findByRole('button', { name: /export pipeline/i }).click();
+    cy.savePipeline();
 
-    cy.contains('.jp-Dialog-buttonLabel', /Save and Submit/i).click();
+    cy.findByRole('button', { name: /export pipeline/i }).click();
 
     // Validate all export options are available for kfp
     cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');

@@ -221,24 +221,25 @@ Cypress.Commands.add('dragAndDropFileToPipeline', (name: string) => {
 });
 
 Cypress.Commands.add('savePipeline', (): void => {
-  cy.intercept('PUT', '**/api/contents/**').as('savePipelineFile');
+  // The Save Pipeline toolbar button is always enabled and calls
+  // DocumentContext.save(), which always writes to the contents API. So the
+  // save request can be waited on unconditionally, which is what keeps a
+  // following cy.readFile from racing the server-side write.
+  cy.intercept('PUT', /\/api\/contents\/.*\.pipeline/).as('savePipelineFile');
 
-  // Check if document has unsaved changes before clicking save
-  cy.document().then((doc) => {
-    const isDirty = doc.querySelector('.jp-Document.jp-mod-dirty') !== null;
+  cy.findByRole('button', { name: /save pipeline/i }).click();
 
-    cy.findByRole('button', { name: /save pipeline/i }).click();
+  // Wait for the server to finish writing the file
+  cy.wait('@savePipelineFile', { timeout: 20000 })
+    .its('response.statusCode')
+    .should('be.oneOf', [200, 201]);
 
-    if (isDirty) {
-      // Wait for the server to finish writing the file
-      cy.wait('@savePipelineFile');
-    }
-
-    // Confirm document is no longer dirty
-    cy.get('.jp-Document:not(.jp-mod-dirty)', { timeout: 10000 }).should(
-      'exist'
-    );
-  });
+  // Confirm the editor is no longer dirty. JupyterLab puts jp-mod-dirty on the
+  // widget's title, which renders on the tab -- never on the .jp-Document node.
+  cy.get('#jp-main-dock-panel .lm-TabBar-tab.lm-mod-current').should(
+    'not.have.class',
+    'jp-mod-dirty'
+  );
 });
 
 Cypress.Commands.add('openFile', (name: string): void => {
