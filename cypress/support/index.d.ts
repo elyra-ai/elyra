@@ -39,6 +39,7 @@ declare namespace Cypress {
     openFile(fileName: string): Chainable<void>;
     bootstrapFile(fileName: string): Chainable<void>;
     resetJupyterLab(): Chainable<void>;
+    shutdownAllKernels(): Chainable<void>;
     checkTabMenuOptions(fileType: string): Chainable<void>;
     closeTab(index: number): Chainable<void>;
     closeCurrentEditor(): Chainable<void>;

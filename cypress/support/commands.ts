@@ -255,7 +255,33 @@ Cypress.Commands.add('bootstrapFile', (name: string): void => {
   });
 });
 
+Cypress.Commands.add('shutdownAllKernels', (): void => {
+  // Deleting a session shuts down its kernel. The Jupyter API lives at the
+  // server root, while baseUrl points at /lab, so resolve against the origin.
+  const sessionsUrl = new URL(
+    '/api/sessions',
+    Cypress.config('baseUrl') ?? 'http://localhost:58888'
+  ).toString();
+
+  cy.request({ url: sessionsUrl, qs: { token: 'test' } }).then((response) => {
+    for (const session of response.body) {
+      cy.request({
+        method: 'DELETE',
+        url: `${sessionsUrl}/${session.id}`,
+        qs: { token: 'test' }
+      });
+    }
+  });
+});
+
 Cypress.Commands.add('resetJupyterLab', (): void => {
+  // `?reset` only resets the workspace layout: it closes tabs but leaves every
+  // kernel running, and the next page load reconnects to all of them. Left
+  // alone they accumulate across specs until a new notebook no longer reaches
+  // a live kernel. Shut them down before loading the page so the reconnects
+  // never happen.
+  cy.shutdownAllKernels();
+
   // open jupyterlab with a clean workspace
   cy.visit('?token=test&reset');
   cy.findByRole('tab', { name: /file browser/i, timeout: 25000 }).should(
