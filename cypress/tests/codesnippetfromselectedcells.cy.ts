@@ -16,6 +16,11 @@
 
 describe('Code snippet from cells tests', () => {
   beforeEach(() => {
+    // Each test creates another notebook, which JupyterLab names
+    // Untitled.ipynb, Untitled1.ipynb, ... Clear them so they do not pile up
+    // across these tests or the other specs sharing this shard's workspace.
+    cy.deleteFiles(['Untitled*.ipynb']);
+
     cy.resetJupyterLab();
 
     // Create new python notebook
@@ -26,6 +31,10 @@ describe('Code snippet from cells tests', () => {
     // Wait for notebook and kernel to be ready
     cy.get('.jp-Notebook', { timeout: 10000 }).should('exist');
     waitForKernelIdle();
+  });
+
+  afterEach(() => {
+    cy.deleteFiles(['Untitled*.ipynb']);
   });
 
   it('test empty cell', () => {
