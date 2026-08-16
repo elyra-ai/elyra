@@ -873,24 +873,42 @@ describe('Pipeline Editor tests', () => {
   it('exporting pipeline with unsaved changes should prompt to save', () => {
     cy.installRuntimeConfig({ type: 'kfp' });
 
-    cy.openFile('generic-test.pipeline');
-    cy.get('.common-canvas-drop-div').should('be.visible');
+    cy.createPipeline({ name: 'unsaved.pipeline', emptyPipeline });
 
-    // Adding a comment dirties the document without adding nodes, so the
-    // validation that runs ahead of the prompt still passes. Assert the dirty
-    // state so the prompt below has a precondition rather than a hope.
-    cy.findByRole('button', { name: /add comment/i }).click();
+    // Adding a node is a canvas edit, so it reaches onChange, which writes the
+    // new flow into the model and takes the document dirty. The empty pipeline
+    // snapshot test proves the round trip: it opens the same fixture, adds and
+    // deletes this notebook, and saves content the fixture does not carry.
+    cy.addFileToPipeline('helloworld.ipynb');
     cy.get(CURRENT_TAB_SELECTOR).should('have.class', 'jp-mod-dirty');
+
+    // Delete the node again. handleSubmission validates before it checks for
+    // unsaved changes, and a notebook node with no runtime image fails that
+    // validation, which would toast an error instead of prompting. An empty
+    // pipeline validates -- the invalid runtime config test above gets past
+    // this same check -- and the document stays dirty either way, because
+    // JupyterLab clears that flag on save, not on content matching disk.
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.findByText('helloworld.ipynb').rightclick();
+      cy.findByRole('menuitem', { name: /delete/i }).click();
+    });
+    cy.get(CURRENT_TAB_SELECTOR).should('have.class', 'jp-mod-dirty');
+
+    // Accepting the prompt saves, then carries on to the export dialog. Wait on
+    // the write rather than on the tab losing jp-mod-dirty: the save is the
+    // behaviour under test, and nothing else in this test writes a *.pipeline.
+    cy.intercept('PUT', /\/api\/contents\/.*\.pipeline/).as('savePipelineFile');
 
     cy.findByRole('button', { name: /export pipeline/i }).click();
 
     cy.contains('.jp-Dialog-buttonLabel', /Save and Submit/i).click();
 
-    // Accepting the prompt saves, then carries on to the export dialog
+    cy.wait('@savePipelineFile', { timeout: 20000 })
+      .its('response.statusCode')
+      .should('be.oneOf', [200, 201]);
+
     cy.get('.jp-Dialog-header').contains('Export pipeline');
     cy.findByRole('button', { name: /cancel/i }).click();
-
-    cy.get(CURRENT_TAB_SELECTOR).should('not.have.class', 'jp-mod-dirty');
   });
 
   it('generic pipeline toolbar should display expected runtime', () => {
