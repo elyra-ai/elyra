@@ -826,6 +826,7 @@ describe('Pipeline Editor tests', () => {
 
     // Test Airflow export options
     cy.installRuntimeConfig({ type: 'airflow' });
+    cy.savePipeline();
 
     cy.findByRole('button', { name: /export pipeline/i }).click();
 
@@ -839,10 +840,9 @@ describe('Pipeline Editor tests', () => {
 
     // Test KFP export options
     cy.installRuntimeConfig({ type: 'kfp' });
+    cy.savePipeline();
 
     cy.findByRole('button', { name: /export pipeline/i }).click();
-
-    cy.contains('.jp-Dialog-buttonLabel', /Save and Submit/i).click();
 
     // Validate all export options are available for kfp
     cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
@@ -850,6 +850,19 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
 
     // Dismiss dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+  });
+
+  it('exporting pipeline with unsaved changes should prompt to save', () => {
+    cy.installRuntimeConfig({ type: 'kfp' });
+    cy.createPipeline({ name: 'unsaved.pipeline', emptyPipeline });
+    cy.addFileToPipeline('helloworld.py');
+
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+    cy.contains('.jp-Dialog-buttonLabel', /Save and Submit/i).click();
+
+    // Accepting the prompt saves, then opens the export dialog
+    cy.get('.jp-Dialog-header').contains('Export pipeline');
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
