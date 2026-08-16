@@ -174,6 +174,22 @@ const getDisplayName = (
   return schema?.title;
 };
 
+/**
+ * Mark a document as holding unsaved changes.
+ *
+ * JupyterLab 4.6 moved the dirty flag onto the shared model and stopped
+ * raising it when content changes, so a document that is not a text file or a
+ * notebook has to mark itself dirty after every write it makes to the model
+ * (jupyterlab/jupyterlab#18739). Without this the tab shows no unsaved-changes
+ * marker, closing the editor does not warn, and the prompt to save before
+ * running or exporting a pipeline never appears.
+ *
+ * @param context - Document context whose model was just written to.
+ */
+const markDirty = (context: DocumentRegistry.Context): void => {
+  context.model.dirty = true;
+};
+
 interface IPipelineEditorWidgetProps {
   context: DocumentRegistry.Context;
   browserFactory: IDefaultFileBrowser;
@@ -461,9 +477,15 @@ const PipelineWrapper: React.FC<
         {}
     );
     if (contextRef.current.isReady) {
-      contextRef.current.model.fromString(
-        JSON.stringify(pipelineJson, null, 2)
-      );
+      // The canvas reports a change whenever it settles, including when it
+      // settles on what the model already holds -- selecting a node is enough.
+      // Writing that back would take a just-saved document dirty again, so
+      // only write when the content actually differs.
+      const content = JSON.stringify(pipelineJson, null, 2);
+      if (contextRef.current.model.toString() !== content) {
+        contextRef.current.model.fromString(content);
+        markDirty(contextRef.current);
+      }
     }
   }, []);
 
@@ -516,6 +538,9 @@ const PipelineWrapper: React.FC<
               contextRef.current.model.fromString(
                 JSON.stringify(migratedPipeline, null, 2)
               );
+              // The dialog above tells the user the migration is not complete
+              // until the pipeline is saved, so it has to look unsaved.
+              markDirty(contextRef.current);
             } catch (migrationError) {
               if (migrationError instanceof ComponentNotFoundError) {
                 showDialog({
@@ -1044,6 +1069,7 @@ const PipelineWrapper: React.FC<
           }
         }
         contextRef.current.model.fromJSON(newPipeline);
+        markDirty(contextRef.current);
       }
     });
   }, []);

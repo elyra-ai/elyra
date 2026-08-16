@@ -14,9 +14,27 @@
  * limitations under the License.
  */
 
+// The context menu item Elyra registers for `.jp-Cell`. It is registered with
+// isVisible: () => true, so once the extension has activated the item is
+// always in a cell's context menu -- only its enabled state varies.
+const SNIPPET_MENU_ITEM =
+  'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]';
+
 describe('Code snippet from cells tests', () => {
   beforeEach(() => {
+    // Each test creates another notebook, which JupyterLab names
+    // Untitled.ipynb, Untitled1.ipynb, ... Clear them so they do not pile up
+    // across these tests or the other specs sharing this shard's workspace.
+    cy.deleteFiles(['Untitled*.ipynb']);
+
     cy.resetJupyterLab();
+
+    // The code snippet extension registers its sidebar button and its cell
+    // context menu item in the same activate(), so waiting for the button is a
+    // precise signal that the menu item is registered too.
+    cy.get('.jp-SideBar [title*="Code Snippets"]', { timeout: 20000 }).should(
+      'exist'
+    );
 
     // Create new python notebook
     cy.get(
@@ -28,15 +46,16 @@ describe('Code snippet from cells tests', () => {
     waitForKernelIdle();
   });
 
+  afterEach(() => {
+    cy.deleteFiles(['Untitled*.ipynb']);
+  });
+
   it('test empty cell', () => {
     cy.get('.jp-Notebook').should('have.length', 1);
 
-    // Extension commands register asynchronously — use retry helper
-    openCellContextMenuWithSnippetItem();
+    openCellContextMenu();
 
-    cy.get(
-      'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
-    ).should('have.class', 'lm-mod-disabled');
+    cy.get(SNIPPET_MENU_ITEM).should('have.class', 'lm-mod-disabled');
   });
 
   it('test 1 cell', () => {
@@ -44,11 +63,11 @@ describe('Code snippet from cells tests', () => {
 
     cy.get('.jp-Notebook').should('have.length', 1);
 
-    openCellContextMenuWithSnippetItem();
+    openCellContextMenu();
 
-    cy.get(
-      'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
-    ).click();
+    cy.get(SNIPPET_MENU_ITEM)
+      .should('not.have.class', 'lm-mod-disabled')
+      .click();
 
     // Wait for snippet editor to open
     cy.get('.elyra-metadataEditor', { timeout: 10000 }).should('be.visible');
@@ -84,17 +103,13 @@ describe('Code snippet from cells tests', () => {
         shiftKey: true
       });
 
-    cy.get('div.lm-Widget.lm-Widget.jp-InputPrompt.jp-InputArea-prompt:visible')
-      .first()
-      .rightclick({
-        force: true
-      });
+    openCellContextMenu(
+      'div.lm-Widget.lm-Widget.jp-InputPrompt.jp-InputArea-prompt:visible'
+    );
 
-    openCellContextMenuWithSnippetItem();
-
-    cy.get(
-      'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
-    ).click();
+    cy.get(SNIPPET_MENU_ITEM)
+      .should('not.have.class', 'lm-mod-disabled')
+      .click();
 
     // Wait for snippet editor to open
     cy.get('.elyra-metadataEditor', { timeout: 10000 }).should('be.visible');
@@ -117,9 +132,14 @@ describe('Code snippet from cells tests', () => {
 // ----- Utility Functions
 // ------------------------------
 
-// Wait for kernel to reach idle status
+// Wait for the kernel of the notebook under test to reach idle status. Scoped
+// to the visible notebook panel: an unscoped [data-status="idle"] also matches
+// the status bar indicator and any other widget's, which reports idle while
+// this notebook is still connecting.
 const waitForKernelIdle = (): void => {
-  cy.get('[data-status="idle"]', { timeout: 30000 }).should('exist');
+  cy.get('.jp-NotebookPanel:visible [data-status="idle"]', {
+    timeout: 30000
+  }).should('exist');
 };
 
 // Populate cells by re-querying each by index to avoid stale DOM references
@@ -137,28 +157,16 @@ const populateCells = (): void => {
   });
 };
 
-// Retry opening context menu until the snippet command is registered.
-// Extension commands register asynchronously; the menu must be
-// re-opened to pick up newly available items.
-const openCellContextMenuWithSnippetItem = (maxRetries: number = 5): void => {
-  const attemptOpen = (remaining: number): void => {
-    cy.get('.jp-Cell').first().rightclick();
-    cy.get('ul.lm-Menu-content').should('exist');
-
-    cy.get('body').then(($body) => {
-      const hasItem =
-        $body.find(
-          'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
-        ).length > 0;
-
-      if (!hasItem && remaining > 0) {
-        // Dismiss menu and retry
-        cy.get('body').click(0, 0, { force: true });
-        cy.get('ul.lm-Menu-content').should('not.exist');
-        attemptOpen(remaining - 1);
-      }
-    });
-  };
-
-  attemptOpen(maxRetries);
+// Open a cell's context menu. Callers then assert on SNIPPET_MENU_ITEM, and
+// cy.get retries that query, which covers the extension registering its item
+// slightly after the page settles. force: true fires the event on the cell
+// itself, so the menu is always anchored on the .jp-Cell that Elyra's item is
+// registered against, whatever floats above it.
+//
+// Never dismiss a menu by clicking page coordinates: body (0, 0) lands on
+// JupyterLab's menu bar, and Lumino menu bars track the pointer once open, so
+// follow-up clicks walk into File > New > Notebook and Kernel > Interrupt.
+const openCellContextMenu = (target: string = '.jp-Cell'): void => {
+  cy.get(target).first().rightclick({ force: true });
+  cy.get('ul.lm-Menu-content').should('be.visible');
 };
