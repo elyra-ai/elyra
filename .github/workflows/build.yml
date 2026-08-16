@@ -112,7 +112,10 @@ jobs:
         run: |
           python3 ./.github/workflows/scripts/fetch_packages_metadata.py $days
       - name: Upload coverage reports to Codecov
-        if: ${{ matrix.python-version == env.PYTHON_VERSION }}
+        # always() so a failing test job still reports what it covered. Without
+        # it the upload is skipped, the flag's report goes missing, and Codecov
+        # reads that as a coverage drop on top of the test failure.
+        if: ${{ always() && matrix.python-version == env.PYTHON_VERSION }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -153,6 +156,7 @@ jobs:
       - name: Test
         run: make test-ui-unit
       - name: Upload coverage reports to Codecov
+        if: always()
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -212,6 +216,10 @@ jobs:
           CYPRESS_SPEC: ${{ matrix.spec }}
         run: make test-integration
       - name: Upload coverage reports to Codecov
+        # nyc writes the report even when the Cypress run fails, so upload it
+        # either way: a skipped upload drops this shard from the totals and
+        # shows up as a coverage regression rather than a test failure.
+        if: always()
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -220,6 +228,9 @@ jobs:
       - name: Collect logs
         uses: actions/upload-artifact@v4
         if: failure()
+        # jupyter_builder writes extension build tracebacks to
+        # /tmp/jupyterlab-debug-*.log and only prints the path, so a failing
+        # `make build-ui-prod` is otherwise undiagnosable from the job log.
         with:
           name: elyra_test_artifacts-${{ matrix.name }}
           path: |
@@ -228,6 +239,7 @@ jobs:
             ${{ github.workspace }}/build/cypress/screenshots//**/*
             ${{ github.workspace }}/build/cypress/videos//**/*
             /home/runner/.npm/_logs/*.log
+            /tmp/jupyterlab-debug-*.log
 
   test-documentation-build:
     name: Test documentation build

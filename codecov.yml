@@ -1,0 +1,65 @@
+# Codecov configuration for Elyra.
+#
+# Every value below is derived from what the repository already does or
+# already enforces, rather than introducing a new standard:
+#
+#   - the patch target matches the line/statement floor .nycrc already
+#     enforces for the UI packages (lines 70, statements 70)
+#   - the project threshold absorbs the rounding drift seen on real PRs
+#     (a three-line change moves the total by ~0.01%), which currently
+#     fails because an absent config means a 0% threshold
+#   - the flags match the three Cypress shards defined in build.yml
+#
+# Reference: https://docs.codecov.com/docs/codecovyml-reference
+
+codecov:
+  require_ci_to_pass: true
+
+coverage:
+  precision: 2
+  round: down
+  # Lower bound is the branch floor .nycrc enforces; upper bound is roughly
+  # where the project total sits today (~84%).
+  range: '50...85'
+
+  status:
+    project:
+      default:
+        # Compare against the base commit rather than a fixed number, so the
+        # bar tracks the project instead of needing to be edited.
+        target: auto
+        # Observed drift on small PRs is ~0.01-0.02%. This leaves room for
+        # that and for a shard reporting slightly differently, while still
+        # catching a real regression.
+        threshold: 0.5%
+        if_ci_failed: error
+    patch:
+      default:
+        # Codecov defaults this to `auto`, i.e. the project total (~84%),
+        # which is a stricter bar for new code than the project has ever
+        # enforced anywhere. 70% is the floor .nycrc already requires.
+        target: 70%
+        # New code that no test touches at all should still fail.
+        if_ci_failed: error
+
+# Cypress runs as three sharded jobs. When one shard fails to upload, its
+# share of the report goes missing and Codecov reads the gap as a coverage
+# drop -- the problem the `always()` conditions in build.yml work around.
+# Carrying the last known report forward for a missing flag addresses that
+# at the source.
+flag_management:
+  default_rules:
+    carryforward: true
+
+flags:
+  integration-pipeline:
+    carryforward: true
+  integration-editors:
+    carryforward: true
+  integration-misc:
+    carryforward: true
+
+comment:
+  layout: 'reach, diff, flags, files'
+  behavior: default
+  require_changes: false
