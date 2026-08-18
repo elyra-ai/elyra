@@ -106,7 +106,22 @@ export class ScriptRunner {
       return;
     }
 
-    const future = this.sessionConnection.kernel.requestExecute({ code });
+    const kernel = this.sessionConnection.kernel;
+
+    // Wait for the kernel connection to be live before executing. startSession
+    // resolves while the connection is still 'connecting', and a requestExecute
+    // issued in that window is only queued client-side. If that queue is not
+    // flushed the execute reply never arrives, `future.done` stays pending
+    // forever, and the run button is never re-enabled. Awaiting `info` gates on
+    // the kernel_info reply, which arrives only once the connection is up.
+    try {
+      await kernel.info;
+    } catch (e) {
+      await this.errorDialog(SESSION_ERROR_MSG);
+      return;
+    }
+
+    const future = kernel.requestExecute({ code });
 
     future.onIOPub = (msg: IIOPubMessage): void => {
       const msgType = msg.header.msg_type;
@@ -144,9 +159,13 @@ export class ScriptRunner {
       // TO DO: Keep session open but shut down kernel
       // this.interruptKernel(); // debugger is not triggered after this
       // this.shutdownKernel(); // also shuts down session for some reason
-      this.disableButton(false);
     } catch (e) {
       console.log('Exception: done = ' + JSON.stringify(e));
+    } finally {
+      // Re-enable on every path. Previously this only ran when `future.done`
+      // resolved, so a failed execution left the run button disabled with no
+      // way to recover short of reopening the editor.
+      this.disableButton(false);
     }
   };
 
