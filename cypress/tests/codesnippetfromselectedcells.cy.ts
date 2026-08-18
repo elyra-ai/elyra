@@ -41,9 +41,17 @@ describe('Code snippet from cells tests', () => {
       '.jp-LauncherCard[data-category="Notebook"][title="Python 3 (ipykernel)"]'
     ).click();
 
-    // Wait for notebook and kernel to be ready
+    // Wait for the notebook's editor to be ready to accept input.
+    //
+    // Deliberately not a kernel-status wait: none of these tests execute a
+    // cell, so nothing they assert depends on a live kernel. Waiting on kernel
+    // status coupled them to kernel lifecycle, and they failed whenever the
+    // notebook's kernel disconnected -- the panel then reports "No Kernel"
+    // rather than any [data-status], so such a wait can only ever time out.
     cy.get('.jp-Notebook', { timeout: 10000 }).should('exist');
-    waitForKernelIdle();
+    cy.get('.jp-Notebook:visible .jp-Cell .jp-InputArea .cm-editor', {
+      timeout: 30000
+    }).should('exist');
   });
 
   afterEach(() => {
@@ -90,7 +98,9 @@ describe('Code snippet from cells tests', () => {
       '.jp-NotebookPanel-toolbar > div:nth-child(2) > jp-button:nth-child(1)'
     ).click();
 
-    waitForKernelIdle();
+    // Wait for the observable effect of that click -- the second cell -- rather
+    // than for kernel status, which inserting a cell does not change.
+    cy.get('.jp-Notebook:visible .jp-Cell').should('have.length', 2);
 
     populateCells();
 
@@ -131,16 +141,6 @@ describe('Code snippet from cells tests', () => {
 // ------------------------------
 // ----- Utility Functions
 // ------------------------------
-
-// Wait for the kernel of the notebook under test to reach idle status. Scoped
-// to the visible notebook panel: an unscoped [data-status="idle"] also matches
-// the status bar indicator and any other widget's, which reports idle while
-// this notebook is still connecting.
-const waitForKernelIdle = (): void => {
-  cy.get('.jp-NotebookPanel:visible [data-status="idle"]', {
-    timeout: 30000
-  }).should('exist');
-};
 
 // Populate cells by re-querying each by index to avoid stale DOM references
 const populateCells = (): void => {
