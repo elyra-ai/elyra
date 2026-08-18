@@ -149,11 +149,16 @@ dev-dependencies:
 yarn-install:
 	yarn install
 
+# Each package's build shells out to `jupyter labextension build`, which runs
+# `jlpm` against the hoisted node_modules at the repo root. Concurrent builds
+# therefore race on node_modules/.yarn-state.yml and intermittently fail with
+# "ENOENT: no such file or directory, unlink '.../.yarn-state.yml'". Serialize
+# them, as test:unit already does in package.json.
 build-ui-prod: ## Build UI packages for production
-	lerna run build:prod --stream
+	lerna run build:prod --concurrency 1 --stream
 
 build-ui-dev: ## Build UI packages for development
-	lerna run build --stream
+	lerna run build --concurrency 1 --stream
 
 package-ui-prod: build-dependencies yarn-install lint-ui build-ui-prod ## Package UI for production
 
