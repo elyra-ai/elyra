@@ -44,6 +44,9 @@ env:
   NODE_VERSION: 22
   PYTHON_VERSION: 3.13
   NODE_OPTIONS: '--max_old_space_size=4096'
+  # Applies to every pip invocation in every job, including those reached
+  # indirectly through make. See .github/ci-constraints.txt for why.
+  PIP_CONSTRAINT: ${{ github.workspace }}/.github/ci-constraints.txt
 
 jobs:
   lint-server:
@@ -94,6 +97,7 @@ jobs:
             build_requirements.txt
             lint_requirements.txt
             test_requirements.txt
+            .github/ci-constraints.txt
       - name: Install
         # Note: Tests fail if we don't install `wheel` for some reason.
         run: |
@@ -137,6 +141,7 @@ jobs:
             build_requirements.txt
             lint_requirements.txt
             test_requirements.txt
+            .github/ci-constraints.txt
       - uses: actions/cache@v4
         with:
           path: |
@@ -192,6 +197,7 @@ jobs:
             build_requirements.txt
             lint_requirements.txt
             test_requirements.txt
+            .github/ci-constraints.txt
       - uses: actions/cache@v4
         with:
           path: |
@@ -296,6 +302,7 @@ jobs:
             build_requirements.txt
             lint_requirements.txt
             test_requirements.txt
+            .github/ci-constraints.txt
       - uses: actions/cache@v4
         with:
           path: |

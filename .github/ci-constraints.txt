@@ -1,0 +1,20 @@
+# CI-only pip constraints. Deliberately not in pyproject.toml: this caps what
+# CI resolves without changing the published package metadata.
+#
+# ipykernel is not pinned by Elyra at all -- it arrives transitively via
+# jupyterlab~=4.4, whose constraint (ipykernel!=6.30.0,>=6.5.0) has no upper
+# bound. CI therefore floated to 7.x while development environments stayed on
+# 6.x, and kernel-dependent tests began failing intermittently.
+#
+# ipykernel 7's asyncio rewrite silently drops shell messages, so the kernel
+# accepts the connection, emits iopub_welcome, and then never replies to
+# kernel_info_request. Anything waiting for the kernel to become ready waits
+# forever. Observed in CI as the @elyra/script-editor jest suite hitting its
+# 180s timeout, and as Cypress timing out on [data-status="idle"] with the
+# notebook panel reporting "No Kernel" / "Disconnected".
+#
+# The same failure has been seen from Enterprise Gateway, there against
+# jupyter_client 6.1.12 signed sessions.
+#
+# Remove this cap once ipykernel 7.x handles the exchange correctly.
+ipykernel!=6.30.0,>=6.5.0,<7
