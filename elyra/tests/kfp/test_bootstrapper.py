@@ -505,19 +505,19 @@ def test_fail_bad_notebook_main_method(monkeypatch, s3_setup, tmpdir):
 
 def test_package_installation(monkeypatch, virtualenv):
     elyra_packages = {
-        "ipykernel": "5.3.0",
+        "ipykernel": "6.31.0",
         "ansiwrap": "0.8.4",
-        "packaging": "20.0",
+        "packaging": "23.0",
     }
     current_packages = {
         "bleach": "3.1.5",
         "ansiwrap": "0.7.0",
-        "packaging": "20.4",
+        "packaging": "24.0",
     }
     expected_packages = {
-        "ipykernel": "5.3.0",
+        "ipykernel": "6.31.0",
         "ansiwrap": "0.8.4",
-        "packaging": "20.4",
+        "packaging": "24.0",
     }
 
     mocked_func = mock.Mock(side_effect=[elyra_packages, current_packages])
@@ -527,7 +527,7 @@ def test_package_installation(monkeypatch, virtualenv):
 
     virtualenv.run("python3 -m pip install bleach==3.1.5")
     virtualenv.run("python3 -m pip install ansiwrap==0.7.0")
-    virtualenv.run("python3 -m pip install packaging==20.4")
+    virtualenv.run("python3 -m pip install packaging==24.0")
 
     bootstrapper.OpUtil.package_install(user_volume_path=None)
     virtualenv_packages = {}
@@ -550,7 +550,7 @@ def test_package_installation(monkeypatch, virtualenv):
 def test_package_installation_with_target_path(monkeypatch, virtualenv, tmpdir):
     # TODO : Need to add test for direct-source e.g. ' @ '
     elyra_packages = {
-        "ipykernel": "5.3.0",
+        "ipykernel": "6.31.0",
         "ansiwrap": "0.8.4",
         "packaging": "22.0",
     }
@@ -560,7 +560,7 @@ def test_package_installation_with_target_path(monkeypatch, virtualenv, tmpdir):
         "packaging": "21.0",
     }
     expected_packages = {
-        "ipykernel": "5.3.0",
+        "ipykernel": "6.31.0",
         "ansiwrap": "0.8.4",
         "packaging": "22.0",
     }
