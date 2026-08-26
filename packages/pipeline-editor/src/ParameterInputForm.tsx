@@ -54,13 +54,20 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
             ? true
             : undefined;
         let type = 'text';
+        let step: string | undefined = undefined;
         switch (param.default_value?.type) {
           case 'Bool':
             type = 'checkbox';
             break;
           case 'Float':
+            type = 'number';
+            break;
           case 'Integer':
             type = 'number';
+            // Restrict this field to whole numbers. `pattern` is not
+            // supported on type="number" inputs, so `step` is the
+            // correct way to prevent decimal input here.
+            step = '1';
             break;
         }
         if (type === 'checkbox') {
@@ -111,6 +118,7 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
               id={`${param.name}-paramInput`}
               name={`${param.name}-paramInput`}
               type={type}
+              step={step}
               placeholder={param.default_value?.value as string | undefined}
               data-form-required={required}
             />
