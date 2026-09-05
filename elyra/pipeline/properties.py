@@ -1271,10 +1271,33 @@ class PipelineParameter(ElyraPropertyListItem):
         self.default_value = None
         if isinstance(default_value, dict):
             if default_value.get("value") not in [None, ""]:
-                self.default_value = default_value.get("value")
+                self.default_value = self._coerce_to_selected_type(default_value.get("value"))
 
         # Assign value, if set; use default_value if not
-        self.value = value if value not in [None, ""] else self.default_value
+        self.value = self._coerce_to_selected_type(value) if value not in [None, ""] else self.default_value
+
+    def _coerce_to_selected_type(self, value: Any) -> Any:
+        """
+        Coerce 'value' to the numeric Python type implied by self.selected_type.
+
+        Without this, a whole-number value for a 'Float'-typed parameter (e.g. the
+        exact-zero default 0.0, or any value that arrived as the plain string "0")
+        is stored and later exported as a Python int rather than a float, so its
+        JSON representation loses the decimal point (0 instead of 0.0) even though
+        the user explicitly declared the parameter type as Float. 'Integer' values
+        that arrived as numeric strings are normalized the same way for symmetry.
+        """
+        if self.selected_type == "Float":
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                return value
+        if self.selected_type == "Integer":
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                return value
+        return value
 
     def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
         """
