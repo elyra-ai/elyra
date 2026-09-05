@@ -84,3 +84,54 @@ def test_pipelineparameter_constructor():
                 assert pp.value == parm_value
                 assert pp.default_value is None
                 assert pp.required == parm_required
+
+
+def test_pipelineparameter_float_type_value_coercion():
+    """
+    Verify that 'Float'-typed parameter values are always stored as a Python
+    float, and 'Integer'-typed values always as a Python int, regardless of
+    whether the raw value arrived as an int, a float, or a numeric string.
+
+    Without this coercion a whole-number 'Float' value (e.g. a default of
+    0.0, or any value that arrives as the plain string "0") is stored as a
+    Python int and later exported with its decimal point dropped (0 instead
+    of 0.0), even though the parameter was explicitly declared as Float.
+    See: https://github.com/elyra-ai/elyra/issues/3088
+    """
+    parm_name = "parm3"
+    parm_description = "parm3 description"
+
+    # 'Float' default values: int, string, and float inputs must all end up
+    # as an actual Python float, including the exact-zero case from #3088.
+    for raw_default in [0, "0", 0.0, "0.0", 3, "3", 3.14, "3.14"]:
+        default_value = {"type": "Float", "value": raw_default}
+        pp = PipelineParameter(parm_name, parm_description, "", default_value, False)
+        assert isinstance(pp.default_value, float)
+        assert pp.default_value == float(raw_default)
+        # No custom value was provided, so 'value' falls back to 'default_value'
+        # and must be coerced the same way.
+        assert isinstance(pp.value, float)
+        assert pp.value == float(raw_default)
+
+    # A custom 'value' passed directly (not via default_value) must be coerced too.
+    default_value = {"type": "Float", "value": ""}
+    pp = PipelineParameter(parm_name, parm_description, "0", default_value, False)
+    assert isinstance(pp.value, float)
+    assert pp.value == 0.0
+
+    # 'Integer' values arriving as numeric strings are normalized the same way.
+    for raw_default in [0, "0", 5, "5"]:
+        default_value = {"type": "Integer", "value": raw_default}
+        pp = PipelineParameter(parm_name, parm_description, "", default_value, False)
+        assert isinstance(pp.default_value, int)
+        assert pp.default_value == int(raw_default)
+
+    # Non-numeric types are left untouched: coercion only applies to Float/Integer.
+    default_value = {"type": "String", "value": "0"}
+    pp = PipelineParameter(parm_name, parm_description, "", default_value, False)
+    assert pp.default_value == "0"
+    assert isinstance(pp.default_value, str)
+
+    default_value = {"type": "Bool", "value": True}
+    pp = PipelineParameter(parm_name, parm_description, "", default_value, False)
+    assert pp.default_value is True
