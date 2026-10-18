@@ -59,7 +59,7 @@ etc/                    # Docker, Kubernetes, and deployment configs
 ## Tech Stack
 
 - **Backend:** Python 3.10+, Jupyter Server, Tornado
-- **Frontend:** TypeScript, JupyterLab 4.x, React
+- **Frontend:** TypeScript, JupyterLab 4.6.0+, React
 - **Build:** Hatchling (Python), Lerna + Yarn (JS), Makefile orchestration
 - **Testing:** pytest (backend), Jest (frontend unit), Cypress (integration)
 - **Linting:** ruff/black (Python), ESLint + Prettier (TypeScript)
@@ -116,6 +116,24 @@ make lint
 - The same constraint applies to any other dependency in this
   package that goes ESM-only; verify CJS support before accepting
   major version bumps.
+- **Extension builder (all `packages/*`):** Extensions are built with
+  `@jupyter/builder` / `jupyter-builder build`, not the legacy
+  `@jupyterlab/builder` / `jupyter labextension build`. The new builder
+  resolves JupyterLab core metadata from the `@jupyterlab/core-meta`
+  package it installs into `node_modules`; with the legacy marker it
+  instead queries npm and the unauthenticated GitHub tags API, which is
+  rate-limited on CI runners and breaks the build. **Do not reintroduce
+  `@jupyterlab/builder`.**
+- **Minimum supported JupyterLab (currently 4.6.0):** The builder copies
+  each shared module's `requiredVersion` from the core metadata, so the
+  `@jupyterlab/core-meta` pin in the root `package.json` `resolutions`
+  *is* the runtime floor, regardless of the `@jupyterlab/*` ranges the
+  packages declare. When changing the floor, update together: that pin,
+  the `@jupyterlab/*` ranges in `packages/*/package.json`, and the
+  `jupyterlab` pins in `pyproject.toml` and `build_requirements.txt`.
+  CI does not test against the floor release: TypeScript compiles
+  against the `@jupyterlab/*` versions in `yarn.lock`, so avoid APIs
+  newer than the floor.
 
 ### General
 

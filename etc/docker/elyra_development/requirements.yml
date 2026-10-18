@@ -2,4 +2,4 @@ name: elyra-env
 dependencies:
   - python>=3.11
   - pip:
-    - jupyterlab==4.2.5
+    - jupyterlab==4.6.4

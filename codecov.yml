@@ -14,6 +14,12 @@
 
 codecov:
   require_ci_to_pass: true
+  notify:
+    # One CI run uploads 5 reports: test-ui, test-server (PYTHON_VERSION
+    # only) and the three Cypress shards. Without this, Codecov posts as soon
+    # as the first uploads land and reads the missing ones as a large
+    # coverage drop. Keep in sync with the codecov-action steps in build.yml.
+    after_n_builds: 5
 
 coverage:
   precision: 2
@@ -60,6 +66,8 @@ flags:
     carryforward: true
 
 comment:
+  # Same as codecov.notify.after_n_builds: wait for every upload.
+  after_n_builds: 5
   layout: 'reach, diff, flags, files'
   behavior: default
   require_changes: false
