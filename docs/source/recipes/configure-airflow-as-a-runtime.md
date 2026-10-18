@@ -30,7 +30,7 @@ This guide assumes a general working knowledge of and administration of a Kubern
 ## Prerequisites
   
 - A private git repository on github.com, GitHub Enterprise, gitlab.com, or GitLab Enterprise that is used to store DAGs.
-- S3-based cloud object storage e.g. IBM Cloud Object Storage, Amazon S3, MinIO
+- S3-based cloud object storage e.g. IBM Cloud Object Storage, Amazon S3, SeaweedFS, MinIO
 
 AND  
   

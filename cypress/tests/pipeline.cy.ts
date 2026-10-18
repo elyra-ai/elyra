@@ -591,7 +591,7 @@ describe('Pipeline Editor tests', () => {
       .select('KFP static configuration file (YAML formatted)')
       .should('have.value', 'yaml');
 
-    // actual export requires minio
+    // actual export requires the S3 test server
     cy.contains('Ok').click();
 
     // validate job was executed successfully, this can take a while in ci
@@ -625,7 +625,7 @@ describe('Pipeline Editor tests', () => {
       .select('Python DSL')
       .should('have.value', 'py');
 
-    // actual export requires minio
+    // actual export requires the S3 test server
     cy.contains('Ok').click();
 
     // validate job was executed successfully, this can take a while in ci
@@ -663,7 +663,7 @@ describe('Pipeline Editor tests', () => {
       .check()
       .should('be.checked');
 
-    // actual export requires minio
+    // actual export requires the S3 test server
     cy.contains('Ok').click();
 
     // validate job was executed successfully, this can take a while in ci
@@ -700,7 +700,7 @@ describe('Pipeline Editor tests', () => {
     // customize filename by appending "-custom"
     cy.findByLabelText(/export filename/i).type('-custom');
 
-    // actual export requires minio
+    // actual export requires the S3 test server
     cy.contains('Ok').click();
 
     // validate job was executed successfully, this can take a while in ci

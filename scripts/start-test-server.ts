@@ -23,16 +23,23 @@ const jupyter = exec(`jupyter lab --config ${config}`);
 
 const CONTAINER_NAME = 'minio_test';
 
+// S3-compatible object store for pipeline tests. SeaweedFS replaces MinIO,
+// which no longer publishes container images; host port 9000 maps to its S3
+// port so the endpoints used by the tests are unchanged.
 const docker = spawn('docker', [
   'run',
   '--rm',
   '--name',
   CONTAINER_NAME,
   '-p',
-  '9000:9000',
-  'minio/minio',
-  'server',
-  '/data'
+  '9000:8333',
+  '-e',
+  'AWS_ACCESS_KEY_ID=minioadmin',
+  '-e',
+  'AWS_SECRET_ACCESS_KEY=minioadmin',
+  'ghcr.io/chrislusf/seaweedfs:4.48',
+  'mini',
+  '-dir=/data'
 ]);
 
 const logDir = path.join(__dirname, '..', 'build', 'cypress');

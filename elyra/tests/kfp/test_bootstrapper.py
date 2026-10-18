@@ -27,6 +27,8 @@ from tempfile import TemporaryFile
 import time
 from typing import Optional
 from unittest import mock
+import urllib.error
+import urllib.request
 
 import minio
 import nbformat
@@ -37,8 +39,10 @@ from elyra.kfp import bootstrapper
 
 # To run this test from an IDE:
 # 1. set PYTHONPATH='`path-to-repo`/etc/docker-scripts' and working directory to `path-to-repo`
-# 2. Manually launch test_minio container: docker run --name test_minio -d -p 9000:9000 minio/minio server /data
-#    (this is located in Makefile)
+# 2. Manually launch the S3 test container (SeaweedFS; MinIO no longer publishes images):
+#    docker run --name test_minio -d -p 9000:8333 \
+#      -e AWS_ACCESS_KEY_ID=minioadmin -e AWS_SECRET_ACCESS_KEY=minioadmin \
+#      ghcr.io/chrislusf/seaweedfs:4.48 mini -dir=/data
 #
 # NOTE: Any changes to elyra/tests/kfp/resources/test-notebookA.ipynb require an
 # update of elyra/tests/kfp/resources/test-archive.tgz  using the command below:
@@ -47,17 +51,24 @@ from elyra.kfp import bootstrapper
 
 MINIO_HOST_PORT = os.getenv("MINIO_HOST_PORT", "127.0.0.1:9000")
 
+# S3-compatible server used to simulate COS. The test code still talks to it
+# through the minio client library, with the same credentials as before.
+S3_TEST_IMAGE = "ghcr.io/chrislusf/seaweedfs:4.48"
+S3_TEST_CONTAINER = "test_minio"
+S3_TEST_CREDENTIALS = ["-e", "AWS_ACCESS_KEY_ID=minioadmin", "-e", "AWS_SECRET_ACCESS_KEY=minioadmin"]
+S3_READY_TIMEOUT_SECONDS = 60
+
 ELYRA_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 RESOURCES_DIR = os.path.join(ELYRA_ROOT_DIR, "elyra", "tests", "kfp", "resources")
 
 
 @pytest.fixture(scope="module", autouse=True)
 def start_minio():
-    """Start the minio container to simulate COS."""
+    """Start the S3 test container to simulate COS."""
 
-    # The docker run command will fail if an instance of the test_minio container is running.
+    # The docker run command will fail if an instance of the test container is running.
     # We'll make a "silent" attempt to start.  If that fails, assume its due to the container
-    # conflict, force its shutdown, and try once more.  If successful, yield the minio instance
+    # conflict, force its shutdown, and try once more.  If successful, yield the container
     # but also shutdown on the flip-side of the yield (when the fixture is cleaned up).
     #
     # Although actions like SIGINT (ctrl-C) should still trigger the post-yield logic, urgent
@@ -69,7 +80,7 @@ def start_minio():
         stop_minio_container()
         minio = start_minio_container(True)
 
-    time.sleep(3)  # give container a chance to start
+    wait_for_s3_ready()
     yield minio
     stop_minio_container()
 
@@ -78,7 +89,9 @@ def start_minio_container(raise_on_failure: bool = False) -> Optional[CompletedP
     minio = None
     try:
         minio = run(
-            ["docker", "run", "--name", "test_minio", "-d", "-p", "9000:9000", "minio/minio", "server", "/data"],
+            ["docker", "run", "--name", S3_TEST_CONTAINER, "-d", "-p", "9000:8333"]
+            + S3_TEST_CREDENTIALS
+            + [S3_TEST_IMAGE, "mini", "-dir=/data"],
             check=True,
         )
     except CalledProcessError as ex:
@@ -88,8 +101,20 @@ def start_minio_container(raise_on_failure: bool = False) -> Optional[CompletedP
     return minio
 
 
+def wait_for_s3_ready(timeout: int = S3_READY_TIMEOUT_SECONDS) -> None:
+    """Poll the S3 server's health endpoint until it responds or ``timeout`` expires."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            with urllib.request.urlopen(f"http://{MINIO_HOST_PORT}/healthz", timeout=2):
+                return
+        except (urllib.error.URLError, ConnectionError):
+            time.sleep(1)
+    raise RuntimeError(f"S3 test server at {MINIO_HOST_PORT} not ready after {timeout}s")
+
+
 def stop_minio_container():
-    run(["docker", "rm", "-f", "test_minio"], check=True)
+    run(["docker", "rm", "-f", S3_TEST_CONTAINER], check=True)
 
 
 @pytest.fixture(scope="function")

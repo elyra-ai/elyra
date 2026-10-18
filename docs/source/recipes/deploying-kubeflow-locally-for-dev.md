@@ -59,10 +59,10 @@ In this example, we will be performing the steps on a MacOS system
 - Deploy Kubeflow  
 
 ```bash
-export PIPELINE_VERSION=1.7.1
+export PIPELINE_VERSION=2.17.2
 kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/cluster-scoped-resources?ref=$PIPELINE_VERSION"
 kubectl wait --for condition=established --timeout=60s crd/applications.app.k8s.io
-kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/env/dev?ref=$PIPELINE_VERSION"
+kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/env/platform-agnostic?ref=$PIPELINE_VERSION"
 ```
 - Get status of the Kubeflow deployment and ensure all pods are running before proceeding.  
 Deployment times vary from system to system so please be patient when the pods are starting up.
@@ -73,19 +73,26 @@ kubectl get all -n kubeflow
 ```bash
 kubectl port-forward $(kubectl get pods -n kubeflow | grep ml-pipeline-ui | cut -d' ' -f1) 31380:3000 -n kubeflow &
 ```
-- Add minio-service to your local hosts file
+
+Kubeflow Pipelines 2.16 and later use [SeaweedFS](https://github.com/seaweedfs/seaweedfs) as the
+S3-compatible object store (service `seaweedfs`). Releases up to 2.14 used MinIO (service `minio-service`),
+and 2.15 ships manifests for both; if you deploy a MinIO-based release, substitute `minio-service` for
+`seaweedfs` in the steps below.
+The default credentials are `minio` / `minio123` in both cases (secret `mlpipeline-minio-artifact`).
+
+- Add the object store service to your local hosts file
 ```bash
-echo '127.0.0.1  minio-service.kubeflow.svc.cluster.local' | sudo tee -a /etc/hosts
+echo '127.0.0.1  seaweedfs.kubeflow.svc.cluster.local' | sudo tee -a /etc/hosts
 ```
-- Setup port forwarding to use the Minio Object Service with Kubeflow
+- Setup port forwarding to use the object store with Kubeflow
 ```bash
-kubectl port-forward $(kubectl get pods -n kubeflow | grep minio | cut -d' ' -f1) 9000:9000 -n kubeflow &
+kubectl port-forward svc/seaweedfs 9000:9000 -n kubeflow &
 ```
-- Your Kubeflow Pipelines API and Minio Object Store endpoints should be respectively
+- Your Kubeflow Pipelines API and object store endpoints should be respectively
 ```bash
 UI Endpoint: http://localhost:31380
 API Endpoint: http://localhost:31380/pipeline
-Object Storage Endpoint: http://minio-service.kubeflow.svc.cluster.local:9000
+Object Storage Endpoint: http://seaweedfs.kubeflow.svc.cluster.local:9000
 ```
 
 These endpoints will be used to configure your Elyra metadata runtime with the
@@ -97,7 +104,7 @@ $ elyra-metadata create runtimes \
        --name kfp-local \
        --display_name "Kubeflow Pipeline (local)" \
        --api_endpoint http://localhost:31380/pipeline \
-       --cos_endpoint http://minio-service.kubeflow.svc.cluster.local:9000 \
+       --cos_endpoint http://seaweedfs.kubeflow.svc.cluster.local:9000 \
        --cos_username minio \
        --cos_password minio123 \
        --cos_bucket covid
