@@ -14,6 +14,9 @@
 # limitations under the License.
 #
 
+import pytest
+
+from elyra.pipeline.kfp.kfp_properties import KfpPipelineParameter
 from elyra.pipeline.properties import PipelineParameter
 
 # ---------------------------------------------------
@@ -135,3 +138,64 @@ def test_pipelineparameter_float_type_value_coercion():
     default_value = {"type": "Bool", "value": True}
     pp = PipelineParameter(parm_name, parm_description, "", default_value, False)
     assert pp.default_value is True
+
+
+@pytest.mark.parametrize("raw_value", [3.5, 3.99, -0.5, True, False])
+def test_pipelineparameter_integer_coercion_is_lossless(raw_value):
+    """
+    Verify that an 'Integer'-typed value is never silently altered when it cannot
+    be represented as an int without loss: int(3.5) == 3 and int(True) == 1 would
+    hide invalid input instead of letting validation report it.
+    """
+    for pp in [
+        PipelineParameter("parm", "", "", {"type": "Integer", "value": raw_value}, False),
+        PipelineParameter("parm", "", raw_value, {"type": "Integer", "value": ""}, False),
+    ]:
+        assert type(pp.value) is type(raw_value)
+        assert pp.value == raw_value
+
+
+@pytest.mark.parametrize(
+    "selected_type, raw_value",
+    [
+        ("Integer", 3.5),
+        ("Integer", "3.5"),
+        ("Integer", True),
+        ("Integer", "abc"),
+        ("Float", "abc"),
+        ("Float", True),
+    ],
+    ids=["int-float", "int-float-str", "int-bool", "int-non-numeric", "float-non-numeric", "float-bool"],
+)
+def test_kfp_pipelineparameter_reports_value_incompatible_with_type(selected_type, raw_value):
+    """
+    Verify that a value that does not match the parameter's declared numeric type
+    produces a validation error instead of being rendered into the generated DSL
+    as-is (e.g. 'x: float = abc' or 'x: int = 3.5').
+    """
+    pp = KfpPipelineParameter("parm", "", "", {"type": selected_type, "value": raw_value}, False)
+    assert pp.get_all_validation_errors(), f"{selected_type} parameter accepted {raw_value!r}"
+
+
+@pytest.mark.parametrize(
+    "selected_type, raw_value, expected",
+    [
+        ("Integer", 5, 5),
+        ("Integer", "5", 5),
+        ("Integer", 3.0, 3),
+        ("Integer", 0, 0),
+        ("Float", 0, 0.0),
+        ("Float", "0", 0.0),
+        ("Float", 3.14, 3.14),
+        ("Float", "-1.5", -1.5),
+    ],
+)
+def test_kfp_pipelineparameter_accepts_value_compatible_with_type(selected_type, raw_value, expected):
+    """
+    Verify that values losslessly representable in the declared numeric type are
+    coerced to that type and pass validation.
+    """
+    pp = KfpPipelineParameter("parm", "", "", {"type": selected_type, "value": raw_value}, False)
+    assert type(pp.value) is type(expected)
+    assert pp.value == expected
+    assert pp.get_all_validation_errors() == []
