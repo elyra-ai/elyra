@@ -2,7 +2,7 @@
 # CI resolves without changing the published package metadata.
 #
 # ipykernel is not pinned by Elyra at all -- it arrives transitively via
-# jupyterlab~=4.4, whose constraint (ipykernel!=6.30.0,>=6.5.0) has no upper
+# jupyterlab>=4.6.0,<5, whose constraint (ipykernel!=6.30.0,>=6.5.0) has no upper
 # bound. CI therefore floated to 7.x while development environments stayed on
 # 6.x, and kernel-dependent tests began failing intermittently.
 #

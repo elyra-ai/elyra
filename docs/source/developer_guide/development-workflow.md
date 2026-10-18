@@ -238,8 +238,11 @@ following steps in the same python environment.
    [Jupyterlab documentation](https://jupyterlab.readthedocs.io/en/latest/developer/contributing.html#installing-jupyterlab).
    Uninstalling in the previous step will also wipe any previous installations of a local build.
 
-3. `cd` to the `builder/` directory in your Jupyterlab repo and run `yarn link`. The Elyra `Makefile` will use this yarn
-   link in step 6.
+3. Elyra builds its extensions with `@jupyter/builder` (`jupyter-builder build`), which by default targets the
+   JupyterLab core metadata from the `@jupyterlab/core-meta` package in `node_modules`. To build an extension
+   against your local Jupyterlab instead, pass your checkout's core package file, for example
+   `jupyter-builder build --core-package-file=<path-to-jupyterlab>/jupyterlab/staging/package.json .`
+   from within the extension's `packages/<name>` directory.
 
 4. In your Elyra repo, uncomment the following line in `tsconfig.base.json` to tell Typescript to use the local
    Jupyterlab packages when building:
@@ -250,7 +253,7 @@ following steps in the same python environment.
    This will prevent Jupyterlab from being pip installed during the Elyra build.
    Note: `jupyterlab-lsp` also pip installs Jupyterlab when installed
 
-6. Run `make install-dev` to install Elyra using the linked `@jupyterlab/builder` from step 3.
+6. Run `make install-dev` to install Elyra.
 
 7. You can now start Jupyterlab by running `jupyter lab --dev-mode --extensions-in-dev-mode`, this will automatically
    watch for changes in the Jupyterlab repo. To also watch for changes in Elyra run `make watch` in a separate terminal
