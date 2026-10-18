@@ -25,7 +25,7 @@ You can manage runtime configurations using the [JupyterLab UI](#managing-runtim
 
 A runtime configuration requires connectivity details for 
 * A Kubeflow Pipelines deployment or an Apache Airflow deployment
-* S3-based Object Storage (e.g. Minio or IBM Cloud Object Storage)
+* S3-based Object Storage (e.g. SeaweedFS, MinIO, Amazon S3, or IBM Cloud Object Storage)
 
 Note: Elyra 4.x is tested with Kubeflow Pipelines v2 and Apache Airflow 2.7.0+ and 3.x. Airflow 1.x is no longer supported.
 
@@ -117,7 +117,7 @@ $ elyra-metadata create runtimes \
        --api_username username@email.com \
        --api_password mypassword \
        --engine Argo \
-       --cos_endpoint http://minio-service.kubeflow:9000 \
+       --cos_endpoint http://seaweedfs.kubeflow:9000 \
        --cos_auth_type "USER_CREDENTIALS" \
        --cos_username minio \
        --cos_password minio123 \
@@ -325,9 +325,11 @@ This section defines the settings for the cloud storage that you want to associa
 
 ##### Cloud Object Storage endpoint (cos_endpoint)
 
-This should be the URL address of your S3-compatible Object Storage. If running an Object Storage Service within a Kubernetes cluster (Minio), you can use the Kubernetes local DNS address. This setting is required.
+This should be the URL address of your S3-compatible Object Storage. If running an Object Storage Service within a Kubernetes cluster, you can use the Kubernetes local DNS address. This setting is required.
 
-Example: `https://minio-service.kubeflow:9000`
+Kubeflow Pipelines 2.16 and later deploy SeaweedFS as the object store (`http://seaweedfs.kubeflow:9000`); releases up to 2.14 deploy MinIO (`http://minio-service.kubeflow:9000`).
+
+Example: `http://seaweedfs.kubeflow:9000`
 
 ##### Public Cloud Object Storage endpoint (public_cos_endpoint)
 
