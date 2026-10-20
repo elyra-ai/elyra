@@ -19,7 +19,7 @@
 .PHONY: dev-link dev-unlink
 .PHONY: build-dependencies dev-dependencies yarn-install build-ui-prod build-ui-dev package-ui-prod package-ui-dev
 .PHONY: build-server install-server-package install-server
-.PHONY: install-prod install-dev install-all-prod install-all-dev install-examples install-gitlab-dependency check-install watch release
+.PHONY: install-prod install-dev install-all-prod install-all-dev install-examples install-gitlab-dependency install-gitea-dependency check-install watch release
 .PHONY: test-dependencies copy-tests-to-package pytest clean-tests-from-package test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
 .PHONY: elyra-image elyra-image-env elyra-image-context publish-elyra-image kf-notebook-image kf-notebook-image-context publish-kf-notebook-image
@@ -95,6 +95,8 @@ uninstall:
 	- $(PYTHON_PIP) uninstall -y elyra-examples-kfp-catalog
 	# remove GitLab dependency
 	- $(PYTHON_PIP) uninstall -y python-gitlab
+	# remove Gitea dependency
+	- $(PYTHON_PIP) uninstall -y giteapy
 
 clean: clean-tests-from-package purge uninstall ## Make a clean source tree and uninstall extensions
 
@@ -178,9 +180,9 @@ install-prod: package-ui-prod install-server check-install ## Build and install 
 
 install-dev: package-ui-dev install-server check-install ## Build and install for development
 
-install-all-prod: package-ui-prod install-server install-examples install-gitlab-dependency check-install ## Build and install for production, including examples
+install-all-prod: package-ui-prod install-server install-examples install-gitlab-dependency install-gitea-dependency check-install ## Build and install for production, including examples
 
-install-all-dev: package-ui-dev install-server install-examples install-gitlab-dependency check-install ## Build and install for development, including examples
+install-all-dev: package-ui-dev install-server install-examples install-gitlab-dependency install-gitea-dependency check-install ## Build and install for development, including examples
 
 install-examples: ## Install example pipeline components
 	# install Kubeflow Pipelines example components
@@ -190,6 +192,10 @@ install-examples: ## Install example pipeline components
 install-gitlab-dependency:
 	# install GitLab support for Airflow
 	- $(PYTHON_PIP) install --upgrade python-gitlab
+
+install-gitea-dependency:
+	# install Gitea support for Airflow
+	- $(PYTHON_PIP) install --upgrade giteapy
 
 check-install:
 	# Expected to fail due to elyra/ai#3058

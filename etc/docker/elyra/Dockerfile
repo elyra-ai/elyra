@@ -24,8 +24,8 @@ ARG ELYRA_VERSION
 ARG ELYRA_PACKAGE=elyra-"$ELYRA_VERSION"-py3-none-any.whl
 
 # - Include with KFP support and component examples ('kfp-examples')
-# ARG ELYRA_EXTRAS=[kfp,kfp-examples,airflow-gitlab]
-ARG ELYRA_EXTRAS=[kfp,airflow-gitlab]
+# ARG ELYRA_EXTRAS=[kfp,kfp-examples,airflow-gitlab,airflow-gitea]
+ARG ELYRA_EXTRAS=[kfp,airflow-gitlab,airflow-gitea]
 
 COPY requirements.txt ${ELYRA_PACKAGE} ./
 
