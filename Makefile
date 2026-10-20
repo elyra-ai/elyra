@@ -22,7 +22,7 @@
 .PHONY: install-prod install-dev install-all-prod install-all-dev install-examples install-gitlab-dependency check-install watch release
 .PHONY: test-dependencies copy-tests-to-package pytest clean-tests-from-package test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
-.PHONY: elyra-image elyra-image-env publish-elyra-image kf-notebook-image publish-kf-notebook-image
+.PHONY: elyra-image elyra-image-env elyra-image-context publish-elyra-image kf-notebook-image kf-notebook-image-context publish-kf-notebook-image
 .PHONY: container-images publish-container-images validate-runtime-image validate-runtime-images
 
 SHELL:=/bin/bash
@@ -31,6 +31,10 @@ SHELL:=/bin/bash
 CONTAINER_EXEC?=docker
 # If using podman, use "--format docker" instead
 CONTAINER_OUTPUT_OPTION?=--output=type=docker
+
+# Platforms and registries used when publishing container images
+PLATFORMS?=linux/amd64,linux/arm64
+CONTAINER_REGISTRIES?=docker.io quay.io
 
 # Python execs
 PYTHON?=python3
@@ -252,15 +256,48 @@ docs-dependencies:
 docs: docs-dependencies ## Build docs
 	make -C docs clean html
 
-## Docker targets
-
-elyra-image: # Build Elyra stand-alone container image
+# Prepare the docker build context (shared by local and publish builds)
+elyra-image-context:
 	@mkdir -p build/docker
 	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
 	cp etc/docker/elyra/requirements.txt build/docker/requirements.txt
 	@mkdir -p build/docker/elyra
 	cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker/
+
+## Docker targets
+
+# Multi-arch publish. $(1)=build context, $(2)=image:tag, $(3)=image:latest
+ifneq ($(findstring podman,$(CONTAINER_EXEC)),)
+define publish-multiarch-image
+-$(CONTAINER_EXEC) manifest rm $(firstword $(CONTAINER_REGISTRIES))/$(2)
+$(CONTAINER_EXEC) build --platform $(PLATFORMS) $(CONTAINER_OUTPUT_OPTION) \
+	--manifest $(firstword $(CONTAINER_REGISTRIES))/$(2) \
+	--build-arg TAG=$(TAG) \
+	--build-arg ELYRA_VERSION=$(ELYRA_VERSION) \
+	$(1)
+for registry in $(CONTAINER_REGISTRIES); do \
+	$(CONTAINER_EXEC) manifest push --all $(firstword $(CONTAINER_REGISTRIES))/$(2) docker://$$registry/$(2) || exit 1; \
+	if [ "$(IMAGE_IS_LATEST)" = "True" ]; then \
+		$(CONTAINER_EXEC) manifest push --all $(firstword $(CONTAINER_REGISTRIES))/$(2) docker://$$registry/$(3) || exit 1; \
+	fi; \
+done
+endef
+else
+define publish-multiarch-image
+$(CONTAINER_EXEC) buildx build \
+	--progress=plain \
+	--platform $(PLATFORMS) \
+	--push \
+	$(foreach r,$(CONTAINER_REGISTRIES),--tag $(r)/$(2)) \
+	$(if $(filter True,$(IMAGE_IS_LATEST)),$(foreach r,$(CONTAINER_REGISTRIES),--tag $(r)/$(3))) \
+	--build-arg TAG=$(TAG) \
+	--build-arg ELYRA_VERSION=$(ELYRA_VERSION) \
+	$(1)
+endef
+endif
+
+elyra-image: elyra-image-context # Build Elyra image for the local platform
 	$(CONTAINER_EXEC) buildx build \
         --progress=plain \
         $(CONTAINER_OUTPUT_OPTION) \
@@ -270,22 +307,16 @@ elyra-image: # Build Elyra stand-alone container image
 		--build-arg ELYRA_VERSION=$(ELYRA_VERSION) \
 		build/docker/;
 
-publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
-	# this is a privileged operation; a `docker login` might be required
-	$(CONTAINER_EXEC) push docker.io/$(ELYRA_IMAGE)
-	$(CONTAINER_EXEC) push quay.io/$(ELYRA_IMAGE)
-	# If we're building a release from main, tag latest and push
-	if [ "$(IMAGE_IS_LATEST)" == "True" ]; then \
-		$(CONTAINER_EXEC) tag docker.io/$(ELYRA_IMAGE) docker.io/$(ELYRA_IMAGE_LATEST); \
-		$(CONTAINER_EXEC) push docker.io/$(ELYRA_IMAGE_LATEST); \
-		$(CONTAINER_EXEC) tag quay.io/$(ELYRA_IMAGE) quay.io/$(ELYRA_IMAGE_LATEST); \
-		$(CONTAINER_EXEC) push quay.io/$(ELYRA_IMAGE_LATEST); \
-	fi
+publish-elyra-image: elyra-image-context # Build + publish multi-arch Elyra image
+	# privileged operation; `docker login` to the registries is required
+	$(call publish-multiarch-image,build/docker/,$(ELYRA_IMAGE),$(ELYRA_IMAGE_LATEST))
 
-kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
+kf-notebook-image-context:
 	@mkdir -p build/docker-kubeflow
 	cp etc/docker/kubeflow/* build/docker-kubeflow/
 	cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker-kubeflow/
+
+kf-notebook-image: kf-notebook-image-context # Build elyra image for Kubeflow Notebook Server (local platform)
 	$(CONTAINER_EXEC) buildx build \
         --progress=plain \
         $(CONTAINER_OUTPUT_OPTION) \
@@ -295,17 +326,9 @@ kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 		--build-arg ELYRA_VERSION=$(ELYRA_VERSION) \
 		build/docker-kubeflow;
 
-publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with Kubeflow Notebook Server
-	# this is a privileged operation; a `docker login` might be required
-	$(CONTAINER_EXEC) push docker.io/$(KF_NOTEBOOK_IMAGE)
-	$(CONTAINER_EXEC) push quay.io/$(KF_NOTEBOOK_IMAGE)
-	# If we're building a release from main, tag latest and push
-	if [ "$(IMAGE_IS_LATEST)" == "True" ]; then \
-		$(CONTAINER_EXEC) tag docker.io/$(KF_NOTEBOOK_IMAGE) docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
-		$(CONTAINER_EXEC) push docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
-		$(CONTAINER_EXEC) tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
-		$(CONTAINER_EXEC) push quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
-	fi
+publish-kf-notebook-image: kf-notebook-image-context # Build + publish multi-arch Kubeflow notebook image
+	# privileged operation; `docker login` to the registries is required
+	$(call publish-multiarch-image,build/docker-kubeflow,$(KF_NOTEBOOK_IMAGE),$(KF_NOTEBOOK_IMAGE_LATEST))
 
 container-images: elyra-image kf-notebook-image ## Build all container images
 	$(CONTAINER_EXEC) images $(ELYRA_IMAGE)
