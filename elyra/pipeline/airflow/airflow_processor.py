@@ -164,6 +164,11 @@ be fully qualified (i.e., prefixed with their package names).
                 "Python package `python-gitlab` is not installed. "
                 "Please install using `elyra[airflow-gitlab]` to use GitLab as DAG repository."
             )
+        if git_type == SupportedGitTypes.GITEA and SupportedGitTypes.is_enabled(SupportedGitTypes.GITEA) is False:
+            raise ValueError(
+                "Python package `giteapy` is not installed. "
+                "Please install using `elyra[airflow-gitea]` to use Gitea as DAG repository."
+            )
 
         github_api_endpoint = runtime_configuration.metadata.get("github_api_endpoint")
         github_repo_token = runtime_configuration.metadata.get("github_repo_token")
@@ -200,11 +205,6 @@ be fully qualified (i.e., prefixed with their package names).
                         branch=github_branch,
                     )
                 elif git_type == SupportedGitTypes.GITEA:
-                    if GiteaClient is None:
-                        raise ValueError(
-                            "Python package `giteapy` is not installed. "
-                            "Please install with `elyra[gitea]` to use Gitea as a DAG repository."
-                        )
                     git_client = GiteaClient(
                         server_url=github_api_endpoint,
                         token=github_repo_token,

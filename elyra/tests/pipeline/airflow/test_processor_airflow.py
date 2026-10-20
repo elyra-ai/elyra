@@ -36,6 +36,7 @@ from elyra.pipeline.properties import ElyraProperty
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 from elyra.util.github import GithubClient
+from elyra.util.gitutil import SupportedGitTypes
 
 PIPELINE_FILE_COMPLEX = "resources/sample_pipelines/pipeline_dependency_complex.json"
 PIPELINE_FILE_CUSTOM_COMPONENTS = "resources/sample_pipelines/pipeline_with_airflow_components.json"
@@ -157,6 +158,32 @@ def test_pipeline_process(monkeypatch, processor, parsed_pipeline, sample_metada
     # in the storage path since a timestamp is injected into the name
     cos_prefix = parsed_pipeline.pipeline_properties.get(COS_OBJECT_PREFIX)
     assert f"/{sample_metadata['metadata']['cos_bucket']}/{cos_prefix}/untitled" in response.object_storage_path
+
+
+@pytest.mark.parametrize("parsed_pipeline", [PIPELINE_FILE_COMPLEX], indirect=True)
+@pytest.mark.parametrize(
+    "git_type, package, extra",
+    [
+        (SupportedGitTypes.GITLAB, "python-gitlab", "airflow-gitlab"),
+        (SupportedGitTypes.GITEA, "giteapy", "airflow-gitea"),
+    ],
+)
+def test_pipeline_process_missing_git_dependency(
+    monkeypatch, processor, parsed_pipeline, sample_metadata, git_type, package, extra
+):
+    metadata = {**sample_metadata["metadata"], "git_type": git_type.name}
+    mocked_runtime = Metadata(name="test-metadata", display_name="test", schema_name="airflow", metadata=metadata)
+    create_pipeline_file = mock.Mock()
+
+    monkeypatch.setattr(processor, "_get_metadata_configuration", lambda schemaspace, name: mocked_runtime)
+    monkeypatch.setattr(processor, "create_pipeline_file", create_pipeline_file)
+    monkeypatch.setattr(SupportedGitTypes, "is_enabled", staticmethod(lambda t: t == SupportedGitTypes.GITHUB))
+
+    with pytest.raises(ValueError, match=rf"`{package}` is not installed.*`elyra\[{extra}\]`"):
+        processor.process(pipeline=parsed_pipeline)
+
+    # Fail before the DAG is rendered and dependencies are uploaded to object storage
+    create_pipeline_file.assert_not_called()
 
 
 @pytest.mark.parametrize("parsed_pipeline", [PIPELINE_FILE_COMPLEX], indirect=True)

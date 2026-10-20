@@ -82,7 +82,7 @@
           "default": "https://api.github.com",
           "uihints": {
             "category": "Apache Airflow",
-            "ui:placeholder": "https://your-github-or-gitlab-endpoint"
+            "ui:placeholder": "https://your-github-gitea-or-gitlab-endpoint"
           }
         },
         "github_repo": {
@@ -95,7 +95,7 @@
           }
         },
         "github_branch": {
-          "title": "GitHub or Gitea or  GitLab DAG Repository Branch",
+          "title": "GitHub or Gitea or GitLab DAG Repository Branch",
           "description": "Existing branch in the repository where DAGs are stored",
           "type": "string",
           "uihints": {
