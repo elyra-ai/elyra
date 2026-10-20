@@ -187,6 +187,12 @@ git checkout tags/v2.3.0
 make container-images publish-container-images
 ```  
 
+The publish step builds and pushes multi-architecture images (`linux/amd64` and
+`linux/arm64` by default). Use `PLATFORMS` to change this, for example
+`PLATFORMS=linux/amd64`. With docker, you need a builder that supports multi-platform
+builds (the containerd image store, or `docker buildx create --use`) and QEMU for the
+non-native platform.
+
 - Merge changes for conda-forge
   - https://github.com/conda-forge/elyra-feedstock/pulls
   - https://github.com/conda-forge/elyra-server-feedstock/pulls
