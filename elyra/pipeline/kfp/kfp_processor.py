@@ -587,9 +587,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         referenced_parameter_names.add(parameter_reference)
 
             # Reduce set of pipeline parameters to those referenced by pipeline tasks
-            for parameter in pipeline.parameters:
-                if parameter.name not in referenced_parameter_names:
-                    pipeline_parameters.remove(parameter)
+            pipeline_parameters = [
+                parameter for parameter in pipeline_parameters if parameter.name in referenced_parameter_names
+            ]
 
         # render the Kubeflow Pipelines Python DSL template
         pipeline_dsl = template.render(
