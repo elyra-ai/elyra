@@ -1554,12 +1554,18 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_components_with_param
         component_props=operation_params,
     )
 
-    # Define pipeline parameters
+    # Define pipeline parameters; only the first parameter is referenced by a node
     pipeline_parameters = ElyraPropertyList(
         [
             KfpPipelineParameter(
                 name="param1", description="", value="val1", default_value={"type": "String"}, required=True
-            )
+            ),
+            KfpPipelineParameter(
+                name="param2", description="", value="val2", default_value={"type": "String"}, required=False
+            ),
+            KfpPipelineParameter(
+                name="param3", description="", value="val3", default_value={"type": "String"}, required=False
+            ),
         ]
     )
 
@@ -1583,6 +1589,9 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_components_with_param
     assert generated_dsl is not None
     # Generated DSL includes workflow engine specific code in the _main_ function
     assert "kfp.compiler.Compiler().compile(" in generated_dsl
+
+    # Code generation does not modify the pipeline parameters
+    assert [param.name for param in pipeline.parameters] == ["param1", "param2", "param3"]
 
     compiled_output_file = Path(tmpdir) / "compiled_kfp_test.yaml"
 
@@ -1608,8 +1617,8 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_components_with_param
 
     # Test parameters appear as expected
     yaml_pipeline_params = compiled_spec["root"]["inputDefinitions"]["parameters"]
-    # Only two parameters are referenced by a node in the pipeline, so only 1 should be present in YAML
-    assert len(yaml_pipeline_params) == 1
+    # Only one parameter is referenced by a node in the pipeline, so only 1 should be present in YAML
+    assert list(yaml_pipeline_params.keys()) == ["param1"]
     # Assert params defined in YAML correspond to those defined by the Pipeline object
     for param_from_yaml_key, param_from_yaml_value in yaml_pipeline_params.items():
         assert any(
