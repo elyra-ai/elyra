@@ -21,6 +21,7 @@ from operator import itemgetter
 import os
 from pathlib import Path
 import sys
+from typing import Dict
 from typing import Optional
 import warnings
 
@@ -43,6 +44,7 @@ from elyra.pipeline.pipeline_definition import Pipeline
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.processor import PipelineProcessorResponse
+from elyra.pipeline.properties import PipelineParameter
 from elyra.pipeline.properties import VolumeMount
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
@@ -62,6 +64,14 @@ SEVERITY = {
     ValidationSeverity.Warning: "Warning",
     ValidationSeverity.Hint: "Hint",
     ValidationSeverity.Information: "Information",
+}
+
+# click parameter types used to convert pipeline parameter values
+# that are specified on the command line to the parameter's type
+PIPELINE_PARAMETER_VALUE_TYPES = {
+    "Integer": click.INT,
+    "Float": click.FLOAT,
+    "Bool": click.BOOL,
 }
 
 
@@ -117,8 +127,45 @@ def _validate_pipeline_runtime(primary_pipeline: Pipeline, runtime: str) -> bool
     return is_valid
 
 
+def _set_pipeline_parameter_values(primary_pipeline: Pipeline, parameter_values: Dict[str, str]) -> None:
+    """
+    Assign the given values to the pipeline parameters with the same name. Each value
+    is converted to the type of the corresponding pipeline parameter. If an empty value
+    is specified, the parameter's default value is used.
+    """
+    pipeline_parameters = {
+        parameter.name: parameter
+        for parameter in primary_pipeline.pipeline_parameters
+        if isinstance(parameter, PipelineParameter)
+    }
+    for name, value in parameter_values.items():
+        parameter = pipeline_parameters.get(name)
+        if parameter is None:
+            raise click.BadParameter(
+                f"The pipeline does not define a parameter named '{name}'.", param_hint="--parameter"
+            )
+
+        if value == "":
+            parameter.value = parameter.default_value
+            continue
+
+        value_type = PIPELINE_PARAMETER_VALUE_TYPES.get(parameter.selected_type)
+        if value_type is not None:
+            try:
+                value = value_type.convert(value, None, None)
+            except click.BadParameter:
+                raise click.BadParameter(
+                    f"'{value}' is not a valid value for parameter '{name}' of type '{parameter.selected_type}'.",
+                    param_hint="--parameter",
+                )
+        parameter.value = value
+
+
 def _preprocess_pipeline(
-    pipeline_path: str, runtime: Optional[str] = None, runtime_config: Optional[str] = None
+    pipeline_path: str,
+    runtime: Optional[str] = None,
+    runtime_config: Optional[str] = None,
+    parameter_values: Optional[Dict[str, str]] = None,
 ) -> dict:
     pipeline_path = os.path.expanduser(pipeline_path)
     pipeline_abs_path = os.path.join(os.getcwd(), pipeline_path)
@@ -157,6 +204,8 @@ def _preprocess_pipeline(
         primary_pipeline.set("runtime", runtime)
     if runtime_config:
         primary_pipeline.set("runtime_config", runtime_config)
+    if parameter_values:
+        _set_pipeline_parameter_values(primary_pipeline, parameter_values)
 
     return pipeline_definition.to_dict()
 
@@ -312,6 +361,32 @@ def validate_timeout_option(ctx, param, value):
         return value
 
 
+def validate_parameter_option(ctx, param, value):
+    """Callback for parameter option; converts the specified 'NAME=VALUE' pairs into a dictionary"""
+    parameter_values = {}
+    for parameter in value:
+        name, separator, parameter_value = parameter.partition("=")
+        name = name.strip()
+        if not separator or not name:
+            raise click.BadParameter(f"'{parameter}' is not of the form NAME=VALUE.")
+        if name in parameter_values:
+            raise click.BadParameter(f"A value for parameter '{name}' was specified more than once.")
+        parameter_values[name] = parameter_value
+    return parameter_values
+
+
+parameter_option = click.option(
+    "--parameter",
+    "parameter_values",
+    metavar="NAME=VALUE",
+    multiple=True,
+    required=False,
+    callback=validate_parameter_option,
+    help="Value for a pipeline parameter, which overrides the parameter's default value. "
+    "Specify once for each parameter. (Supported for Kubeflow Pipelines only)",
+)
+
+
 @click.command()
 @click.argument("pipeline_path", type=Path, callback=validate_pipeline_path)
 @click.option("--json", "json_option", is_flag=True, required=False, help="Display pipeline summary in JSON format")
@@ -338,7 +413,8 @@ def validate_timeout_option(ctx, param, value):
     help="Monitoring timeout in minutes.",
     callback=validate_timeout_option,
 )
-def submit(json_option, pipeline_path, runtime_config_name, monitor_option, timeout_option):
+@parameter_option
+def submit(json_option, pipeline_path, runtime_config_name, monitor_option, timeout_option, parameter_values):
     """
     Submit a pipeline to be executed on the server
     """
@@ -353,7 +429,7 @@ def submit(json_option, pipeline_path, runtime_config_name, monitor_option, time
         _build_component_cache()
 
     pipeline_definition = _preprocess_pipeline(
-        pipeline_path, runtime=runtime_schema, runtime_config=runtime_config_name
+        pipeline_path, runtime=runtime_schema, runtime_config=runtime_config_name, parameter_values=parameter_values
     )
     try:
         _validate_pipeline_definition(pipeline_definition)
@@ -680,7 +756,8 @@ def describe(json_option, pipeline_path):
     help="File export format.",
 )
 @click.option("--overwrite", is_flag=True, help="Overwrite output file if it already exists.")
-def export(pipeline_path, runtime_config, output, format, overwrite):
+@parameter_option
+def export(pipeline_path, runtime_config, output, format, overwrite, parameter_values):
     """
     Export a pipeline to a runtime-specific format
     """
@@ -694,7 +771,9 @@ def export(pipeline_path, runtime_config, output, format, overwrite):
     if runtime_schema != "local":
         _build_component_cache()
 
-    pipeline_definition = _preprocess_pipeline(pipeline_path, runtime=runtime_schema, runtime_config=runtime_config)
+    pipeline_definition = _preprocess_pipeline(
+        pipeline_path, runtime=runtime_schema, runtime_config=runtime_config, parameter_values=parameter_values
+    )
 
     # Verify that the pipeline's runtime type is compatible with the
     # runtime configuration

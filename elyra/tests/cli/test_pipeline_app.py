@@ -25,6 +25,7 @@ from click.testing import CliRunner
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import pytest
 
+from elyra.cli.pipeline_app import _preprocess_pipeline
 from elyra.cli.pipeline_app import pipeline
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
@@ -33,6 +34,16 @@ from elyra.pipeline.component_catalog import ComponentCache
 
 # used to drive generic parameter handling tests
 SUB_COMMANDS = ["run", "submit", "describe", "validate", "export"]
+
+KFP_TEST_COMPONENT_CATALOG = {
+    "display_name": "KFP Test Components",
+    "metadata": {
+        "runtime_type": "KUBEFLOW_PIPELINES",
+        "base_path": str(Path(__file__).parent / ".." / "pipeline" / "resources" / "components"),
+        "paths": ["download_data.yaml"],
+    },
+    "schema_name": "local-file-catalog",
+}
 
 
 @pytest.fixture(autouse=True)
@@ -1391,6 +1402,111 @@ def test_export_kubeflow_format_option(
             assert (
                 "Invalid value for --format: Valid export formats are ['yaml', 'py']." in result.output
             ), result.output
+
+
+@pytest.mark.parametrize("catalog_instance_no_server_process", [KFP_TEST_COMPONENT_CATALOG], indirect=True)
+def test_export_kubeflow_parameter_option(
+    jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance_no_server_process
+):
+    """Verify that the '--parameter' option works as expected for Kubeflow Pipelines"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        cwd = Path.cwd().resolve()
+        pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_custom_with_parameters.pipeline"
+        assert pipeline_file_path.is_file()
+        output_file = cwd / "kfp_custom_with_parameters.py"
+        options = [
+            "export",
+            str(pipeline_file_path),
+            "--runtime-config",
+            kubeflow_pipelines_runtime_instance,
+            "--format",
+            "py",
+            "--output",
+            str(output_file),
+        ]
+
+        # this should fail: no value was specified for required parameter 'url'
+        result = runner.invoke(pipeline, options)
+        assert result.exit_code != 0, result.output
+        assert "Parameter is marked as required but no value has been assigned." in result.output, result.output
+        assert output_file.exists() is False
+
+        # this should succeed
+        url = "https://raw.githubusercontent.com/elyra-ai/elyra/main/README.md"
+        result = runner.invoke(pipeline, options + ["--parameter", f"url={url}"])
+        assert result.exit_code == 0, result.output
+        assert f"was exported to '{str(output_file)}" in result.output, result.output
+        assert f'url: str = "{url}",' in output_file.read_text()
+
+
+@pytest.mark.parametrize("subcommand", ["submit", "export"])
+@pytest.mark.parametrize(
+    "parameters, expected_error",
+    [
+        (["url"], "'url' is not of the form NAME=VALUE."),
+        (["=value"], "'=value' is not of the form NAME=VALUE."),
+        (["url=a", "url=b"], "A value for parameter 'url' was specified more than once."),
+        (["undefined=1"], "The pipeline does not define a parameter named 'undefined'."),
+        (["count=one"], "'one' is not a valid value for parameter 'count' of type 'Integer'."),
+        (["ratio=half"], "'half' is not a valid value for parameter 'ratio' of type 'Float'."),
+        (["verbose=maybe"], "'maybe' is not a valid value for parameter 'verbose' of type 'Bool'."),
+    ],
+)
+def test_parameter_option_invalid_values(
+    jp_environ, kubeflow_pipelines_runtime_instance, subcommand, parameters, expected_error
+):
+    """Verify that the '--parameter' option rejects invalid values"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_custom_with_parameters.pipeline"
+        assert pipeline_file_path.is_file()
+
+        options = [subcommand, str(pipeline_file_path), "--runtime-config", kubeflow_pipelines_runtime_instance]
+        for parameter in parameters:
+            options.extend(["--parameter", parameter])
+
+        # this should fail
+        result = runner.invoke(pipeline, options)
+        assert result.exit_code == 2, result.output
+        assert expected_error in result.output, result.output
+
+
+def test_preprocess_pipeline_parameter_values(jp_environ, kubeflow_pipelines_runtime_instance):
+    """Verify that parameter values are converted to the type of the pipeline parameter"""
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_custom_with_parameters.pipeline"
+    pipeline_definition = _preprocess_pipeline(
+        str(pipeline_file_path),
+        runtime="kfp",
+        runtime_config=kubeflow_pipelines_runtime_instance,
+        parameter_values={"url": "https://my.server/data.csv", "count": "3", "ratio": "1", "verbose": "true"},
+    )
+    pipeline_parameters = pipeline_definition["pipelines"][0]["app_data"]["properties"]["pipeline_parameters"]
+    values = {parameter.name: parameter.value for parameter in pipeline_parameters}
+    assert values == {"url": "https://my.server/data.csv", "count": 3, "ratio": 1.0, "verbose": True}
+    assert isinstance(values["ratio"], float)
+
+    # parameters that are not specified retain their default value
+    pipeline_definition = _preprocess_pipeline(
+        str(pipeline_file_path),
+        runtime="kfp",
+        runtime_config=kubeflow_pipelines_runtime_instance,
+        parameter_values={"verbose": "false"},
+    )
+    pipeline_parameters = pipeline_definition["pipelines"][0]["app_data"]["properties"]["pipeline_parameters"]
+    values = {parameter.name: parameter.value for parameter in pipeline_parameters}
+    assert values == {"url": None, "count": 1, "ratio": 0.5, "verbose": False}
+
+    # parameters that are assigned an empty value use their default value
+    pipeline_definition = _preprocess_pipeline(
+        str(pipeline_file_path),
+        runtime="kfp",
+        runtime_config=kubeflow_pipelines_runtime_instance,
+        parameter_values={"url": "", "count": "", "ratio": "", "verbose": ""},
+    )
+    pipeline_parameters = pipeline_definition["pipelines"][0]["app_data"]["properties"]["pipeline_parameters"]
+    values = {parameter.name: parameter.value for parameter in pipeline_parameters}
+    assert values == {"url": None, "count": 1, "ratio": 0.5, "verbose": False}
 
 
 # ------------------------------------------------------------------
