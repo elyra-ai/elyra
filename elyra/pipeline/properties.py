@@ -20,6 +20,7 @@ from abc import abstractmethod
 from enum import Enum
 from importlib import import_module
 import json
+import math
 import re
 from typing import Any
 from typing import Dict
@@ -1278,7 +1279,8 @@ class PipelineParameter(ElyraPropertyListItem):
 
     def _coerce_to_selected_type(self, value: Any) -> Any:
         """
-        Coerce 'value' to the numeric Python type implied by self.selected_type.
+        Coerce 'value' to the numeric Python type implied by self.selected_type,
+        but only when the conversion is lossless.
 
         Without this, a whole-number value for a 'Float'-typed parameter (e.g. the
         exact-zero default 0.0, or any value that arrived as the plain string "0")
@@ -1286,18 +1288,39 @@ class PipelineParameter(ElyraPropertyListItem):
         JSON representation loses the decimal point (0 instead of 0.0) even though
         the user explicitly declared the parameter type as Float. 'Integer' values
         that arrived as numeric strings are normalized the same way for symmetry.
+
+        Values that cannot be converted without loss (e.g. 3.5 or True for
+        'Integer', "abc" for 'Float') are returned unchanged so that validation
+        can report them instead of hiding the invalid input.
         """
+        if isinstance(value, bool):
+            return value
         if self.selected_type == "Float":
-            try:
+            if isinstance(value, (int, float)):
                 return float(value)
-            except (TypeError, ValueError):
-                return value
-        if self.selected_type == "Integer":
-            try:
+            if isinstance(value, str):
+                try:
+                    return float(value)
+                except ValueError:
+                    return value
+        elif self.selected_type == "Integer":
+            if isinstance(value, float) and value.is_integer():
                 return int(value)
-            except (TypeError, ValueError):
-                return value
+            if isinstance(value, str):
+                try:
+                    return int(value)
+                except ValueError:
+                    return value
         return value
+
+    def value_matches_selected_type(self, value: Any) -> bool:
+        """Whether 'value' is valid for the parameter's declared numeric type, if any."""
+        if self.selected_type == "Integer":
+            return isinstance(value, int) and not isinstance(value, bool)
+        if self.selected_type == "Float":
+            # nan and inf would be rendered as bare names, which are not valid literals in the DSL
+            return isinstance(value, float) and math.isfinite(value)
+        return True
 
     def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
         """

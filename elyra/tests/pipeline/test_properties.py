@@ -199,3 +199,13 @@ def test_kfp_pipelineparameter_accepts_value_compatible_with_type(selected_type,
     assert type(pp.value) is type(expected)
     assert pp.value == expected
     assert pp.get_all_validation_errors() == []
+
+
+@pytest.mark.parametrize("raw_value", ["nan", "inf", "-inf", float("inf")])
+def test_kfp_pipelineparameter_reports_non_finite_float(raw_value):
+    """
+    Verify that a non-finite 'Float' value is reported, since it would be rendered
+    into the generated DSL as a bare name (e.g. 'x: float = inf') that does not run.
+    """
+    pp = KfpPipelineParameter("parm", "", "", {"type": "Float", "value": raw_value}, False)
+    assert pp.get_all_validation_errors(), f"Float parameter accepted {raw_value!r}"
