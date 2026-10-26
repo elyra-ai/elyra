@@ -61,13 +61,12 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
             break;
           case 'Float':
             type = 'number';
+            // Number inputs default to step="1", which would flag every
+            // decimal as invalid
+            step = 'any';
             break;
           case 'Integer':
             type = 'number';
-            // Restrict this field to whole numbers. `pattern` is not
-            // supported on type="number" inputs, so `step` is the
-            // correct way to prevent decimal input here.
-            step = '1';
             break;
         }
         if (type === 'checkbox') {

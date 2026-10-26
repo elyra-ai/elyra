@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React from 'react';
+import React, { act } from 'react';
 import { createRoot, Root } from 'react-dom/client';
-import { act } from 'react-dom/test-utils';
 
-import { ParameterInputForm } from './ParameterInputForm';
+import { IParameterProps, ParameterInputForm } from './ParameterInputForm';
+
+type DefaultValue = NonNullable<
+  NonNullable<IParameterProps['parameters']>[number]['default_value']
+>;
+
+// Opt in to act() semantics so React flushes renders synchronously in tests.
+(
+  globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
 
 describe('ParameterInputForm', () => {
   let container: HTMLDivElement;
@@ -36,57 +44,36 @@ describe('ParameterInputForm', () => {
     container.remove();
   });
 
-  const getParamInput = (name: string): HTMLInputElement =>
-    container.querySelector(`#${name}-paramInput`) as HTMLInputElement;
-
-  it('restricts an Integer-type parameter to whole numbers via step="1"', () => {
+  const renderParamInput = (default_value: DefaultValue): HTMLInputElement => {
     act(() => {
       root.render(
-        <ParameterInputForm
-          parameters={[
-            { name: 'count', default_value: { type: 'Integer', value: 1 } }
-          ]}
-        />
+        <ParameterInputForm parameters={[{ name: 'param', default_value }]} />
       );
     });
+    return container.querySelector('#param-paramInput') as HTMLInputElement;
+  };
 
-    const input = getParamInput('count');
+  // See #3084: an Integer parameter must not accept a decimal value
+  it('treats a decimal as invalid input for an Integer-type parameter', () => {
+    const input = renderParamInput({ type: 'Integer', value: 1 });
     expect(input.type).toBe('number');
-    // `pattern` isn't supported on type="number" inputs, so `step` is what
-    // actually prevents decimal input here -- this is the regression this
-    // test pins (see #3088, fixed alongside #3417's Float coercion fix).
-    expect(input.step).toBe('1');
+    input.value = '3.5';
+    expect(input.checkValidity()).toBe(false);
+    input.value = '3';
+    expect(input.checkValidity()).toBe(true);
   });
 
-  it('does not restrict a Float-type parameter to whole numbers', () => {
-    act(() => {
-      root.render(
-        <ParameterInputForm
-          parameters={[
-            { name: 'ratio', default_value: { type: 'Float', value: 1.5 } }
-          ]}
-        />
-      );
-    });
-
-    const input = getParamInput('ratio');
+  it('treats a decimal as valid input for a Float-type parameter', () => {
+    const input = renderParamInput({ type: 'Float', value: 1.5 });
     expect(input.type).toBe('number');
-    expect(input.step).toBe('');
+    input.value = '0.25';
+    expect(input.checkValidity()).toBe(true);
   });
 
-  it('renders a String-type parameter as plain text with no step restriction', () => {
-    act(() => {
-      root.render(
-        <ParameterInputForm
-          parameters={[
-            { name: 'label', default_value: { type: 'String', value: 'a' } }
-          ]}
-        />
-      );
-    });
-
-    const input = getParamInput('label');
+  it('renders a String-type parameter as plain text', () => {
+    const input = renderParamInput({ type: 'String', value: 'a' });
     expect(input.type).toBe('text');
-    expect(input.step).toBe('');
+    input.value = '3.5';
+    expect(input.checkValidity()).toBe(true);
   });
 });
