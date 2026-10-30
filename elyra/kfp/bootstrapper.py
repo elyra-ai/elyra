@@ -55,6 +55,10 @@ enable_generic_node_script_output_to_s3 = (
 # already contains the required packages.
 install_packages = os.getenv("ELYRA_INSTALL_PACKAGES", "true").lower() == "true"
 
+# Runtime image Python versions that can install etc/generic/requirements-elyra.txt.
+# Keep in sync with requires-python in pyproject.toml and the CI test matrix.
+SUPPORTED_PYTHON_VERSIONS = ((3, 11), (3, 12), (3, 13))
+
 pipeline_name = None  # global used in formatted logging
 operation_name = None  # global used in formatted logging
 
@@ -641,15 +645,20 @@ class OpUtil(object):
         OpUtil.log_operation_info("Packages installed", duration)
 
     @classmethod
-    def determine_elyra_requirements(cls) -> Any:
-        if sys.version_info.major == 3:
-            if sys.version_info.minor in [10, 11, 12, 13]:
-                return "requirements-elyra.txt"
-        logger.error(
-            f"This version of Python '{sys.version_info.major}.{sys.version_info.minor}' "
-            f"is not supported for Elyra generic components"
+    def determine_elyra_requirements(cls) -> str:
+        """Return the requirements file to install for this runtime image's Python version.
+
+        Raises:
+            RuntimeError: if the image's Python version is not in SUPPORTED_PYTHON_VERSIONS.
+        """
+        python_version = (sys.version_info.major, sys.version_info.minor)
+        if python_version in SUPPORTED_PYTHON_VERSIONS:
+            return "requirements-elyra.txt"
+        supported = ", ".join(f"{major}.{minor}" for major, minor in SUPPORTED_PYTHON_VERSIONS)
+        raise RuntimeError(
+            f"Python {python_version[0]}.{python_version[1]} is not supported for Elyra generic components. "
+            f"Use a runtime image with Python {supported}."
         )
-        return None
 
     @classmethod
     def package_list_to_dict(cls, filename: str) -> dict:

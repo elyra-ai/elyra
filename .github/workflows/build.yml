@@ -85,7 +85,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -266,7 +266,7 @@ jobs:
       # `env` context is unavailable in matrix expressions, so the
       # default version is intentionally hardcoded below.
       matrix:
-        python-version: ${{ fromJSON(github.event_name == 'pull_request' && '["3.13"]' || '["3.10", "3.11", "3.12", "3.13"]') }}
+        python-version: ${{ fromJSON(github.event_name == 'pull_request' && '["3.13"]' || '["3.11", "3.12", "3.13"]') }}
     steps:
       - uses: actions/checkout@v4
       - name: Validate image environment
