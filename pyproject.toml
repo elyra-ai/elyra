@@ -17,7 +17,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "autopep8>=1.5.0",
-    "click==8.1.8",  # elyra-ai/elyra#2579 -- 8.2.0 dropped support for Python 3.9
+    "click>=8.2",
     "colorama",
     "deprecation",
     "entrypoints>=0.3",
