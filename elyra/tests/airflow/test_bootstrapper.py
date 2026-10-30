@@ -14,14 +14,50 @@
 # limitations under the License.
 #
 
+from collections import namedtuple
 import logging
 import os
+from types import SimpleNamespace
+from unittest import mock
 
 import nbformat
+import pytest
 
 from elyra.airflow import bootstrapper
 
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), "resources")
+
+# Same fields as sys.version_info, so attribute and index access both work.
+VersionInfo = namedtuple("VersionInfo", ["major", "minor", "micro", "releaselevel", "serial"])
+
+
+def use_python(monkeypatch, major: int, minor: int) -> None:
+    """Make the bootstrapper see a runtime image running Python ``major.minor``."""
+    fake_sys = SimpleNamespace(version_info=VersionInfo(major, minor, 0, "final", 0), executable="python3")
+    monkeypatch.setattr(bootstrapper, "sys", fake_sys)
+
+
+@pytest.mark.parametrize("minor", [11, 12, 13])
+def test_supported_python_uses_elyra_requirements(monkeypatch, minor):
+    use_python(monkeypatch, 3, minor)
+    assert bootstrapper.OpUtil.determine_elyra_requirements() == "requirements-elyra.txt"
+
+
+@pytest.mark.parametrize("major, minor", [(3, 10), (3, 14), (2, 7)])
+def test_unsupported_python_fails_naming_the_version(monkeypatch, major, minor):
+    use_python(monkeypatch, major, minor)
+    with pytest.raises(RuntimeError, match=rf"Python {major}\.{minor}\b"):
+        bootstrapper.OpUtil.determine_elyra_requirements()
+
+
+def test_package_install_stops_before_pip_on_unsupported_python(monkeypatch):
+    use_python(monkeypatch, 3, 10)
+    pip_run = mock.Mock()
+    monkeypatch.setattr(bootstrapper.subprocess, "run", pip_run)
+
+    with pytest.raises(RuntimeError, match=r"Python 3\.10\b"):
+        bootstrapper.OpUtil.package_install()
+    pip_run.assert_not_called()
 
 
 def test_find_best_kernel_nb(tmpdir):
