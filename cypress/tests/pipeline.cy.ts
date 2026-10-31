@@ -942,6 +942,19 @@ describe('Pipeline Editor tests', () => {
     // A blocked reload would otherwise wait out the 120s default.
     { pageLoadTimeout: 30000 },
     () => {
+      // Fail before dirtying anything if the test server did not load its page
+      // config: once this reload is blocked, Cypress cannot close the page at
+      // the end of the run either, so the shard hangs instead of failing.
+      cy.document().then((doc) => {
+        const pageConfig = JSON.parse(
+          doc.getElementById('jupyter-config-data')?.textContent ?? '{}'
+        );
+        expect(
+          pageConfig.disabledExtensions,
+          'disabledExtensions in the test server page config'
+        ).to.include('@jupyterlab/application-extension:dirty');
+      });
+
       cy.createPipeline({ name: 'unsaved.pipeline', emptyPipeline });
       cy.addFileToPipeline('helloworld.ipynb');
       cy.get(CURRENT_TAB_SELECTOR).should('have.class', 'jp-mod-dirty');
