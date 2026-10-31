@@ -940,6 +940,39 @@ class PipelineValidationManager(SingletonConfigurable):
                 data={},
             )
 
+    @staticmethod
+    def _validate_kfp_input_names(node: Node, param_names: List[str], response: ValidationResponse) -> None:
+        """
+        Report pipeline parameters of a generic node that Kubeflow Pipelines maps to the same input.
+
+        Kubeflow Pipelines renames component inputs (for example, 'MyParam' becomes 'myparam'), so
+        parameters that differ only by letter case or leading and trailing underscores would
+        overwrite each other in the node.
+
+        :param node: the generic node that references the parameters
+        :param param_names: names of the pipeline parameters referenced by the node
+        :param response: ValidationResponse containing the issue list to be updated
+        """
+        # kfp is an optional dependency and only required for the Kubeflow Pipelines runtime
+        from kfp.dsl.utils import sanitize_input_name
+
+        names_by_input: Dict[str, List[str]] = {}
+        for name in dict.fromkeys(param_names):  # de-duplicated, order preserved
+            if isinstance(name, str) and name:
+                names_by_input.setdefault(sanitize_input_name(name), []).append(name)
+
+        for input_name, names in names_by_input.items():
+            if len(names) > 1:
+                quoted_names = ", ".join(f"'{name}'" for name in names)
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidPipelineParameter",
+                    message=f"Node '{node.label}' references pipeline parameters {quoted_names}, which "
+                    f"Kubeflow Pipelines treats as the same input '{input_name}'. Rename the parameters so "
+                    "they differ by more than letter case or leading and trailing underscores.",
+                    data={"nodeID": node.id, "nodeName": node.label, "value": names},
+                )
+
     async def _validate_pipeline_parameters(
         self, pipeline_definition: PipelineDefinition, pipeline_runtime: str, response: ValidationResponse
     ) -> None:
@@ -961,6 +994,8 @@ class PipelineValidationManager(SingletonConfigurable):
                         node_parameters = node.get_component_parameter(PIPELINE_PARAMETERS, [])
                         if node_parameters:
                             referenced_param_names.extend(node_parameters)
+                            if pipeline_runtime == "kfp":
+                                self._validate_kfp_input_names(node, node_parameters, response)
                     else:
                         component_props = await self._get_component_properties(node.op, pipeline_runtime)
                         if component_props is None:
