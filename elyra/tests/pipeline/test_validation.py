@@ -1207,6 +1207,47 @@ async def test_invalid_pipeline_parameter_duplicates(validation_manager, load_pi
     )
 
 
+@pytest.mark.parametrize(
+    "names, collide",
+    [
+        (["Foo", "foo"], True),
+        (["my_param", "My_Param"], True),
+        (["param", "param_"], True),
+        (["Foo", "bar"], False),
+        (["my_param", "my__param"], False),  # distinct names for Kubeflow Pipelines
+    ],
+)
+async def test_pipeline_parameters_with_same_kfp_input_name_in_one_node(
+    validation_manager, load_pipeline, names, collide
+):
+    pipeline, response = load_pipeline("kf_with_parameters.pipeline")
+    parameters = ElyraPropertyList(
+        [
+            KfpPipelineParameter(name=name, description="", value="value", default_value={}, required=True)
+            for name in names
+        ]
+    )
+    pipeline["pipelines"][0]["nodes"][0]["app_data"]["component_parameters"]["pipeline_parameters"] = names
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    pipeline_definition.primary_pipeline.set_property(PIPELINE_PARAMETERS, parameters)
+    await validation_manager._validate_pipeline_parameters(
+        pipeline_definition=pipeline_definition,
+        pipeline_runtime="kfp",
+        response=response,
+    )
+
+    issues = response.to_json().get("issues")
+    if not collide:
+        assert issues == []
+        return
+    assert len(issues) == 1, issues
+    assert issues[0]["severity"] == 1
+    assert issues[0]["type"] == "invalidPipelineParameter"
+    assert issues[0]["data"]["nodeName"] == "label"
+    assert all(f"'{name}'" in issues[0]["message"] for name in names)
+
+
 @pytest.mark.parametrize("catalog_instance", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 async def test_invalid_pipeline_parameter(validation_manager, load_pipeline, catalog_instance):
     pipeline, response = load_pipeline("kf_with_parameters.pipeline")
