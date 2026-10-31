@@ -221,9 +221,10 @@ const listedFiles = ($content: JQuery<HTMLElement>): string =>
 Cypress.Commands.add('dragAndDropFileToPipeline', (name: string) => {
   // DirListing reuses its row nodes by position on every render, so a refresh
   // that lands between finding the row and pressing it leaves another file in
-  // the node Cypress holds, and the press picks that file up instead. Check
-  // the selection before dropping, and report the listing on both sides of
-  // the press so a misfire names the rows that moved.
+  // the node Cypress holds, and the press picks that file up instead. Finish
+  // the drag first so the mouse button is always released, then check which
+  // file was picked up, reporting the listing from before the press and after
+  // the drop so a misfire names the rows that moved.
   cy.get('.jp-DirListing-content').then(($before) => {
     const before = listedFiles($before);
 
@@ -231,6 +232,12 @@ Cypress.Commands.add('dragAndDropFileToPipeline', (name: string) => {
       name: (n, _el) => n.includes(name)
     }).realMouseDown();
 
+    cy.get('.d3-svg-background')
+      .realMouseMove(50, 50, { position: 'center' })
+      .realMouseUp();
+
+    // DirListing keys its selection by path, so after the drop it still names
+    // the file the press picked up.
     cy.get('.jp-DirListing-content').should(($after) => {
       expect(
         $after.find('.jp-DirListing-item.jp-mod-selected').text(),
@@ -238,10 +245,6 @@ Cypress.Commands.add('dragAndDropFileToPipeline', (name: string) => {
       ).to.include(name);
     });
   });
-
-  cy.get('.d3-svg-background')
-    .realMouseMove(50, 50, { position: 'center' })
-    .realMouseUp();
 });
 
 Cypress.Commands.add('savePipeline', (): void => {
