@@ -1722,3 +1722,25 @@ def test_kfp_valid_pipeline_parameter_type():
         )
         assert parameter.name == "valid_param"
         assert parameter.input_type.base_type == valid_type
+
+
+@pytest.mark.parametrize(
+    "name, valid",
+    [
+        ("param", True),
+        ("Param_1", True),
+        ("p", True),
+        ("_param", False),  # Kubeflow Pipelines requires a leading letter
+        ("__param__", False),
+        ("ñame", False),  # valid Python name, but Kubeflow Pipelines only accepts ASCII letters
+        ("paramé", False),
+    ],
+)
+def test_kfp_pipeline_parameter_name_accepted_by_kfp(name, valid):
+    parameter = KfpPipelineParameter(name=name, description="", value="", default_value={}, required=False)
+    errors = parameter.get_all_validation_errors()
+    if valid:
+        assert errors == []
+    else:
+        assert len(errors) == 1, errors
+        assert f"'{name}' is not a valid parameter name" in errors[0]
