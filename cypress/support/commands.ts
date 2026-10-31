@@ -168,6 +168,12 @@ Cypress.Commands.add(
   'createPipeline',
   ({ name, type, emptyPipeline } = {}): void => {
     if (name === undefined) {
+      // The launcher creates untitled*.pipeline, opens it, and then saves the
+      // empty pipeline into it. Wait for that save so the file browser refresh
+      // it triggers cannot land in the middle of the test's next step.
+      cy.intercept('PUT', /\/api\/contents\/.*untitled\d*\.pipeline/).as(
+        'newPipelineSave'
+      );
       switch (type) {
         case 'kfp':
           clickActiveLauncherCard('Kubeflow Pipelines Pipeline Editor');
@@ -179,6 +185,9 @@ Cypress.Commands.add(
           clickActiveLauncherCard('Generic Pipeline Editor');
           break;
       }
+      cy.wait('@newPipelineSave', { timeout: 20000 })
+        .its('response.statusCode')
+        .should('be.oneOf', [200, 201]);
     } else {
       cy.writeFile(`build/cypress/${name}`, emptyPipeline ?? '');
       cy.openFile(name);
