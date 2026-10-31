@@ -1482,6 +1482,83 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_with_para
         assert any(param.name == param_name and param.value == param_value for param in pipeline.parameters)
 
 
+@pytest.mark.parametrize(
+    "metadata_dependencies",
+    [
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
+        }
+    ],
+    indirect=True,
+)
+@pytest.mark.parametrize(
+    "param_name, kfp_input_name",
+    [
+        ("MyParam", "myparam"),
+        ("My_Param", "my_param"),
+        ("My__Param", "my__param"),
+        ("param_", "param"),
+    ],
+)
+def test_generate_pipeline_dsl_compile_generic_components_with_non_normalized_parameter_names(
+    monkeypatch,
+    processor: KfpPipelineProcessor,
+    metadata_dependencies: Dict[str, Any],
+    tmpdir,
+    param_name,
+    kfp_input_name,
+):
+    """
+    Validate that generic nodes compile when a pipeline parameter name is not in the
+    form KFP uses for component inputs (lowercase, no leading or trailing underscores),
+    and that the task input is fed from the parameter the user defined.
+    """
+    pipeline = metadata_dependencies["pipeline_object"]
+    workflow_engine = WorkflowEngineType.get_instance_by_value(
+        metadata_dependencies["runtime_config"].metadata["engine"]
+    )
+
+    # Rename 'param1' in the pipeline and in the node that references it, as a user would
+    parameter = next(param for param in pipeline.parameters if param.name == "param1")
+    parameter.name = param_name
+    operation = next(op for op in pipeline.operations.values() if op.parameters and "param1" in op.parameters)
+    operation.parameters[operation.parameters.index("param1")] = param_name
+
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
+    monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
+
+    generated_dsl = processor._generate_pipeline_dsl(
+        pipeline=pipeline,
+        pipeline_name=pipeline.name,
+        workflow_engine=workflow_engine,
+        pipeline_version=f"{pipeline.name}-test-0",
+        pipeline_instance_id=f"{pipeline.name}-{datetime.now().strftime('%m%d%H%M%S')}",
+        experiment_name=f"{pipeline.name}-test-0",
+    )
+    compiled_output_file = Path(tmpdir) / "compiled_kfp_test.yaml"
+    processor._compile_pipeline_dsl(
+        dsl=generated_dsl,
+        workflow_engine=workflow_engine,
+        output_file=str(compiled_output_file),
+        pipeline_conf=None,
+    )
+
+    with open(compiled_output_file) as f:
+        compiled_spec = list(yaml.safe_load_all(f.read()))[0]
+
+    # The pipeline keeps the parameter name the user chose
+    assert param_name in compiled_spec["root"]["inputDefinitions"]["parameters"]
+    # The task feeds KFP's name for the component input from that pipeline parameter
+    (task,) = compiled_spec["root"]["dag"]["tasks"].values()
+    assert task["inputs"]["parameters"][kfp_input_name] == {"componentInputParameter": param_name}
+
+
 def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_components_with_parameters(
     processor: KfpPipelineProcessor, component_cache, tmpdir
 ):
@@ -1636,3 +1713,25 @@ def test_kfp_valid_pipeline_parameter_type():
         )
         assert parameter.name == "valid_param"
         assert parameter.input_type.base_type == valid_type
+
+
+@pytest.mark.parametrize(
+    "name, valid",
+    [
+        ("param", True),
+        ("Param_1", True),
+        ("p", True),
+        ("_param", False),  # Kubeflow Pipelines requires a leading letter
+        ("__param__", False),
+        ("ñame", False),  # valid Python name, but Kubeflow Pipelines only accepts ASCII letters
+        ("paramé", False),
+    ],
+)
+def test_kfp_pipeline_parameter_name_accepted_by_kfp(name, valid):
+    parameter = KfpPipelineParameter(name=name, description="", value="", default_value={}, required=False)
+    errors = parameter.get_all_validation_errors()
+    if valid:
+        assert errors == []
+    else:
+        assert len(errors) == 1, errors
+        assert f"'{name}' is not a valid parameter name" in errors[0]

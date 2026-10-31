@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 from keyword import iskeyword
+import re
 from typing import Any
 from typing import List
 from typing import Optional
@@ -75,6 +76,10 @@ class KfpPropertyInputType(PropertyInputType):
 class KfpPipelineParameter(PipelineParameter):
     """An ElyraProperty representing a single pipeline parameter for the Kubeflow Pipelines runtime"""
 
+    # Kubeflow Pipelines only accepts parameter names that begin with a letter and contain
+    # ASCII letters, numbers, and underscores; shared by the editor field and validation
+    name_pattern = "^[a-zA-Z][a-zA-Z0-9_]*$"
+
     property_id = "KFP_PIPELINE_PARAMETERS"
     property_attributes = [
         ListItemPropertyAttribute(
@@ -85,7 +90,7 @@ class KfpPipelineParameter(PipelineParameter):
             hidden=False,
             required=True,
             use_in_key=True,
-            pattern="^[a-zA-Z][a-zA-Z0-9_]*$",
+            pattern=name_pattern,
         ),
         ListItemPropertyAttribute(
             attribute_id="description",
@@ -156,6 +161,12 @@ class KfpPipelineParameter(PipelineParameter):
         elif iskeyword(self.name):
             # param name collides with a python keyword (e.g. class, def, etc.)
             validation_errors.append(f"'{self.name}' is not a valid parameter name: name cannot be a Python keyword.")
+        elif not re.fullmatch(self.name_pattern, self.name):
+            # name is valid in Python, but Kubeflow Pipelines rejects it at compile time
+            validation_errors.append(
+                f"'{self.name}' is not a valid parameter name: name must begin with a letter and contain "
+                "only ASCII letters, numbers, and underscores."
+            )
 
         # If 'required' is True, a value must be provided
         if self.required and (self.value is None or self.value == ""):
