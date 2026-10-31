@@ -21,6 +21,9 @@ This directory root contains Dockerfiles and required supporting files needed to
 ### elyra
 Builds the Elyra image for use as standalone or with JupyterHub. See [Deploying Elyra and JupyterHub in a Kubernetes environment](https://elyra.readthedocs.io/en/latest/recipes/deploying-elyra-in-a-jupyterhub-environment.html#deploying-elyra-jupyterhub-in-a-kubernetes-environment)
 
+### elyra_development
+Builds a development workspace image with the tools needed to build and test Elyra changes (Python, Node.js, Yarn, and JupyterLab). The image does not include Elyra; it mounts your local Elyra repository. See the [elyra_development README](elyra_development/README.md).
+
 ### elyra-on-openshift (Open Data Hub)
 Elyra on OpenShift is available via Open Data Hub. Elyra Image is available via [quay.io](https://quay.io/repository/thoth-station/s2i-lab-elyra?tab=tags) and supporting image build files via [s2i-lab-elyra](https://github.com/opendatahub-io/s2i-lab-elyra)
 

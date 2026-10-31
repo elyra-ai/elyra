@@ -1,5 +1,10 @@
 name: elyra-env
+channels:
+  - conda-forge
 dependencies:
-  - python>=3.11
+  - python>=3.11,<3.14  # Python versions Elyra supports and tests
+  - nodejs>=22,<23
+  - yarn
+  - pip
   - pip:
     - jupyterlab==4.6.4
