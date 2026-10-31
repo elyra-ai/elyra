@@ -172,6 +172,10 @@ jobs:
     # Per-shard CYPRESS_SPEC is read by cypress.config.ts via process.env.
     name: Run Integration Tests (${{ matrix.name }})
     runs-on: ubuntu-latest
+    # A Cypress run whose page cannot unload (a dirty document after a real
+    # user gesture) hangs instead of failing. Cap each shard well above its
+    # usual ~20 minutes so a hang cannot hold a runner for the 6-hour default.
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
