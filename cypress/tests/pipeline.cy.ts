@@ -66,6 +66,7 @@ describe('Pipeline Editor tests', () => {
     cy.deleteFiles([
       'helloworld.ipynb',
       'helloworld.py',
+      'helloworld.r',
       'output.txt',
       '*.pipeline',
       'generic-test.yaml',
@@ -936,6 +937,43 @@ describe('Pipeline Editor tests', () => {
     // dismiss dialog
     cy.contains('Ok').click();
   });
+
+  it(
+    'resetting JupyterLab should not be blocked by unsaved changes',
+    // A blocked reload would otherwise wait out the 120s default.
+    { pageLoadTimeout: 30000 },
+    () => {
+      // Fail before dirtying anything if the test server did not load its page
+      // config: once this reload is blocked, Cypress cannot close the page at
+      // the end of the run either, so the shard hangs instead of failing.
+      cy.document().then((doc) => {
+        const pageConfig = JSON.parse(
+          doc.getElementById('jupyter-config-data')?.textContent ?? '{}'
+        );
+        expect(
+          pageConfig.disabledExtensions,
+          'disabledExtensions in the test server page config'
+        ).to.include('@jupyterlab/application-extension:dirty');
+      });
+
+      cy.createPipeline({ name: 'unsaved.pipeline', emptyPipeline });
+      cy.addFileToPipeline('helloworld.ipynb');
+      cy.get(CURRENT_TAB_SELECTOR).should('have.class', 'jp-mod-dirty');
+
+      // Chromium only honours a beforeunload cancel once the page has had a
+      // real user gesture since load, and Cypress's synthetic events do not
+      // count. One CDP click reproduces what the cypress-real-events drag in
+      // dragAndDropFileToPipeline did on CI. Clicking the tab that is already
+      // current is otherwise a no-op.
+      cy.get(CURRENT_TAB_SELECTOR).realClick();
+
+      // JupyterLab cancels page unloads while a document is dirty, and once
+      // the page has had a real gesture Electron honours that silently. Unless
+      // the test server's page config disables that guard, this reload never
+      // fires `load` and every later test inherits the hang.
+      cy.resetJupyterLab();
+    }
+  );
 });
 
 // ------------------------------

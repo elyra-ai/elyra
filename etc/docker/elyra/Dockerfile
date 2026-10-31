@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-# Ubuntu 20.04.2 LTS (Focal Fossa)
+# Debian GNU/Linux 11 (bullseye), Python 3.11
 # Repository: https://hub.docker.com/r/jupyterhub/k8s-singleuser-sample/tags
 FROM jupyterhub/k8s-singleuser-sample:3.3.7
 
@@ -32,8 +32,6 @@ COPY requirements.txt ${ELYRA_PACKAGE} ./
 USER root
 RUN chown jovyan:users ./requirements.txt ./"${ELYRA_PACKAGE}"
 USER jovyan
-
-RUN ls -al /home/jovyan
 
 RUN python3 -m pip install --quiet --no-cache-dir --upgrade pip setuptools
 

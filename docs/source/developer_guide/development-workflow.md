@@ -36,7 +36,7 @@ Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/
     conda create -n <env-name> python
     ```
 
-    The Python version of your environment will match the miniconda version you installed. You can override the default by explicitly setting `python=3.10`, for example.
+    The Python version of your environment will match the miniconda version you installed. You can override the default by explicitly setting `python=3.11`, for example.
 
 * Activate the new environment
 

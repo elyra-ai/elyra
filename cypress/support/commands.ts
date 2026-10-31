@@ -168,6 +168,12 @@ Cypress.Commands.add(
   'createPipeline',
   ({ name, type, emptyPipeline } = {}): void => {
     if (name === undefined) {
+      // The launcher creates untitled*.pipeline, opens it, and then saves the
+      // empty pipeline into it. Wait for that save so the file browser refresh
+      // it triggers cannot land in the middle of the test's next step.
+      cy.intercept('PUT', /\/api\/contents\/.*untitled\d*\.pipeline/).as(
+        'newPipelineSave'
+      );
       switch (type) {
         case 'kfp':
           clickActiveLauncherCard('Kubeflow Pipelines Pipeline Editor');
@@ -179,6 +185,9 @@ Cypress.Commands.add(
           clickActiveLauncherCard('Generic Pipeline Editor');
           break;
       }
+      cy.wait('@newPipelineSave', { timeout: 20000 })
+        .its('response.statusCode')
+        .should('be.oneOf', [200, 201]);
     } else {
       cy.writeFile(`build/cypress/${name}`, emptyPipeline ?? '');
       cy.openFile(name);
@@ -210,14 +219,41 @@ Cypress.Commands.add('addFileToPipeline', (name: string): void => {
     .click();
 });
 
-Cypress.Commands.add('dragAndDropFileToPipeline', (name: string) => {
-  cy.findByRole('listitem', {
-    name: (n, _el) => n.includes(name)
-  }).realMouseDown();
+// Names of the files in the file browser, top to bottom.
+const listedFiles = ($content: JQuery<HTMLElement>): string =>
+  $content
+    .find('.jp-DirListing-itemText')
+    .map((_i, el) => el.textContent)
+    .get()
+    .join(', ');
 
-  cy.get('.d3-svg-background')
-    .realMouseMove(50, 50, { position: 'center' })
-    .realMouseUp();
+Cypress.Commands.add('dragAndDropFileToPipeline', (name: string) => {
+  // DirListing reuses its row nodes by position on every render, so a refresh
+  // that lands between finding the row and pressing it leaves another file in
+  // the node Cypress holds, and the press picks that file up instead. Finish
+  // the drag first so the mouse button is always released, then check which
+  // file was picked up, reporting the listing from before the press and after
+  // the drop so a misfire names the rows that moved.
+  cy.get('.jp-DirListing-content').then(($before) => {
+    const before = listedFiles($before);
+
+    cy.findByRole('listitem', {
+      name: (n, _el) => n.includes(name)
+    }).realMouseDown();
+
+    cy.get('.d3-svg-background')
+      .realMouseMove(50, 50, { position: 'center' })
+      .realMouseUp();
+
+    // DirListing keys its selection by path, so after the drop it still names
+    // the file the press picked up.
+    cy.get('.jp-DirListing-content').should(($after) => {
+      expect(
+        $after.find('.jp-DirListing-item.jp-mod-selected').text(),
+        `file picked up by the press (listing before: ${before}; after: ${listedFiles($after)})`
+      ).to.include(name);
+    });
+  });
 });
 
 Cypress.Commands.add('savePipeline', (): void => {
