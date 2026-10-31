@@ -939,17 +939,24 @@ describe('Pipeline Editor tests', () => {
 
   it(
     'resetting JupyterLab should not be blocked by unsaved changes',
-    // A blocked reload would otherwise wait out the 120s default, and a retry
-    // would only repeat the same hang.
-    { pageLoadTimeout: 30000, retries: 0 },
+    // A blocked reload would otherwise wait out the 120s default.
+    { pageLoadTimeout: 30000 },
     () => {
       cy.createPipeline({ name: 'unsaved.pipeline', emptyPipeline });
       cy.addFileToPipeline('helloworld.ipynb');
       cy.get(CURRENT_TAB_SELECTOR).should('have.class', 'jp-mod-dirty');
 
-      // JupyterLab cancels page unloads while a document is dirty and Electron
-      // honours that silently, so unless the test server disables that guard
-      // this reload never fires `load` and every later test inherits the hang.
+      // Chromium only honours a beforeunload cancel once the page has had a
+      // real user gesture since load, and Cypress's synthetic events do not
+      // count. One CDP click reproduces what the cypress-real-events drag in
+      // dragAndDropFileToPipeline did on CI. Clicking the tab that is already
+      // current is otherwise a no-op.
+      cy.get(CURRENT_TAB_SELECTOR).realClick();
+
+      // JupyterLab cancels page unloads while a document is dirty, and once
+      // the page has had a real gesture Electron honours that silently. Unless
+      // the test server's page config disables that guard, this reload never
+      // fires `load` and every later test inherits the hang.
       cy.resetJupyterLab();
     }
   );
