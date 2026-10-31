@@ -24,3 +24,13 @@ running `npm test-debug` from the root directory of this project. To run tests t
 a detailed log instead of opening the Cypress UI, run `npm test`. Tests can also be run
 from the makefile by running `make test`. The spec code for tests is located in
 the `cypress/tests/` directory.
+
+## Test server configuration
+`yarn start` (used by `make test-integration`) launches JupyterLab with
+`cypress/test-config.py` and prepends `cypress/jupyter-config` to
+`JUPYTER_CONFIG_PATH`. Its `labconfig/page_config.json` disables
+`@jupyterlab/application-extension:dirty`, the plugin that cancels page unloads
+while a document has unsaved changes. Electron honours that cancel silently, so
+without this a test that fails mid-edit makes the next `cy.visit()` hang until
+`pageLoadTimeout`. The setting applies only to the test server, not to your own
+JupyterLab.

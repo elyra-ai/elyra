@@ -19,7 +19,22 @@ import fs from 'fs';
 import path from 'path';
 
 const config = path.join(__dirname, '..', 'cypress', 'test-config.py');
-const jupyter = exec(`jupyter lab --config ${config}`);
+
+// Lab page config for this test server only. It turns off the plugin that
+// cancels page unloads while a document has unsaved changes: Electron honours
+// that cancel silently, so a test that fails mid-edit would leave every later
+// cy.visit() waiting out pageLoadTimeout. Prepending to JUPYTER_CONFIG_PATH
+// keeps it out of the developer's own Jupyter config dirs.
+const jupyterConfigPath = [
+  path.join(__dirname, '..', 'cypress', 'jupyter-config'),
+  process.env.JUPYTER_CONFIG_PATH
+]
+  .filter(Boolean)
+  .join(path.delimiter);
+
+const jupyter = exec(`jupyter lab --config ${config}`, {
+  env: { ...process.env, JUPYTER_CONFIG_PATH: jupyterConfigPath }
+});
 
 const CONTAINER_NAME = 'minio_test';
 

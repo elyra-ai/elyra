@@ -936,6 +936,23 @@ describe('Pipeline Editor tests', () => {
     // dismiss dialog
     cy.contains('Ok').click();
   });
+
+  it(
+    'resetting JupyterLab should not be blocked by unsaved changes',
+    // A blocked reload would otherwise wait out the 120s default, and a retry
+    // would only repeat the same hang.
+    { pageLoadTimeout: 30000, retries: 0 },
+    () => {
+      cy.createPipeline({ name: 'unsaved.pipeline', emptyPipeline });
+      cy.addFileToPipeline('helloworld.ipynb');
+      cy.get(CURRENT_TAB_SELECTOR).should('have.class', 'jp-mod-dirty');
+
+      // JupyterLab cancels page unloads while a document is dirty and Electron
+      // honours that silently, so unless the test server disables that guard
+      // this reload never fires `load` and every later test inherits the hang.
+      cy.resetJupyterLab();
+    }
+  );
 });
 
 // ------------------------------
