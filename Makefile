@@ -244,7 +244,6 @@ test-instrument: # Prepare code coverage instrumentation
 	lerna run cy:instrument --stream
 
 test-integration: # Run frontend cypress integration tests
-	jupyter labextension disable "@jupyterlab/apputils-extension:announcements"
 	yarn test:integration
 
 test-integration-debug: # Open cypress integration test debugger

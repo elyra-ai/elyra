@@ -1,5 +1,6 @@
 {
   "disabledExtensions": {
-    "@jupyterlab/application-extension:dirty": true
+    "@jupyterlab/application-extension:dirty": true,
+    "@jupyterlab/apputils-extension:announcements": true
   }
 }
