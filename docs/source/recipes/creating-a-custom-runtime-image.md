@@ -24,7 +24,7 @@ Should none of these images meet your needs, you can utilize a custom container 
 
 - The image is stored in a container registry in a public or private network that the container platform in which the pipeline is executed can connect to. Examples of such registries are [hub.docker.com](https://hub.docker.com) or a self-managed registry in an intranet environment.
 - The image can be pulled from the registry without the need to authenticate. 
-- [Python 3](https://www.python.org/) is pre-installed and in the search path. Python versions that have reached their "end of life" are not supported.
+- [Python 3](https://www.python.org/) is pre-installed and in the search path. Elyra supports Python 3.11, 3.12 and 3.13 in runtime images; other versions fail when the pipeline node starts.
 - [`curl`](https://curl.haxx.se/) is pre-installed and in the search path.
 
 Elyra installs a [set of required packages](https://github.com/elyra-ai/elyra/blob/main/etc/generic/requirements-elyra.txt) in this image prior to running Jupyter notebooks or Python scripts. If no built distribution is available for those packages, Python builds the packages from source, which might require additional software (like a compiler) to be preinstalled in the image. Building and installing those package on-the-fly might add a non-trivial overhead, and you should therefore consider pre-installing these Elyra prerequisites in the container image.

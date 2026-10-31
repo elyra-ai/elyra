@@ -58,7 +58,7 @@ etc/                    # Docker, Kubernetes, and deployment configs
 
 ## Tech Stack
 
-- **Backend:** Python 3.10+, Jupyter Server, Tornado
+- **Backend:** Python 3.11+, Jupyter Server, Tornado
 - **Frontend:** TypeScript, JupyterLab 4.6.0+, React
 - **Build:** Hatchling (Python), Lerna + Yarn (JS), Makefile orchestration
 - **Testing:** pytest (backend), Jest (frontend unit), Cypress (integration)

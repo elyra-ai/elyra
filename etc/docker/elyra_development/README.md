@@ -19,7 +19,7 @@ limitations under the License.
 ### Elyra Development Container Image
 
 Builds an Elyra development workspace image. This image provides all the necessary libraries and frameworks to build and test
-Elyra changes. 
+Elyra changes: Python, Node.js 22 and Yarn in the `elyra-env` conda environment, defined in `requirements.yml`.
 
 #### Building the image
 
@@ -33,7 +33,8 @@ To build a custom version of this container image:
 1. Build the image using the `Dockerfile` in the `path_to_elyra_repo_root/etc/docker/elyra_development` directory, replacing the `<path_to_elyra_repo_root>`, `<image_name>`, and `<tag>` placeholders as appropriate.
    ```
    $ docker build -t <image_name>:<tag> <path_to_elyra_repo_root>/etc/docker/elyra_development/
-   ``` 
+   ```
+   The image is built for the architecture of the machine running the build (`linux/amd64` or `linux/arm64`, for example on Apple silicon). To build for the other architecture, add `--platform linux/amd64` or `--platform linux/arm64`.
 
 #### Using this image
 This image mounts your local Elyra repository into a directory in the image (`/dev/elyra`) so all changes are persisted. 
