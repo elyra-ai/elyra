@@ -376,6 +376,15 @@ $ elyra-pipeline submit elyra-pipelines/a-kubeflow.pipeline \
       --runtime-config kfp
 ```
 
+For Kubeflow Pipelines the `--parameter` option is supported. If the pipeline defines [pipeline parameters](#defining-pipeline-parameters), specify `--parameter NAME=VALUE` once for each parameter to override its default value. A value must be provided for each parameter that is marked as required and does not have a default value. The specified value is converted to the type of the parameter, e.g. `true` or `false` for a `Bool` parameter. If an empty value is specified, the parameter's default value is used.
+
+```bash
+$ elyra-pipeline submit elyra-pipelines/a-kubeflow.pipeline \
+      --runtime-config kfp \
+      --parameter learning_rate=0.01 \
+      --parameter epochs=10
+```
+
 For Kubeflow Pipelines the `--monitor` option is supported. If specified, the pipeline execution status is monitored for up to `--monitor-timeout` minutes (default: 60) and the `elyra-pipeline submit` command terminates as follows:
 - pipeline run completes successfully before `--monitor-timeout` is exceeded: exit code 0
 - pipeline run does not complete before `--monitor-timeout` is exceeded: exit code 124 (Note: the pipeline continues running on Kubeflow Pipelines, only monitoring is stopped.)
@@ -425,6 +434,8 @@ $ elyra-pipeline export a-notebook.pipeline --runtime-config kfp_dev_env --outpu
 ```
 
 By default, export produces YAML formatted output for Kubeflow Pipelines and <u>ONLY</u> Python DAGs for Apache Airflow. To choose a different format for Kubeflow Pipelines, specify the `--format` option. Supported values are `py` and `yaml` for Kubeflow Pipelines.
+
+To override the default value of [pipeline parameters](#defining-pipeline-parameters) for Kubeflow Pipelines, specify the `--parameter NAME=VALUE` option once for each parameter, as described in [Running a pipeline from the command line interface](#running-a-pipeline-from-the-command-line-interface).
 
 To learn more about supported parameters, run
 ```bash
