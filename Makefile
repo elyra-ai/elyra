@@ -82,9 +82,10 @@ purge:
 
 uninstall:
 	$(PYTHON_PIP) uninstall -y jupyterlab-git
+	$(PYTHON_PIP) uninstall -y jupyterlab-git-core
 	$(PYTHON_PIP) uninstall -y nbdime
 	$(PYTHON_PIP) uninstall -y jupyter-lsp
-	- jupyter labextension uninstall @krassowski/jupyterlab-lsp
+	- jupyter labextension uninstall @jupyter-lsp/jupyterlab-lsp
 	$(PYTHON_PIP) uninstall -y jupyterlab-lsp
 	$(PYTHON_PIP) uninstall -y python-lsp-server
 	$(PYTHON_PIP) uninstall -y jupyter-resource-usage

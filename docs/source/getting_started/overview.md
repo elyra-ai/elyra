@@ -106,7 +106,7 @@ To access the Table of Contents, open a notebook and select the _Table of Conten
 
 #### Language Server Protocol integration
 
-The [JupyterLab Language Server Protocol (LSP) integration](https://github.com/krassowski/jupyterlab-lsp) enhances the development experience in the notebook editor and file editors, delivering features common in IDEs such as autocompletion, code navigation, hover suggestions, code linting, and renaming.
+The [JupyterLab Language Server Protocol (LSP) integration](https://github.com/jupyter-lsp/jupyterlab-lsp) enhances the development experience in the notebook editor and file editors, delivering features common in IDEs such as autocompletion, code navigation, hover suggestions, code linting, and renaming.
 
 ![LSP Integration](../images/getting_started/overview/lsp.gif)
 
@@ -114,7 +114,7 @@ By default, Elyra installs the [Python Language Server package](https://pypi.org
 
 Refer to the [`jupyterlab-lsp` extension documentation](https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html) for a full list of supported Language Servers and installation instructions.
 
-To learn more about the `jupyterlab-lsp` extension and its features check out the [repository](https://github.com/krassowski/jupyterlab-lsp).
+To learn more about the `jupyterlab-lsp` extension and its features check out the [repository](https://github.com/jupyter-lsp/jupyterlab-lsp).
 
 #### Version control using git integration
 

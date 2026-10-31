@@ -29,8 +29,8 @@ dependencies = [
     "jupyter-packaging>=0.12.3",
     "jupyter_server>=2.7.3",
     "jupyterlab>=4.6.0,<5",  # comment out to use local jupyterlab; floor must match the @jupyterlab/core-meta pin in package.json
-    "jupyterlab-lsp~=5.1.0",  # comment out to use local jupyterlab
-    "jupyterlab-git~=0.54.0",  # Avoid breaking 1.x changes
+    "jupyterlab-lsp~=5.3.0",
+    "jupyterlab-git~=0.55.0",  # 0.x minor releases may break; bump deliberately
     "jupyter-resource-usage~=1.1.0",
     "MarkupSafe>=2.1",
     "minio>=7.0.0,!=7.2.1",
