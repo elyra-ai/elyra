@@ -66,6 +66,7 @@ describe('Pipeline Editor tests', () => {
     cy.deleteFiles([
       'helloworld.ipynb',
       'helloworld.py',
+      'helloworld.r',
       'output.txt',
       '*.pipeline',
       'generic-test.yaml',
