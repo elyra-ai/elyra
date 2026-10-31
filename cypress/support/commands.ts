@@ -210,10 +210,34 @@ Cypress.Commands.add('addFileToPipeline', (name: string): void => {
     .click();
 });
 
+// Names of the files in the file browser, top to bottom.
+const listedFiles = ($content: JQuery<HTMLElement>): string =>
+  $content
+    .find('.jp-DirListing-itemText')
+    .map((_i, el) => el.textContent)
+    .get()
+    .join(', ');
+
 Cypress.Commands.add('dragAndDropFileToPipeline', (name: string) => {
-  cy.findByRole('listitem', {
-    name: (n, _el) => n.includes(name)
-  }).realMouseDown();
+  // DirListing reuses its row nodes by position on every render, so a refresh
+  // that lands between finding the row and pressing it leaves another file in
+  // the node Cypress holds, and the press picks that file up instead. Check
+  // the selection before dropping, and report the listing on both sides of
+  // the press so a misfire names the rows that moved.
+  cy.get('.jp-DirListing-content').then(($before) => {
+    const before = listedFiles($before);
+
+    cy.findByRole('listitem', {
+      name: (n, _el) => n.includes(name)
+    }).realMouseDown();
+
+    cy.get('.jp-DirListing-content').should(($after) => {
+      expect(
+        $after.find('.jp-DirListing-item.jp-mod-selected').text(),
+        `file picked up by the press (listing before: ${before}; after: ${listedFiles($after)})`
+      ).to.include(name);
+    });
+  });
 
   cy.get('.d3-svg-background')
     .realMouseMove(50, 50, { position: 'center' })
