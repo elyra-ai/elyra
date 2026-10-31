@@ -39,6 +39,7 @@ from jinja2 import PackageLoader
 from kfp import Client as ArgoClient
 from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
+from kfp.dsl.utils import sanitize_input_name
 from kubernetes import client as k8s_client
 from traitlets import default
 from traitlets import Unicode
@@ -766,10 +767,13 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # The task is implemented using a generic component
                 workflow_task["uses_custom_component"] = False
 
-                # Set parameters specified for this task and add each as a task input
+                # Set parameters specified for this task and add each as a task input. KFP renames
+                # component inputs when it loads the component (e.g. 'MyParam' becomes 'myparam'),
+                # so the task input must use KFP's name while still referencing the user's parameter.
                 task_parameters = [param for param in pipeline.parameters if param.name in operation.parameters]
                 workflow_task["task_inputs"] = {
-                    param.name: {"pipeline_parameter_reference": param.name} for param in task_parameters
+                    sanitize_input_name(param.name): {"pipeline_parameter_reference": param.name}
+                    for param in task_parameters
                 }
 
                 component_definition = generic_component_template.render(
