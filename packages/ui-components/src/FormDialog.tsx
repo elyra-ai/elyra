@@ -26,11 +26,16 @@ type DialogBodyElement =
   | HTMLTextAreaElement;
 
 const DEFAULT_BUTTON_CLASS = 'elyra-DialogDefaultButton';
+
+const isNumberInput = (element: DialogBodyElement): boolean =>
+  element instanceof HTMLInputElement && element.type === 'number';
+
 /*
  * Validate dialog fields upon display
  * - Provides a generic validation by checking if required form fields are populated
  * - Expects required fields in dialog body to contain attribute: data-form-required
- * - Validates non-required numeric fields to only accept positive values
+ * - Validates numeric fields, required or not, with the browser's constraint
+ *   validation (e.g. a decimal in a field whose step only allows whole numbers)
  *
  * @params
  *
@@ -64,13 +69,13 @@ export const showFormDialog = async <T extends GenericObjectType>(
       dialogBody.node
         .querySelectorAll<DialogBodyElement>('select, input, textarea')
         .forEach((element) => {
-          if (element.hasAttribute('data-form-required')) {
+          if (
+            element.hasAttribute('data-form-required') ||
+            isNumberInput(element)
+          ) {
             const elementTagName = element.tagName.toLowerCase();
 
-            if (
-              elementTagName === 'select' ||
-              (element as HTMLInputElement).type === 'number'
-            ) {
+            if (elementTagName === 'select' || isNumberInput(element)) {
               element.addEventListener('change', () => validateDialogButton());
             }
             if (['input', 'textarea'].includes(elementTagName)) {
@@ -138,7 +143,12 @@ const preventDefaultDialogHandler = <T extends GenericObjectType>(
 
 // Returns true if given element is valid
 const isFieldValid = (element: DialogBodyElement): boolean => {
-  return element.value.trim() ? true : false;
+  if (element.hasAttribute('data-form-required') && !element.value.trim()) {
+    return false;
+  }
+  // A number input reports an empty value for input it can't parse, so its
+  // validity, not its value, tells whether the entry is acceptable
+  return isNumberInput(element) ? element.checkValidity() : true;
 };
 
 // Returns true if form dialog has all fields validated
