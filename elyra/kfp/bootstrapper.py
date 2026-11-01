@@ -15,6 +15,7 @@
 #
 from abc import ABC
 from abc import abstractmethod
+import fnmatch
 import glob
 import json
 import logging
@@ -26,6 +27,7 @@ from tempfile import TemporaryFile
 import time
 from typing import Any
 from typing import Dict
+from typing import List
 from typing import Optional
 from typing import Type
 from typing import TypeVar
@@ -146,7 +148,7 @@ class FileOpBase(ABC):
         if inputs:
             input_list = inputs.split(INOUT_SEPARATOR)
             for file in input_list:
-                self.get_file_from_object_storage(file.strip())
+                self.process_input_file(file.strip())
 
         subprocess.call(["tar", "-zxvf", archive_file])
         duration = time.time() - t0
@@ -350,6 +352,80 @@ class FileOpBase(ABC):
                     self.process_output_file(os.path.join(matched_file, file))
             else:
                 self.put_file_to_object_storage(matched_file)
+
+    def process_input_file(self, input_file: str) -> None:
+        """Gets the file from object storage.  Handles wildcards and directories.
+
+        Input files are output files of upstream nodes, which may have been declared as
+        wildcard expressions or directories.  process_output_file() uploaded the files
+        that those expand to individually, so they are located in object storage.
+        """
+        from minio.error import S3Error
+
+        if self.has_wildcard(input_file):
+            matched_files = self.list_object_storage_files(input_file)
+            if not matched_files:
+                logger.warning(f"No files in object storage match input file '{input_file}'.")
+        elif input_file.endswith("/") or os.path.isdir(input_file):
+            # The input is a directory.  It exists already if getting other input files created it.
+            matched_files = self.list_object_storage_files(input_file)
+        else:
+            try:
+                self.get_file_from_object_storage(input_file)
+                return
+            except S3Error as ex:
+                # There is no such file, but the input might be a directory
+                if ex.code != "NoSuchKey":
+                    raise
+                matched_files = self.list_object_storage_files(input_file)
+                if not matched_files:
+                    raise
+
+        for matched_file in matched_files:
+            self.get_file_from_object_storage(matched_file)
+
+    def list_object_storage_files(self, output_file: str) -> List[str]:
+        """Lists the files that process_output_file() uploaded for the specified output file
+
+        :param output_file: a directory or wildcard expression
+        :return: the names of the matching files, relative to the object storage working dir
+        """
+        cos_directory = self.get_object_storage_filename("")
+        is_wildcard = self.has_wildcard(output_file)
+        # Only list objects in the directory that precedes the first wildcard
+        prefix_parts = []
+        for part in output_file.rstrip("/").split("/"):
+            if is_wildcard and self.has_wildcard(part):
+                break
+            prefix_parts.append(part)
+        prefix = os.path.join(cos_directory, *prefix_parts, "")
+
+        matched_files = []
+        for cos_object in self.cos_client.list_objects(bucket_name=self.cos_bucket, prefix=prefix, recursive=True):
+            file_name = cos_object.object_name.removeprefix(cos_directory)
+            if not is_wildcard or self.matches_wildcard(file_name, output_file):
+                matched_files.append(file_name)
+        return matched_files
+
+    @staticmethod
+    def matches_wildcard(file_name: str, wildcard: str) -> bool:
+        """Determines whether process_output_file() uploads the file for the wildcard expression,
+        either because the file matches the expression or because a directory that contains the
+        file does.  Wildcards are matched like glob.glob() matches them.
+        """
+        file_parts = file_name.split("/")
+        pattern_parts = wildcard.rstrip("/").split("/")
+        # a trailing '/' only matches directories
+        min_file_parts = len(pattern_parts) + 1 if wildcard.endswith("/") else len(pattern_parts)
+        if len(file_parts) < min_file_parts:
+            return False
+        for name, pattern in zip(file_parts, pattern_parts):
+            # wildcards don't match hidden files unless the pattern starts with '.'
+            if name.startswith(".") and not pattern.startswith("."):
+                return False
+            if not fnmatch.fnmatchcase(name, pattern):
+                return False
+        return True
 
     def convert_param_str_to_dict(self, pipeline_parameters: Optional[str] = None) -> Dict[str, Any]:
         """Convert INOUT-separated string of pipeline parameters into a dictionary."""
