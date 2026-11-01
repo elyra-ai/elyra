@@ -18,6 +18,7 @@ import { IDictionary } from './parsing';
 
 // Types extracted from `elyra/api/elyra.yaml`
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- marker base for API resource types
 export interface IElyraResource {}
 
 export interface IMetadataResourceBody {

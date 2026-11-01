@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global global, require */
 require('isomorphic-fetch');
-const crypto = require('crypto');
+const nodeCrypto = require('crypto');
 
 Object.defineProperty(global.self, 'crypto', {
   value: {
-    getRandomValues: (arr) => crypto.randomBytes(arr.length)
+    getRandomValues: (arr) => nodeCrypto.randomBytes(arr.length)
   }
 });
