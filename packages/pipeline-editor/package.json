@@ -95,7 +95,7 @@
     "jest": "^29.2.0",
     "rimraf": "~5.0.5",
     "ts-jest": "^29.3.2",
-    "typescript": "~5.5.4"
+    "typescript": "~5.9.3"
   },
   "resolutions": {
     "@types/react": "18.0.26"
