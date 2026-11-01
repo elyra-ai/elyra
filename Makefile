@@ -157,10 +157,10 @@ yarn-install:
 	yarn install
 
 build-ui-prod: ## Build UI packages for production
-	lerna run build:prod --stream
+	yarn lerna run build:prod --stream
 
 build-ui-dev: ## Build UI packages for development
-	lerna run build --stream
+	yarn lerna run build --stream
 
 package-ui-prod: build-dependencies yarn-install lint-ui build-ui-prod ## Package UI for production
 
@@ -204,7 +204,7 @@ check-install:
 	jupyter labextension list
 
 watch: ## Watch packages. For use alongside jupyter lab --watch
-	lerna run watch --parallel
+	yarn lerna run watch --parallel
 
 release: yarn-install build-ui-prod build-server ## Build wheel file for release
 
@@ -242,7 +242,7 @@ test-ui-unit: # Run frontend jest unit tests
 	yarn test:unit
 
 test-instrument: # Prepare code coverage instrumentation
-	lerna run cy:instrument --stream
+	yarn lerna run cy:instrument --stream
 
 test-integration: # Run frontend cypress integration tests
 	yarn test:integration
