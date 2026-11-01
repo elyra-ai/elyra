@@ -392,10 +392,8 @@ def test_update_no_schema_single(script_runner, mock_data_dir):
     # Note: this test will break if it ever supports multiple.
     ret = script_runner.run("elyra-metadata", "update", "runtime-images")
     assert ret.success is False
-    assert (
-        "The following exception occurred saving metadata instance for schema 'runtime-image': "
-        "The 'name' parameter requires a value." in ret.stdout
-    )
+    assert "ERROR: '--name' is a required parameter." in ret.stdout
+    assert "The following exception occurred" not in ret.stdout
 
 
 def test_update_no_schema_multiple(script_runner, mock_data_dir):
@@ -418,10 +416,18 @@ def test_update_bad_schema_multiple(script_runner, mock_data_dir):
 def test_update_no_name(script_runner, mock_data_dir):
     ret = script_runner.run("elyra-metadata", "update", METADATA_TEST_SCHEMASPACE, "--schema_name=metadata-test")
     assert ret.success is False
+    assert "ERROR: '--name' is a required parameter." in ret.stdout
     assert (
-        "The following exception occurred saving metadata instance for schema 'metadata-test': "
-        "The 'name' parameter requires a value." in ret.stdout
+        "--name=<string> (Required. Format: sequence of characters) \n\tThe name of the metadata instance to update."
+        in ret.stdout
     )
+    assert "The following exception occurred" not in ret.stdout
+
+    ret = script_runner.run(
+        "elyra-metadata", "update", METADATA_TEST_SCHEMASPACE, "--schema_name=metadata-test", "--name="
+    )
+    assert ret.success is False
+    assert "ERROR: Parameter '--name' requires a value." in ret.stdout
 
 
 def test_update_no_instance(script_runner, mock_data_dir):
