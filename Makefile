@@ -69,8 +69,8 @@ help:
 purge:
 	rm -rf build *.egg-info yarn-error.log
 	rm -rf node_modules lib dist
-	rm -rf $$(find labextension -name labextensions -type d)
-	rm -rf $$(find packages -name node_modules -type d -maxdepth 2)
+	rm -rf $$(find labextensions -name labextension -type d)
+	rm -rf $$(find packages -maxdepth 2 -name node_modules -type d)
 	rm -rf $$(find packages -name dist -type d)
 	rm -rf $$(find packages -name lib -type d)
 	rm -rf $$(find packages -name *.egg-info -type d)
@@ -78,18 +78,15 @@ purge:
 	rm -rf $$(find . -name tsconfig.tsbuildinfo)
 	rm -rf $$(find . -name package-lock.json)
 	rm -rf $$(find . -name .pytest_cache)
-	rm -rf $(yarn cache dir)
 
 uninstall:
 	$(PYTHON_PIP) uninstall -y jupyterlab-git
 	$(PYTHON_PIP) uninstall -y jupyterlab-git-core
 	$(PYTHON_PIP) uninstall -y nbdime
 	$(PYTHON_PIP) uninstall -y jupyter-lsp
-	- jupyter labextension uninstall @jupyter-lsp/jupyterlab-lsp
 	$(PYTHON_PIP) uninstall -y jupyterlab-lsp
 	$(PYTHON_PIP) uninstall -y python-lsp-server
 	$(PYTHON_PIP) uninstall -y jupyter-resource-usage
-	- jupyter labextension uninstall @jupyter-server/resource-usage
 	$(PYTHON_PIP) uninstall -y elyra
 	- jupyter lab clean
 	# remove Kubeflow Pipelines example components
@@ -199,7 +196,6 @@ install-gitea-dependency:
 	- $(PYTHON_PIP) install --upgrade giteapy
 
 check-install:
-	# Expected to fail due to elyra/ai#3058
 	jupyter server extension list
 	jupyter labextension list
 
