@@ -15,6 +15,7 @@
 #
 
 import ast
+from importlib.metadata import Distribution
 import os
 from os.path import sep
 from pathlib import Path
@@ -25,6 +26,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Tuple
 from urllib.parse import urlparse
 import zipfile
 
@@ -158,33 +160,27 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             self.log.debug(f"Deleting downloaded Airflow provider archive '{archive}' ...")
             os.remove(archive)
 
-            # Locate 'get_provider_info.py' in the extracted archive.
-            # It identifies Python modules that contain operator class definitions.
-            pl = list(self.tmp_archive_dir.glob("**/get_provider_info.py"))
-            if len(pl) != 1:
-                # No such file or more than one file was found. Cannot proceed.
-                self.log.error(
-                    f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
-                    f"is not configured properly. The archive '{archive}' "
-                    f"contains {len(pl)} file(s) named 'get_provider_info.py'."
-                )
+            # Locate the function that returns the provider info.
+            # The provider info identifies Python modules that contain operator class definitions.
+            provider_info_location = self._locate_provider_info(catalog_metadata, archive)
+            if provider_info_location is None:
                 # return empty list
                 return operator_key_list
-            get_provider_info_file_location = pl[0]
+            provider_info_file_location, provider_info_function = provider_info_location
 
-            # extract module names from get_provider_info.py
-            with open(get_provider_info_file_location, "r") as gpi_file:
+            # extract module names from the provider info
+            with open(provider_info_file_location, "r") as gpi_file:
                 f = gpi_file.read()
             namespace = {}
             exec(f, namespace)
             try:
-                # try to run the 'get_provider_info' method
-                return_dict = namespace["get_provider_info"]()
+                # try to run the provider info function
+                return_dict = namespace[provider_info_function]()
             except KeyError:
-                # no method with this name is defined in get_provider_info.py
+                # no function with this name is defined in the provider info module
                 self.log.error(
                     f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
-                    f"cannot invoke ' get_provider_info' method in '{get_provider_info_file_location}'."
+                    f"cannot invoke '{provider_info_function}' method in '{provider_info_file_location}'."
                 )
                 return operator_key_list
 
@@ -326,6 +322,57 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             )
 
         return operator_key_list
+
+    def _locate_provider_info(self, catalog_metadata: Dict[str, Any], archive: str) -> Optional[Tuple[Path, str]]:
+        """
+        Locate the function that returns the provider info in the extracted provider package archive.
+
+        Provider packages declare this function as the 'provider_info' entry point in the
+        'apache_airflow_provider' group, see
+        https://airflow.apache.org/docs/apache-airflow-providers/howto/create-custom-providers.html
+        If no such entry point is declared, fall back to the 'get_provider_info' function
+        in the 'get_provider_info.py' module.
+
+        :param catalog_metadata: Contains the catalog connector configuration information.
+        :param archive: The name of the provider package archive, which is used in error messages.
+        :returns: The location of the module that defines the function and the function name,
+                  or None if the function cannot be located
+        """
+        entry_point = next(
+            (
+                entry_point
+                for dist_info_dir in self.tmp_archive_dir.glob("*.dist-info")
+                for entry_point in Distribution.at(dist_info_dir).entry_points.select(
+                    group="apache_airflow_provider", name="provider_info"
+                )
+            ),
+            None,
+        )
+        if entry_point:
+            module_path = self.tmp_archive_dir.joinpath(*entry_point.module.split("."))
+            # the module is either a Python script or a package
+            for module_file in [module_path.with_suffix(".py"), module_path / "__init__.py"]:
+                if module_file.is_file():
+                    return module_file, entry_point.attr
+            self.log.error(
+                f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
+                f"is not configured properly. The archive '{archive}' "
+                f"does not contain the module '{entry_point.module}' of the 'provider_info' entry point."
+            )
+            return None
+
+        # Locate 'get_provider_info.py' in the extracted archive.
+        pl = list(self.tmp_archive_dir.glob("**/get_provider_info.py"))
+        if len(pl) != 1:
+            # No such file or more than one file was found. Cannot proceed.
+            self.log.error(
+                f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
+                f"is not configured properly. The archive '{archive}' "
+                f"does not declare a 'provider_info' entry point and "
+                f"contains {len(pl)} file(s) named 'get_provider_info.py'."
+            )
+            return None
+        return pl[0], "get_provider_info"
 
     def get_entry_data(
         self, catalog_entry_data: Dict[str, Any], catalog_metadata: Dict[str, Any]
