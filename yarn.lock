@@ -2422,7 +2422,6 @@ __metadata:
     "@lumino/widgets": ^2.10.0
     "@types/react": 18.0.26
     "@types/react-dom": 18.0.9
-    "@types/react-toastify": ^4.1.0
     carbon-components: ~10.8.1
     immer: ^9.0.7
     jest: ^29.2.0
@@ -6398,15 +6397,6 @@ __metadata:
     hoist-non-react-statics: "npm:^3.3.0"
     redux: "npm:^4.0.0"
   checksum: 6582246581331ac7fbbd44aa1f1c136c8a9c8febbcf462432ac81302263308c21e1a2e7868beb7f73bbcb52a8e67935d133cb37f5bdcb6564eaff3a811805101
-  languageName: node
-  linkType: hard
-
-"@types/react-toastify@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "@types/react-toastify@npm:4.1.0"
-  dependencies:
-    react-toastify: "*"
-  checksum: ef8993d4c6019b97f725cabb56b15106f306ba3744acf0930148246608ee992b68459d6af46df16046c2ccf70e7d77de303339760cd0f27a7644d6d1d1d299ac
   languageName: node
   linkType: hard
 
@@ -16980,7 +16970,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-toastify@npm:*, react-toastify@npm:^11.0.5":
+"react-toastify@npm:^11.0.5":
   version: 11.0.5
   resolution: "react-toastify@npm:11.0.5"
   dependencies:
