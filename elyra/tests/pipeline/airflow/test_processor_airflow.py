@@ -491,6 +491,37 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
                             assert file in ordered_dict[key]["pipeline_" + arg]
 
 
+@pytest.mark.parametrize("parsed_pipeline", [PIPELINE_FILE_COMPLEX], indirect=True)
+@pytest.mark.parametrize("cos_region", [None, "us-east-1"])
+def test_pipeline_tree_creation_cos_region(
+    monkeypatch, processor, parsed_pipeline, sample_metadata, sample_image_metadata, cos_region
+):
+    if cos_region:
+        sample_metadata["metadata"]["cos_region"] = cos_region
+    mocked_runtime = Metadata(
+        name="test-metadata", display_name="test", schema_name="airflow", metadata=sample_metadata["metadata"]
+    )
+
+    mocked_func = mock.Mock(return_value="default", side_effect=[mocked_runtime, sample_image_metadata])
+
+    monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
+    monkeypatch.setattr(processor, "_get_dependency_archive_name", lambda x: True)
+    monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
+
+    ordered_dict = processor._cc_pipeline(
+        parsed_pipeline, pipeline_name="some-name", pipeline_instance_id="some-instance-id"
+    )
+
+    assert len(ordered_dict) > 0
+    for operation in ordered_dict.values():
+        # the region is only passed to the bootstrapper if one is configured
+        if cos_region:
+            assert f"--cos-region '{cos_region}'" in operation["argument_list"]
+        else:
+            assert "--cos-region" not in operation["argument_list"]
+
+
 def test_collect_envs(processor):
     pipelines_test_file = "elyra/pipeline/tests/resources/archive/test.ipynb"
 

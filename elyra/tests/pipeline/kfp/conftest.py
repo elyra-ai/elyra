@@ -160,6 +160,7 @@ def metadata_dependencies(metadata_managers, request):
         - "with_disable_node_caching": bool (default: False)
         - "workflow_engine": WorkflowEngineType.ARGO
         - "use_cos_credentials_secret": bool (default: False)
+        - "cos_region": str (default: None)
         - "require_pull_secret": bool (default: False)
     The fixture yields a dictionary with the following keys:
      - "pipeline_file": the pipeline file name, as specified as input
@@ -197,6 +198,7 @@ def metadata_dependencies(metadata_managers, request):
         "config_name": pipeline_object.runtime_config,
         "workflow_engine": request.param.get("workflow_engine"),
         "use_cos_credentials_secret": request.param.get("use_cos_credentials_secret"),
+        "cos_region": request.param.get("cos_region"),
     }
     runtime_config = create_runtime_config(
         metadata_managers[Runtimes.RUNTIMES_SCHEMASPACE_NAME], runtime_config_options
@@ -233,6 +235,7 @@ def create_runtime_config(rt_metadata_manager: MetadataManager, customization_op
         - "config_name": "custom-config-name",  # default is "test-config"
         - "workflow_engine": WorkflowEngineType.XXX,  # Enum value, ARGO is default
         - "use_cos_credentials_secret": True,  # or False (default)
+        - "cos_region": "us-east-1",  # default is None (no region configured)
     """
     kfp_runtime_config = {
         "display_name": "Test runtime configuration",
@@ -262,6 +265,9 @@ def create_runtime_config(rt_metadata_manager: MetadataManager, customization_op
         kfp_runtime_config["metadata"]["cos_auth_type"] = "USER_CREDENTIALS"
         kfp_runtime_config["metadata"]["cos_username"] = "my_name"
         kfp_runtime_config["metadata"]["cos_password"] = "my_password"
+
+    if customization_options.get("cos_region"):
+        kfp_runtime_config["metadata"]["cos_region"] = customization_options["cos_region"]
 
     metadata = Metadata(
         name=customization_options.get("config_name", "test-config"),

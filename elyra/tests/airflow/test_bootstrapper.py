@@ -20,6 +20,7 @@ import os
 from types import SimpleNamespace
 from unittest import mock
 
+import minio
 import nbformat
 import pytest
 
@@ -106,3 +107,47 @@ def test_find_best_kernel_nomatch(tmpdir, caplog):
         assert kernel_name == "test-kernel"
         assert len(caplog.records) == 1
         assert caplog.records[0].message.startswith("Reverting back to missing notebook kernel 'test-kernel'")
+
+
+def test_parse_arguments_with_cos_region():
+    test_args = [
+        "-e",
+        "http://test.me.now",
+        "-d",
+        "test-directory",
+        "-t",
+        "test-archive.tgz",
+        "-f",
+        "test-notebook.ipynb",
+        "-b",
+        "test-bucket",
+        "-n",
+        "test-pipeline",
+        "--cos-region",
+        "us-east-1",
+    ]
+    args_dict = bootstrapper.OpUtil.parse_arguments(test_args)
+
+    assert args_dict["cos-region"] == "us-east-1"
+    assert not bootstrapper.OpUtil.parse_arguments(test_args[:-2])["cos-region"]
+
+
+@pytest.mark.parametrize("cos_region", [None, "us-east-1"])
+def test_cos_client_region(monkeypatch, cos_region):
+    """Verify that the object storage client uses the specified region, if any"""
+    minio_client = mock.Mock()
+    monkeypatch.setattr(minio, "Minio", minio_client)
+
+    bootstrapper.NotebookFileOp(
+        **{
+            "filepath": "test-notebook.ipynb",
+            "cos-endpoint": "http://test.me.now",
+            "cos-bucket": "test-bucket",
+            "cos-user": "test-user",
+            "cos-password": "test-password",
+            "cos-region": cos_region,
+        }
+    )
+
+    minio_client.assert_called_once()
+    assert minio_client.call_args.kwargs["region"] == cos_region

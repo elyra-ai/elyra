@@ -19,12 +19,14 @@ from typing import List
 from typing import Optional
 
 from entrypoints import EntryPoint
+from jsonschema import Draft7Validator
 import pytest
 
 from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE_ID
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schema import Schemaspace
 from elyra.metadata.schema import SchemasProvider
+from elyra.metadata.schemaspaces import Runtimes
 from elyra.tests.metadata.test_utils import BYOSchemaspace
 from elyra.tests.metadata.test_utils import NON_EXISTENT_SCHEMASPACE_ID
 
@@ -87,6 +89,32 @@ def test_validate_factory_schemas():
         schemaspace = schema_mgr.get_schemaspace(schemaspace_name)
         for name, schema in schemaspace.schemas.items():
             print(f"Schema '{schemaspace_name}/{name}' is valid.")
+
+
+@pytest.mark.parametrize("schema_name", ["airflow", "kfp"])
+@pytest.mark.parametrize(
+    "cos_region, valid",
+    [
+        ("us-east-1", True),
+        ("eu-central-1", True),
+        ("garage", True),
+        ("Region_1", True),
+        ("a" * 63, True),
+        ("", False),
+        ("us east 1", False),
+        ("-us-east-1", False),
+        ("us-east-1-", False),
+        ("_region", False),
+        ("region_", False),
+        ("a" * 64, False),
+    ],
+)
+def test_runtime_schemas_cos_region(schema_name, cos_region, valid):
+    # The optional object storage region must be a name that the minio client accepts
+    schema = SchemaManager.instance().get_schema(Runtimes.RUNTIMES_SCHEMASPACE_NAME, schema_name)
+    cos_region_schema = schema["properties"]["metadata"]["properties"]["cos_region"]
+    assert "cos_region" not in schema["properties"]["metadata"]["required"]
+    assert Draft7Validator(cos_region_schema).is_valid(cos_region) is valid
 
 
 # ########################## SchemaManager, Schemaspace and SchemasProvider Tests ###########################

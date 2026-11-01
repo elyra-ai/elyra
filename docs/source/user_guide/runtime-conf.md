@@ -348,6 +348,12 @@ Example: `test-bucket`
 and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
 Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_password`, respectively.
 
+##### Cloud Object Storage region (cos_region)
+
+Region of the Object Storage service. This setting is optional. If no region is specified, Elyra determines the region of the bucket by querying the Object Storage service. Specify the region if your Object Storage service requires one or does not support region lookups. If the bucket doesn't exist, it is created in the specified region.
+
+Example: `us-east-1`
+
 ##### Cloud Object Storage Authentication Type (cos_auth_type)
 
 Authentication type Elyra uses to gain access to Cloud Object Storage. This setting is required. Supported types are:
