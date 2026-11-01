@@ -97,9 +97,6 @@
     "ts-jest": "^29.3.2",
     "typescript": "~5.9.3"
   },
-  "resolutions": {
-    "@types/react": "18.0.26"
-  },
   "publishConfig": {
     "access": "public"
   },
