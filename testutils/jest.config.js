@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global module */
 
 const esModules = [
   '@microsoft',
@@ -39,7 +38,7 @@ module.exports = {
     '^.+\\.(j|t)sx?$': [
       'ts-jest',
       {
-        tsConfig: '../../testutils/tsconfig.jest.json'
+        tsconfig: '../../testutils/tsconfig.jest.json'
       }
     ],
     '\\.svg$': '@glen/jest-raw-loader'
