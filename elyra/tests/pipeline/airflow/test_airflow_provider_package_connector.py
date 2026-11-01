@@ -20,6 +20,7 @@ from tempfile import TemporaryDirectory
 from urllib.parse import urlparse
 import zipfile
 
+import pytest
 from requests import get
 
 from elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_package_catalog_connector import (
@@ -115,6 +116,122 @@ def test_invalid_input_get_catalog_entries():
     )
     assert isinstance(ce, list), resource_url
     assert len(ce) == 0
+
+
+OPERATOR_SOURCE = """
+from airflow.models import BaseOperator
+
+
+class MyOperator(BaseOperator):
+    def __init__(self, my_property: str, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+"""
+
+
+def create_provider_package(directory: Path, files: dict) -> str:
+    """
+    Create a provider package archive that contains the specified files
+    and return its URL
+    """
+    archive = directory / "my_provider-1.0.0-py3-none-any.whl"
+    with zipfile.ZipFile(archive, "w") as zip_file:
+        for name, content in files.items():
+            zip_file.writestr(name, content)
+    return archive.as_uri()
+
+
+@pytest.mark.parametrize(
+    "provider_info_files",
+    [
+        # provider info function declared as entry point, in a module with a custom name
+        {
+            "my_provider/provider.py": "def provider_info():\n    return PROVIDER_INFO\n",
+            "my_provider-1.0.0.dist-info/entry_points.txt": (
+                "[apache_airflow_provider]\nprovider_info = my_provider.provider:provider_info\n"
+            ),
+        },
+        # provider info function declared as entry point, in a package
+        {
+            "my_provider/info/__init__.py": "def get_info():\n    return PROVIDER_INFO\n",
+            "my_provider-1.0.0.dist-info/entry_points.txt": (
+                "[console_scripts]\nmy-script = my_provider.cli:main\n\n"
+                "[apache_airflow_provider]\nprovider_info = my_provider.info:get_info\n"
+            ),
+        },
+        # no entry point, 'get_provider_info.py' module
+        {
+            "my_provider/get_provider_info.py": "def get_provider_info():\n    return PROVIDER_INFO\n",
+            "my_provider-1.0.0.dist-info/METADATA": "Name: my-provider\n",
+        },
+    ],
+)
+def test_locate_provider_info(provider_info_files):
+    """
+    Test that the provider info is located using the 'provider_info' entry point, if
+    the provider package declares one, and the 'get_provider_info.py' module otherwise.
+    """
+    provider_info = {"operators": [{"python-modules": ["my_provider.operators.my_operator"]}]}
+    files = {
+        name: f"PROVIDER_INFO = {provider_info}\n\n\n{content}" if name.endswith(".py") else content
+        for name, content in provider_info_files.items()
+    }
+    files["my_provider/operators/my_operator.py"] = OPERATOR_SOURCE
+
+    with TemporaryDirectory() as dirpath:
+        url = create_provider_package(Path(dirpath), files)
+
+        appc = AirflowProviderPackageCatalogConnector(AIRFLOW_SUPPORTED_FILE_TYPES)
+        ces = appc.get_catalog_entries({"airflow_provider_package_download_url": url, "display_name": "my-provider"})
+        assert ces == [
+            {
+                "provider_package": "my_provider-1.0.0-py3-none-any.whl",
+                "provider": "my_provider",
+                "file": "my_provider/operators/my_operator.py",
+            }
+        ]
+
+
+@pytest.mark.parametrize(
+    "files, error",
+    [
+        # the entry point module isn't in the archive
+        (
+            {
+                "my_provider/get_provider_info.py": "def get_provider_info():\n    return {}\n",
+                "my_provider-1.0.0.dist-info/entry_points.txt": (
+                    "[apache_airflow_provider]\nprovider_info = my_provider.missing:provider_info\n"
+                ),
+            },
+            "does not contain the module 'my_provider.missing' of the 'provider_info' entry point",
+        ),
+        # the entry point function isn't defined
+        (
+            {
+                "my_provider/provider.py": "def other_function():\n    return {}\n",
+                "my_provider-1.0.0.dist-info/entry_points.txt": (
+                    "[apache_airflow_provider]\nprovider_info = my_provider.provider:provider_info\n"
+                ),
+            },
+            "cannot invoke 'provider_info' method",
+        ),
+        # no entry point and no 'get_provider_info.py' module
+        (
+            {"my_provider/provider.py": "def provider_info():\n    return {}\n"},
+            "does not declare a 'provider_info' entry point and contains 0 file(s) named 'get_provider_info.py'",
+        ),
+    ],
+)
+def test_locate_provider_info_errors(caplog, files, error):
+    """
+    Test that an error is logged if the provider info cannot be located
+    """
+    with TemporaryDirectory() as dirpath:
+        url = create_provider_package(Path(dirpath), files)
+
+        appc = AirflowProviderPackageCatalogConnector(AIRFLOW_SUPPORTED_FILE_TYPES)
+        ces = appc.get_catalog_entries({"airflow_provider_package_download_url": url, "display_name": "my-provider"})
+        assert ces == []
+        assert error in caplog.text
 
 
 # -----------------------------------
