@@ -36,6 +36,7 @@ class CosClient(LoggingConfigurable):
         super().__init__(**kwargs)
 
         cred_provider = None
+        region = None
         if config is None:
             # The client was invoked by an entity that does not utilize
             # runtime configurations.
@@ -65,6 +66,8 @@ class CosClient(LoggingConfigurable):
             auth_type = config.metadata["cos_auth_type"]
             self.endpoint = urlparse(config.metadata["cos_endpoint"])
             self.bucket = config.metadata["cos_bucket"]
+            # If no region is configured the client determines it by querying the service
+            region = config.metadata.get("cos_region") or None
             if auth_type in ["USER_CREDENTIALS", "KUBERNETES_SECRET"]:
                 cred_provider = providers.StaticProvider(
                     access_key=config.metadata["cos_username"],
@@ -94,7 +97,9 @@ class CosClient(LoggingConfigurable):
         self.secure = self.endpoint.scheme == "https"
 
         # get minio client
-        self.client = minio.Minio(endpoint=self.endpoint.netloc, secure=self.secure, credentials=cred_provider)
+        self.client = minio.Minio(
+            endpoint=self.endpoint.netloc, secure=self.secure, region=region, credentials=cred_provider
+        )
 
         # Make a bucket with the make_bucket API call.
         try:

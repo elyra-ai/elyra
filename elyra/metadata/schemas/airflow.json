@@ -142,6 +142,16 @@
             "category": "Cloud Object Storage"
           }
         },
+        "cos_region": {
+          "title": "Cloud Object Storage Region",
+          "description": "The Cloud Object Storage region. If not specified, the region is determined by querying the Cloud Object Storage service.",
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9]([a-zA-Z0-9_-]{0,61}[a-zA-Z0-9])?$",
+          "uihints": {
+            "category": "Cloud Object Storage",
+            "ui:placeholder": "us-east-1"
+          }
+        },
         "cos_auth_type": {
           "title": "Cloud Object Storage Authentication Type",
           "description": "Authentication type Elyra uses to authenticate with Cloud Object Storage",

@@ -120,6 +120,7 @@ class FileOpBase(ABC):
             endpoint=self.cos_endpoint.netloc,
             credentials=cred_provider,
             secure=self.secure,
+            region=self.input_params.get("cos-region"),
         )
 
     @abstractmethod
@@ -700,6 +701,12 @@ class OpUtil(object):
         )
         parser.add_argument(
             "-b", "--cos-bucket", dest="cos-bucket", help="Cloud object storage bucket to use", required=True
+        )
+        parser.add_argument(
+            "--cos-region",
+            dest="cos-region",
+            help="Cloud object storage region; determined by querying object storage if not specified",
+            required=False,
         )
         parser.add_argument(
             "-d",
