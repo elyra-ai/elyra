@@ -95,7 +95,7 @@ export class ScriptRunner {
 
     try {
       await this.startSession(kernelName, contextPath);
-    } catch (e) {
+    } catch {
       await this.errorDialog(SESSION_ERROR_MSG);
       return;
     }
@@ -116,7 +116,7 @@ export class ScriptRunner {
     // the kernel_info reply, which arrives only once the connection is up.
     try {
       await kernel.info;
-    } catch (e) {
+    } catch {
       await this.errorDialog(SESSION_ERROR_MSG);
       return;
     }
@@ -220,7 +220,9 @@ export class ScriptRunner {
     if (this.sessionConnection) {
       const kernel = this.sessionConnection.kernel;
       try {
-        kernel && (await KernelAPI.shutdownKernel(kernel.id));
+        if (kernel) {
+          await KernelAPI.shutdownKernel(kernel.id);
+        }
         console.log(kernel?.name + ' kernel shutdown');
       } catch (e) {
         console.log('Exception: kernel shutdown = ' + JSON.stringify(e));
@@ -236,8 +238,9 @@ export class ScriptRunner {
     if (this.sessionConnection) {
       const kernel = this.sessionConnection.kernel;
       try {
-        kernel &&
-          (await KernelAPI.interruptKernel(kernel.id, kernel.serverSettings));
+        if (kernel) {
+          await KernelAPI.interruptKernel(kernel.id, kernel.serverSettings);
+        }
         console.log(kernel?.name + ' kernel interrupted.');
         this.disableButton(false);
       } catch (e) {

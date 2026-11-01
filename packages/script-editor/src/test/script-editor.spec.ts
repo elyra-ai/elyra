@@ -75,7 +75,7 @@ describe('@elyra/script-editor', () => {
       it('should start a kernel session', async () => {
         await runner.startSession(kernelName, testPath);
         const session = runner.sessionConnection;
-        expect(session).not.toBeNull;
+        expect(session).not.toBeNull();
         if (session) {
           expect(session.id).toEqual(runner.sessionConnection?.id);
           expect(runner.sessionConnection?.kernel?.connectionStatus).toEqual(
@@ -94,7 +94,9 @@ describe('@elyra/script-editor', () => {
       it('should run script', async () => {
         const code = 'print("Test")';
         const testCallback = (kernelMsg: IMessageOutput): void => {
-          kernelMsg.output && expect(kernelMsg.output).toMatch(/test/i);
+          if (kernelMsg.output) {
+            expect(kernelMsg.output).toMatch(/test/i);
+          }
         };
         expect(kernelName).not.toBe('');
         await runner.runScript(kernelName, testPath, code, testCallback);
@@ -104,7 +106,9 @@ describe('@elyra/script-editor', () => {
       it('should receive error message when running a broken script', async () => {
         const code = 'print(Broken Test)';
         const testCallback = (kernelMsg: IMessageOutput): void => {
-          kernelMsg.error && expect(kernelMsg.error.type).toMatch(/error/i);
+          if (kernelMsg.error) {
+            expect(kernelMsg.error.type).toMatch(/error/i);
+          }
         };
         expect(kernelName).not.toBe('');
         await runner.runScript(kernelName, testPath, code, testCallback);
