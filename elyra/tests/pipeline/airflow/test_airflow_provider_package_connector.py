@@ -141,34 +141,55 @@ def create_provider_package(directory: Path, files: dict) -> str:
 
 
 @pytest.mark.parametrize(
-    "provider_info_files",
+    "provider_info_files, deprecated",
     [
         # provider info function declared as entry point, in a module with a custom name
-        {
-            "my_provider/provider.py": "def provider_info():\n    return PROVIDER_INFO\n",
-            "my_provider-1.0.0.dist-info/entry_points.txt": (
-                "[apache_airflow_provider]\nprovider_info = my_provider.provider:provider_info\n"
-            ),
-        },
+        (
+            {
+                "my_provider/provider.py": "def provider_info():\n    return PROVIDER_INFO\n",
+                "my_provider-1.0.0.dist-info/entry_points.txt": (
+                    "[apache_airflow_provider]\nprovider_info = my_provider.provider:provider_info\n"
+                ),
+            },
+            False,
+        ),
         # provider info function declared as entry point, in a package
-        {
-            "my_provider/info/__init__.py": "def get_info():\n    return PROVIDER_INFO\n",
-            "my_provider-1.0.0.dist-info/entry_points.txt": (
-                "[console_scripts]\nmy-script = my_provider.cli:main\n\n"
-                "[apache_airflow_provider]\nprovider_info = my_provider.info:get_info\n"
-            ),
-        },
+        (
+            {
+                "my_provider/info/__init__.py": "def get_info():\n    return PROVIDER_INFO\n",
+                "my_provider-1.0.0.dist-info/entry_points.txt": (
+                    "[console_scripts]\nmy-script = my_provider.cli:main\n\n"
+                    "[apache_airflow_provider]\nprovider_info = my_provider.info:get_info\n"
+                ),
+            },
+            False,
+        ),
+        # provider info function declared as entry point, as a method of a class
+        (
+            {
+                "my_provider/provider.py": (
+                    "class ProviderInfo:\n    @staticmethod\n    def get():\n        return PROVIDER_INFO\n"
+                ),
+                "my_provider-1.0.0.dist-info/entry_points.txt": (
+                    "[apache_airflow_provider]\nprovider_info = my_provider.provider:ProviderInfo.get\n"
+                ),
+            },
+            False,
+        ),
         # no entry point, 'get_provider_info.py' module
-        {
-            "my_provider/get_provider_info.py": "def get_provider_info():\n    return PROVIDER_INFO\n",
-            "my_provider-1.0.0.dist-info/METADATA": "Name: my-provider\n",
-        },
+        (
+            {
+                "my_provider/get_provider_info.py": "def get_provider_info():\n    return PROVIDER_INFO\n",
+                "my_provider-1.0.0.dist-info/METADATA": "Name: my-provider\n",
+            },
+            True,
+        ),
     ],
 )
-def test_locate_provider_info(provider_info_files):
+def test_locate_provider_info(caplog, provider_info_files, deprecated):
     """
     Test that the provider info is located using the 'provider_info' entry point, if
-    the provider package declares one, and the 'get_provider_info.py' module otherwise.
+    the provider package declares one, and the deprecated 'get_provider_info.py' module otherwise.
     """
     provider_info = {"operators": [{"python-modules": ["my_provider.operators.my_operator"]}]}
     files = {
@@ -189,6 +210,7 @@ def test_locate_provider_info(provider_info_files):
                 "file": "my_provider/operators/my_operator.py",
             }
         ]
+        assert ("Support for provider packages without this entry point is deprecated." in caplog.text) is deprecated
 
 
 @pytest.mark.parametrize(
@@ -213,6 +235,50 @@ def test_locate_provider_info(provider_info_files):
                 ),
             },
             "cannot invoke 'provider_info' method",
+        ),
+        # the entry point method isn't defined
+        (
+            {
+                "my_provider/provider.py": "class ProviderInfo:\n    pass\n",
+                "my_provider-1.0.0.dist-info/entry_points.txt": (
+                    "[apache_airflow_provider]\nprovider_info = my_provider.provider:ProviderInfo.get\n"
+                ),
+            },
+            "cannot invoke 'ProviderInfo.get' method",
+        ),
+        # the entry point doesn't reference a function
+        (
+            {
+                "my_provider/provider.py": "def provider_info():\n    return {}\n",
+                "my_provider-1.0.0.dist-info/entry_points.txt": (
+                    "[apache_airflow_provider]\nprovider_info = my_provider.provider\n"
+                ),
+            },
+            "does not reference a function",
+        ),
+        # the entry point module imports from its own package, using an absolute import
+        (
+            {
+                "my_provider/version.py": "VERSION = '1.0.0'\n",
+                "my_provider/info/__init__.py": (
+                    "from my_provider.version import VERSION\n\n\ndef get_info():\n    return {}\n"
+                ),
+                "my_provider-1.0.0.dist-info/entry_points.txt": (
+                    "[apache_airflow_provider]\nprovider_info = my_provider.info:get_info\n"
+                ),
+            },
+            "The module must not import from its own package",
+        ),
+        # the entry point module imports from its own package, using a relative import
+        (
+            {
+                "my_provider/info/version.py": "VERSION = '1.0.0'\n",
+                "my_provider/info/__init__.py": "from .version import VERSION\n\n\ndef get_info():\n    return {}\n",
+                "my_provider-1.0.0.dist-info/entry_points.txt": (
+                    "[apache_airflow_provider]\nprovider_info = my_provider.info:get_info\n"
+                ),
+            },
+            "The module must not import from its own package",
         ),
         # no entry point and no 'get_provider_info.py' module
         (
