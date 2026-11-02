@@ -2,6 +2,67 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 4.2.0 - 11/01/2026
+
+Our 4.2.0 release includes the following high-level changes
+- Support JupyterLab 4.6.0 and above
+- Upgrade JupyterLab extensions to latest versions
+- Drop Python 3.10 support
+- Refresh runtime requirements for Python 3.11+
+- Multiple reported security vulnerabilities in dependencies
+- Minor enhancements to pipeline runtimes for both Airflow and KFP
+
+See the full changelog below:
+
+- Bump jupyter-resource-usage to ~=1.3.0 - [#3451](https://github.com/elyra-ai/elyra/pull/3451)
+- Align frontend tooling with JupyterLab 4.6 - [#3450](https://github.com/elyra-ai/elyra/pull/3450)
+- Update jupyterlab-git and jupyterlab-lsp extensions - [#3445](https://github.com/elyra-ai/elyra/pull/3445)
+- Fix KFP compile failures caused by parameter names - [#3440](https://github.com/elyra-ai/elyra/pull/3440)
+- Restore name-length checks in Kubernetes key tests - [#3442](https://github.com/elyra-ai/elyra/pull/3442)
+- Add --parameter option to submit and export - [#3434](https://github.com/elyra-ai/elyra/pull/3434)
+- Fix filtering of unreferenced pipeline parameters - [#3435](https://github.com/elyra-ai/elyra/pull/3435)
+- Modernize the development container image - [#3441](https://github.com/elyra-ai/elyra/pull/3441)
+- Bump follow-redirects from 1.16.1 to 1.16.2 - [#3443](https://github.com/elyra-ai/elyra/pull/3443)
+- Fix pipeline Cypress shard failing on main - [#3444](https://github.com/elyra-ai/elyra/pull/3444)
+- Loosen the click pin to >=8.2
+- Refresh runtime requirements for Python 3.11+
+- Drop Python 3.10 support
+- Bump postcss-selector-parser from 6.1.4 to 6.1.5 - [#3438](https://github.com/elyra-ai/elyra/pull/3438)
+- Bump fast-uri from 3.1.7 to 3.1.9 - [#3437](https://github.com/elyra-ai/elyra/pull/3437)
+- Bump nbconvert from 7.17.1 to 7.17.2 in /etc/generic - [#3436](https://github.com/elyra-ai/elyra/pull/3436)
+- Bump follow-redirects from 1.16.0 to 1.16.1 - [#3433](https://github.com/elyra-ai/elyra/pull/3433)
+- Publish multi-arch (amd64, arm64) container images - [#3430](https://github.com/elyra-ai/elyra/pull/3430)
+- Complete Gitea support for the Airflow runtime - [#3432](https://github.com/elyra-ai/elyra/pull/3432)
+- Install airflow-gitea extra in the Elyra container image - [#3431](https://github.com/elyra-ai/elyra/pull/3431)
+- Bump axios from 1.19.0 to 1.20.0 - [#3420](https://github.com/elyra-ai/elyra/pull/3420)
+- Bump urllib3 from 2.7.0 to 2.8.0 in /etc/generic - [#3421](https://github.com/elyra-ai/elyra/pull/3421)
+- Bump tornado from 6.5.8 to 6.5.9 in /etc/generic - [#3422](https://github.com/elyra-ai/elyra/pull/3422)
+- Bump handlebars from 4.7.9 to 4.7.10 - [#3425](https://github.com/elyra-ai/elyra/pull/3425)
+- Bump source-map-js from 1.2.1 to 1.2.2 - [#3424](https://github.com/elyra-ai/elyra/pull/3424)
+- Bump joi from 17.13.3 to 17.13.8 - [#3423](https://github.com/elyra-ai/elyra/pull/3423)
+- Support JupyterLab 4.6.0 and @jupyter/builder - [#3427](https://github.com/elyra-ai/elyra/pull/3427)
+- Replace MinIO test server with SeaweedFS - [#3428](https://github.com/elyra-ai/elyra/pull/3428)
+- Bump tornado from 6.5.7 to 6.5.8 in /etc/generic - [#3413](https://github.com/elyra-ai/elyra/pull/3413)
+- Bump browserslist from 4.23.3 to 4.28.8 - [#3414](https://github.com/elyra-ai/elyra/pull/3414)
+- Bump fast-uri from 3.1.5 to 3.1.7 - [#3416](https://github.com/elyra-ai/elyra/pull/3416)
+- Bump postcss-selector-parser from 6.1.2 to 6.1.4 - [#3415](https://github.com/elyra-ai/elyra/pull/3415)
+- Bump urllib3 from 2.6.3 to 2.7.0 in /etc/generic - [#3382](https://github.com/elyra-ai/elyra/pull/3382)
+- Bump @tootallnate/once from 2.0.0 to 2.0.1 - [#3390](https://github.com/elyra-ai/elyra/pull/3390)
+- Bump ws from 8.18.0 to 8.21.3 - [#3391](https://github.com/elyra-ai/elyra/pull/3391)
+- Bump @babel/core from 7.19.1 to 7.29.7 - [#3397](https://github.com/elyra-ai/elyra/pull/3397)
+- Cap ipykernel below 7.x and refresh 6.x pins - [#3411](https://github.com/elyra-ai/elyra/pull/3411)
+- Wait for kernel connection before running a script - [#3410](https://github.com/elyra-ai/elyra/pull/3410)
+- Decouple code snippet cell tests from kernel status - [#3409](https://github.com/elyra-ai/elyra/pull/3409)
+- Bump tornado from 6.5.5 to 6.5.7 in /etc/generic - [#3395](https://github.com/elyra-ai/elyra/pull/3395)
+- Bump form-data from 4.0.4 to 4.0.6 - [#3396](https://github.com/elyra-ai/elyra/pull/3396)
+- Bump axios from 1.16.0 to 1.19.0 - [#3398](https://github.com/elyra-ai/elyra/pull/3398)
+- Bump brace-expansion from 1.1.11 to 1.1.18 - [#3399](https://github.com/elyra-ai/elyra/pull/3399)
+- Bump immutable from 4.3.8 to 4.3.9 - [#3402](https://github.com/elyra-ai/elyra/pull/3402)
+- Bump fast-uri from 3.1.2 to 3.1.5 - [#3403](https://github.com/elyra-ai/elyra/pull/3403)
+- Bump nanoid from 3.3.11 to 3.3.18 - [#3404](https://github.com/elyra-ai/elyra/pull/3404)
+- Upgrade jupyterlab-git to 0.54.0 - [#3405](https://github.com/elyra-ai/elyra/pull/3405)
+- Fix pipeline unsaved-changes state and Cypress CI on Lab 4.6.x - [#3406](https://github.com/elyra-ai/elyra/pull/3406)
+
 ## Release 4.1.1 - 05/18/2026
 
 Our 4.1.0 release candidate 1 includes the following high-level changes
