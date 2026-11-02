@@ -106,6 +106,7 @@ def test_validate_factory_schemas():
         ("us-east-1-", False),
         ("_region", False),
         ("region_", False),
+        ("us-east-1\n", False),
         ("a" * 64, False),
     ],
 )
