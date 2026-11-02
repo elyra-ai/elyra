@@ -705,6 +705,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             cos_secret = runtime_configuration.metadata.get("cos_secret")
             cos_endpoint = runtime_configuration.metadata["cos_endpoint"]
             cos_bucket = runtime_configuration.metadata.get("cos_bucket")
+            cos_region = runtime_configuration.metadata.get("cos_region")
             artifact_object_prefix = join_paths(
                 pipeline.pipeline_properties.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
             )
@@ -783,6 +784,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         pipeline_name=pipeline_name,
                         cos_endpoint=cos_endpoint,
                         cos_bucket=cos_bucket,
+                        cos_region=cos_region,
                         cos_directory=artifact_object_prefix,
                         cos_dependencies_archive=self._get_dependency_archive_name(operation),
                         filename=operation.filename,
@@ -1055,6 +1057,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         cos_outputs: Optional[List[str]] = [],
         task_parameters: Optional[List[PipelineParameter]] = None,
         is_crio_runtime: bool = False,
+        cos_region: Optional[str] = None,
     ) -> List[str]:
         """
         Compose the container command arguments for a generic component, taking into
@@ -1115,6 +1118,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             f"--cos-dependencies-archive '{cos_dependencies_archive}' "
             f"--file '{filename}' "
         ]
+
+        # If no region is specified the bootstrapper determines it by querying object storage
+        if cos_region:
+            bootstrapper_command.append(f"--cos-region '{cos_region}' ")
 
         def list_to_string(item_list: List[str]) -> str:
             """
