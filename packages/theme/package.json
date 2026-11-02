@@ -1,6 +1,6 @@
 {
   "name": "@elyra/theme-extension",
-  "version": "4.2.0-dev",
+  "version": "4.2.0",
   "description": "JupyterLab extension - Elyra theme",
   "keywords": [
     "jupyter",
@@ -51,7 +51,7 @@
     "watch:labextension": "jupyter-builder watch ."
   },
   "dependencies": {
-    "@elyra/ui-components": "4.2.0-dev",
+    "@elyra/ui-components": "4.2.0",
     "@jupyter/builder": "^1.2.3",
     "@jupyterlab/application": "^4.6.0",
     "@jupyterlab/apputils": "^4.7.0",

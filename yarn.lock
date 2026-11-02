@@ -2319,9 +2319,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/code-snippet-extension@workspace:packages/code-snippet"
   dependencies:
-    "@elyra/metadata-common": 4.2.0-dev
-    "@elyra/services": 4.2.0-dev
-    "@elyra/ui-components": 4.2.0-dev
+    "@elyra/metadata-common": 4.2.0
+    "@elyra/services": 4.2.0
+    "@elyra/ui-components": 4.2.0
     "@jupyter/builder": ^1.2.3
     "@jupyterlab/application": ^4.6.0
     "@jupyterlab/apputils": ^4.7.0
@@ -2347,12 +2347,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@elyra/metadata-common@4.2.0-dev, @elyra/metadata-common@workspace:packages/metadata-common":
+"@elyra/metadata-common@4.2.0, @elyra/metadata-common@workspace:packages/metadata-common":
   version: 0.0.0-use.local
   resolution: "@elyra/metadata-common@workspace:packages/metadata-common"
   dependencies:
-    "@elyra/services": 4.2.0-dev
-    "@elyra/ui-components": 4.2.0-dev
+    "@elyra/services": 4.2.0
+    "@elyra/ui-components": 4.2.0
     "@jupyter/builder": ^1.2.3
     "@jupyterlab/application": ^4.6.0
     "@jupyterlab/apputils": ^4.7.0
@@ -2375,9 +2375,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/metadata-extension@workspace:packages/metadata"
   dependencies:
-    "@elyra/metadata-common": 4.2.0-dev
-    "@elyra/services": 4.2.0-dev
-    "@elyra/ui-components": 4.2.0-dev
+    "@elyra/metadata-common": 4.2.0
+    "@elyra/services": 4.2.0
+    "@elyra/ui-components": 4.2.0
     "@jupyter/builder": ^1.2.3
     "@jupyterlab/application": ^4.6.0
     "@jupyterlab/apputils": ^4.7.0
@@ -2395,11 +2395,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/pipeline-editor-extension@workspace:packages/pipeline-editor"
   dependencies:
-    "@elyra/metadata-common": 4.2.0-dev
+    "@elyra/metadata-common": 4.2.0
     "@elyra/pipeline-editor": 1.13.0
     "@elyra/pipeline-services": 1.13.0
-    "@elyra/services": 4.2.0-dev
-    "@elyra/ui-components": 4.2.0-dev
+    "@elyra/services": 4.2.0
+    "@elyra/ui-components": 4.2.0
     "@jupyter/builder": ^1.2.3
     "@jupyterlab/application": ^4.6.0
     "@jupyterlab/apputils": ^4.7.0
@@ -2485,8 +2485,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/python-editor-extension@workspace:packages/python-editor"
   dependencies:
-    "@elyra/script-editor": 4.2.0-dev
-    "@elyra/ui-components": 4.2.0-dev
+    "@elyra/script-editor": 4.2.0
+    "@elyra/ui-components": 4.2.0
     "@jupyter/builder": ^1.2.3
     "@jupyterlab/application": ^4.6.0
     "@jupyterlab/apputils": ^4.7.0
@@ -2508,8 +2508,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/r-editor-extension@workspace:packages/r-editor"
   dependencies:
-    "@elyra/script-editor": 4.2.0-dev
-    "@elyra/ui-components": 4.2.0-dev
+    "@elyra/script-editor": 4.2.0
+    "@elyra/ui-components": 4.2.0
     "@jupyter/builder": ^1.2.3
     "@jupyterlab/application": ^4.6.0
     "@jupyterlab/apputils": ^4.7.0
@@ -2531,8 +2531,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/scala-editor-extension@workspace:packages/scala-editor"
   dependencies:
-    "@elyra/script-editor": 4.2.0-dev
-    "@elyra/ui-components": 4.2.0-dev
+    "@elyra/script-editor": 4.2.0
+    "@elyra/ui-components": 4.2.0
     "@jupyter/builder": ^1.2.3
     "@jupyterlab/application": ^4.6.0
     "@jupyterlab/apputils": ^4.7.0
@@ -2554,7 +2554,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/script-debugger-extension@workspace:packages/script-debugger"
   dependencies:
-    "@elyra/script-editor": 4.2.0-dev
+    "@elyra/script-editor": 4.2.0
     "@jupyter/builder": ^1.2.3
     "@jupyterlab/application": ^4.6.0
     "@jupyterlab/debugger": ^4.6.0
@@ -2566,7 +2566,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@elyra/script-editor@4.2.0-dev, @elyra/script-editor@workspace:packages/script-editor":
+"@elyra/script-editor@4.2.0, @elyra/script-editor@workspace:packages/script-editor":
   version: 0.0.0-use.local
   resolution: "@elyra/script-editor@workspace:packages/script-editor"
   dependencies:
@@ -2592,7 +2592,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@elyra/services@4.2.0-dev, @elyra/services@workspace:packages/services":
+"@elyra/services@4.2.0, @elyra/services@workspace:packages/services":
   version: 0.0.0-use.local
   resolution: "@elyra/services@workspace:packages/services"
   dependencies:
@@ -2613,7 +2613,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/theme-extension@workspace:packages/theme"
   dependencies:
-    "@elyra/ui-components": 4.2.0-dev
+    "@elyra/ui-components": 4.2.0
     "@jupyter/builder": ^1.2.3
     "@jupyterlab/application": ^4.6.0
     "@jupyterlab/apputils": ^4.7.0
@@ -2630,7 +2630,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@elyra/ui-components@4.2.0-dev, @elyra/ui-components@workspace:packages/ui-components":
+"@elyra/ui-components@4.2.0, @elyra/ui-components@workspace:packages/ui-components":
   version: 0.0.0-use.local
   resolution: "@elyra/ui-components@workspace:packages/ui-components"
   dependencies:
