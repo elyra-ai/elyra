@@ -172,4 +172,14 @@ class KfpPipelineParameter(PipelineParameter):
         if self.required and (self.value is None or self.value == ""):
             validation_errors.append("Parameter is marked as required but no value has been assigned.")
 
+        # Any assigned value must match the declared type, or it is rendered as-is into the DSL
+        assigned_values = [self.default_value]
+        if self.value is not self.default_value:
+            assigned_values.append(self.value)
+        for value in assigned_values:
+            if value not in [None, ""] and not self.value_matches_selected_type(value):
+                validation_errors.append(
+                    f"Value {value!r} for parameter '{self.name}' is not a valid {self.selected_type}."
+                )
+
         return validation_errors

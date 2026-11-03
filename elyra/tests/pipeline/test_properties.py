@@ -14,6 +14,9 @@
 # limitations under the License.
 #
 
+import pytest
+
+from elyra.pipeline.kfp.kfp_properties import KfpPipelineParameter
 from elyra.pipeline.properties import PipelineParameter
 
 # ---------------------------------------------------
@@ -84,3 +87,125 @@ def test_pipelineparameter_constructor():
                 assert pp.value == parm_value
                 assert pp.default_value is None
                 assert pp.required == parm_required
+
+
+def test_pipelineparameter_float_type_value_coercion():
+    """
+    Verify that 'Float'-typed parameter values are always stored as a Python
+    float, and 'Integer'-typed values always as a Python int, regardless of
+    whether the raw value arrived as an int, a float, or a numeric string.
+
+    Without this coercion a whole-number 'Float' value (e.g. a default of
+    0.0, or any value that arrives as the plain string "0") is stored as a
+    Python int and later exported with its decimal point dropped (0 instead
+    of 0.0), even though the parameter was explicitly declared as Float.
+    See: https://github.com/elyra-ai/elyra/issues/3088
+    """
+    parm_name = "parm3"
+    parm_description = "parm3 description"
+
+    # 'Float' default values: int, string, and float inputs must all end up
+    # as an actual Python float, including the exact-zero case from #3088.
+    for raw_default in [0, "0", 0.0, "0.0", 3, "3", 3.14, "3.14"]:
+        default_value = {"type": "Float", "value": raw_default}
+        pp = PipelineParameter(parm_name, parm_description, "", default_value, False)
+        assert isinstance(pp.default_value, float)
+        assert pp.default_value == float(raw_default)
+        # No custom value was provided, so 'value' falls back to 'default_value'
+        # and must be coerced the same way.
+        assert isinstance(pp.value, float)
+        assert pp.value == float(raw_default)
+
+    # A custom 'value' passed directly (not via default_value) must be coerced too.
+    default_value = {"type": "Float", "value": ""}
+    pp = PipelineParameter(parm_name, parm_description, "0", default_value, False)
+    assert isinstance(pp.value, float)
+    assert pp.value == 0.0
+
+    # 'Integer' values arriving as numeric strings are normalized the same way.
+    for raw_default in [0, "0", 5, "5"]:
+        default_value = {"type": "Integer", "value": raw_default}
+        pp = PipelineParameter(parm_name, parm_description, "", default_value, False)
+        assert isinstance(pp.default_value, int)
+        assert pp.default_value == int(raw_default)
+
+    # Non-numeric types are left untouched: coercion only applies to Float/Integer.
+    default_value = {"type": "String", "value": "0"}
+    pp = PipelineParameter(parm_name, parm_description, "", default_value, False)
+    assert pp.default_value == "0"
+    assert isinstance(pp.default_value, str)
+
+    default_value = {"type": "Bool", "value": True}
+    pp = PipelineParameter(parm_name, parm_description, "", default_value, False)
+    assert pp.default_value is True
+
+
+@pytest.mark.parametrize("raw_value", [3.5, 3.99, -0.5, True, False])
+def test_pipelineparameter_integer_coercion_is_lossless(raw_value):
+    """
+    Verify that an 'Integer'-typed value is never silently altered when it cannot
+    be represented as an int without loss: int(3.5) == 3 and int(True) == 1 would
+    hide invalid input instead of letting validation report it.
+    """
+    for pp in [
+        PipelineParameter("parm", "", "", {"type": "Integer", "value": raw_value}, False),
+        PipelineParameter("parm", "", raw_value, {"type": "Integer", "value": ""}, False),
+    ]:
+        assert type(pp.value) is type(raw_value)
+        assert pp.value == raw_value
+
+
+@pytest.mark.parametrize(
+    "selected_type, raw_value",
+    [
+        ("Integer", 3.5),
+        ("Integer", "3.5"),
+        ("Integer", True),
+        ("Integer", "abc"),
+        ("Float", "abc"),
+        ("Float", True),
+    ],
+    ids=["int-float", "int-float-str", "int-bool", "int-non-numeric", "float-non-numeric", "float-bool"],
+)
+def test_kfp_pipelineparameter_reports_value_incompatible_with_type(selected_type, raw_value):
+    """
+    Verify that a value that does not match the parameter's declared numeric type
+    produces a validation error instead of being rendered into the generated DSL
+    as-is (e.g. 'x: float = abc' or 'x: int = 3.5').
+    """
+    pp = KfpPipelineParameter("parm", "", "", {"type": selected_type, "value": raw_value}, False)
+    assert pp.get_all_validation_errors(), f"{selected_type} parameter accepted {raw_value!r}"
+
+
+@pytest.mark.parametrize(
+    "selected_type, raw_value, expected",
+    [
+        ("Integer", 5, 5),
+        ("Integer", "5", 5),
+        ("Integer", 3.0, 3),
+        ("Integer", 0, 0),
+        ("Float", 0, 0.0),
+        ("Float", "0", 0.0),
+        ("Float", 3.14, 3.14),
+        ("Float", "-1.5", -1.5),
+    ],
+)
+def test_kfp_pipelineparameter_accepts_value_compatible_with_type(selected_type, raw_value, expected):
+    """
+    Verify that values losslessly representable in the declared numeric type are
+    coerced to that type and pass validation.
+    """
+    pp = KfpPipelineParameter("parm", "", "", {"type": selected_type, "value": raw_value}, False)
+    assert type(pp.value) is type(expected)
+    assert pp.value == expected
+    assert pp.get_all_validation_errors() == []
+
+
+@pytest.mark.parametrize("raw_value", ["nan", "inf", "-inf", float("inf")])
+def test_kfp_pipelineparameter_reports_non_finite_float(raw_value):
+    """
+    Verify that a non-finite 'Float' value is reported, since it would be rendered
+    into the generated DSL as a bare name (e.g. 'x: float = inf') that does not run.
+    """
+    pp = KfpPipelineParameter("parm", "", "", {"type": "Float", "value": raw_value}, False)
+    assert pp.get_all_validation_errors(), f"Float parameter accepted {raw_value!r}"
