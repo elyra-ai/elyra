@@ -54,11 +54,17 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
             ? true
             : undefined;
         let type = 'text';
+        let step: string | undefined = undefined;
         switch (param.default_value?.type) {
           case 'Bool':
             type = 'checkbox';
             break;
           case 'Float':
+            type = 'number';
+            // Number inputs default to step="1", which would flag every
+            // decimal as invalid
+            step = 'any';
+            break;
           case 'Integer':
             type = 'number';
             break;
@@ -111,6 +117,7 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
               id={`${param.name}-paramInput`}
               name={`${param.name}-paramInput`}
               type={type}
+              step={step}
               placeholder={param.default_value?.value as string | undefined}
               data-form-required={required}
             />
