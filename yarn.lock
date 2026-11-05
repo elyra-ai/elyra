@@ -14384,9 +14384,9 @@ __metadata:
   linkType: hard
 
 "lodash.omit@npm:^4.5.0":
-  version: 4.5.0
-  resolution: "lodash.omit@npm:4.5.0"
-  checksum: 434645e49fe84ab315719bd5a9a3a585a0f624aa4160bc09157dd041a414bcc287c15840365c1379476a3f3eda41fbe838976c3f7bdecbbf4c5478e86c471a30
+  version: 4.18.0
+  resolution: "lodash.omit@npm:4.18.0"
+  checksum: 4e95fd4af19bbdb6f8e85b29eb1fa0dae288b3e6c49768059ef030fa3bc7dab6970fa7da7eab03f67ffa3062b9416da994c740ef13b5e71a4113cf0a858cf9f0
   languageName: node
   linkType: hard
 
