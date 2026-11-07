@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import hashlib
+import io
 import json
 import logging
 import os
@@ -700,6 +701,111 @@ def test_fail_bucket_put_file_object_store(monkeypatch, s3_setup):
         monkeypatch.setattr(op, "cos_bucket", bucket_name)
         op.put_file_to_object_storage(file_to_upload=os.path.join(ELYRA_ROOT_DIR, file_to_put))
     assert exc_info.value.code == "NoSuchBucket"
+
+
+# Files that an upstream node creates, some of which it declares as outputs
+UPSTREAM_FILES = [
+    "results.csv",
+    "data/a.csv",
+    "data/b.txt",
+    "data/.hidden.csv",
+    "data/sub/c.csv",
+    "data-copy/a.csv",
+]
+
+
+@pytest.mark.parametrize(
+    "file_spec, expected_files",
+    [
+        ("data/a.csv", {"data/a.csv"}),
+        ("data", {"data/a.csv", "data/b.txt", "data/.hidden.csv", "data/sub/c.csv"}),
+        ("data/", {"data/a.csv", "data/b.txt", "data/.hidden.csv", "data/sub/c.csv"}),
+        ("data/*", {"data/a.csv", "data/b.txt", "data/sub/c.csv"}),
+        ("data/*.csv", {"data/a.csv"}),
+        ("data/?.*", {"data/a.csv", "data/b.txt"}),
+        ("data/.*", {"data/.hidden.csv"}),
+        ("data/*/", {"data/sub/c.csv"}),
+        ("*.csv", {"results.csv"}),
+        ("*/a.csv", {"data/a.csv", "data-copy/a.csv"}),
+        ("data*", {"data/a.csv", "data/b.txt", "data/.hidden.csv", "data/sub/c.csv", "data-copy/a.csv"}),
+        ("*.parquet", set()),
+    ],
+)
+def test_process_input_file_gets_uploaded_output_files(monkeypatch, s3_setup, tmpdir, file_spec, expected_files):
+    op = _get_operation_instance(monkeypatch, s3_setup)
+    monkeypatch.setitem(op.input_params, "cos-directory", "test-directory")
+
+    # the upstream node uploads its output files ...
+    upstream_dir = tmpdir.mkdir("upstream")
+    for file in UPSTREAM_FILES:
+        upstream_dir.join(file).write(f"content of {file}", ensure=True)
+    with upstream_dir.as_cwd():
+        op.process_output_file(file_spec)
+
+    # ... and the downstream node gets the same files
+    downstream_dir = tmpdir.mkdir("downstream")
+    with downstream_dir.as_cwd():
+        op.process_input_file(file_spec)
+    downloaded_files = {
+        os.path.relpath(os.path.join(root, file), downstream_dir)
+        for root, _, files in os.walk(downstream_dir)
+        for file in files
+    }
+    assert downloaded_files == expected_files
+    for file in downloaded_files:
+        assert downstream_dir.join(file).read() == f"content of {file}"
+
+
+def test_process_input_file_gets_directory_with_existing_files(monkeypatch, s3_setup, tmpdir):
+    op = _get_operation_instance(monkeypatch, s3_setup)
+    for file in ["data/a.csv", "data/sub/b.csv"]:
+        tmpdir.join("upstream", file).write(file, ensure=True)
+    with tmpdir.join("upstream").as_cwd():
+        op.process_output_file("data")
+
+    # getting the directory doesn't fail if a previous input file created it
+    with tmpdir.mkdir("downstream").as_cwd():
+        op.process_input_file("data/a.csv")
+        op.process_input_file("data")
+        assert os.path.isfile("data/a.csv")
+        assert os.path.isfile("data/sub/b.csv")
+
+
+def test_fail_process_input_file_not_found(monkeypatch, s3_setup, tmpdir):
+    op = _get_operation_instance(monkeypatch, s3_setup)
+    s3_setup.put_object("test-bucket", "data-copy/a.csv", io.BytesIO(b"content"), 7)
+
+    with tmpdir.as_cwd():
+        with pytest.raises(minio.error.S3Error) as exc_info:
+            op.process_input_file("data")
+        assert exc_info.value.code == "NoSuchKey"
+        assert not os.path.exists("data-copy")
+
+
+@pytest.mark.parametrize(
+    "file_name, wildcard, expected",
+    [
+        ("a.csv", "*.csv", True),
+        ("a.csv", "*.txt", False),
+        ("a.csv", "?.csv", True),
+        ("ab.csv", "?.csv", False),
+        ("A.CSV", "*.csv", False),
+        ("data/a.csv", "*.csv", False),
+        ("data/a.csv", "data/*", True),
+        ("data/sub/a.csv", "data/*", True),
+        ("data/sub/a.csv", "*/sub/*.csv", True),
+        ("data/a.csv", "data/*/", False),
+        ("data/sub/a.csv", "data/*/", True),
+        ("data", "data/*", False),
+        (".hidden.csv", "*.csv", False),
+        (".hidden.csv", ".*", True),
+        ("data/sub/.hidden.csv", "data/*", True),
+        ("data/[x].csv", "data/[x]*", False),
+        ("data/x.csv", "data/[x]*", True),
+    ],
+)
+def test_matches_wildcard(file_name, wildcard, expected):
+    assert bootstrapper.FileOpBase.matches_wildcard(file_name, wildcard) is expected
 
 
 def test_find_best_kernel_nb(tmpdir):
