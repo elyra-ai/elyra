@@ -610,6 +610,9 @@ def build_release():
         # Fail the release before anything is published if Elyra would be hidden
         # by a volume on the user's home directory (see issue #3453)
         check_run(["make", "validate-elyra-image"], cwd=config.source_dir, capture_output=False)
+        # ...and if the Kubeflow image loses its Elyra configuration on a new
+        # workspace volume
+        check_run(["make", "validate-kf-notebook-image"], cwd=config.source_dir, capture_output=False)
         check_run(["git", "checkout", config.git_branch], cwd=config.source_dir, capture_output=False)
 
     print("")
