@@ -607,6 +607,9 @@ def build_release():
         # Build container images from tagged release
         check_run(["git", "checkout", f"tags/v{config.new_version}"], cwd=config.source_dir, capture_output=False)
         check_run(["make", "container-images"], cwd=config.source_dir, capture_output=False)
+        # Fail the release before anything is published if Elyra would be hidden
+        # by a volume on the user's home directory (see issue #3453)
+        check_run(["make", "validate-elyra-image"], cwd=config.source_dir, capture_output=False)
         check_run(["git", "checkout", config.git_branch], cwd=config.source_dir, capture_output=False)
 
     print("")

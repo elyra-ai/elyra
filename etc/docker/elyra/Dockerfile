@@ -29,17 +29,17 @@ ARG ELYRA_EXTRAS=[kfp,airflow-gitlab,airflow-gitea]
 
 COPY requirements.txt ${ELYRA_PACKAGE} ./
 
+# Install as root into the system site-packages (/usr/local) rather than ~/.local,
+# so a volume mounted on the user's home directory (e.g. JupyterHub user storage)
+# can't hide Elyra, its lab extensions or its server configuration.
+# HOME stays /home/jovyan under root, so pip's cache is disabled to keep
+# root-owned files out of the user's home directory.
 USER root
-RUN chown jovyan:users ./requirements.txt ./"${ELYRA_PACKAGE}"
+RUN python3 -m pip install --quiet --no-cache-dir --root-user-action=ignore --upgrade pip setuptools && \
+    python3 -m pip install --quiet --no-cache-dir --root-user-action=ignore --upgrade "$ELYRA_PACKAGE""$ELYRA_EXTRAS" && \
+    python3 -m pip install --quiet --no-cache-dir --root-user-action=ignore --upgrade -r requirements.txt && \
+    rm -f "$ELYRA_PACKAGE" requirements.txt
 USER jovyan
-
-RUN python3 -m pip install --quiet --no-cache-dir --upgrade pip setuptools
-
-# Install Elyra
-RUN python3 -m pip install --quiet --no-cache-dir --upgrade "$ELYRA_PACKAGE""$ELYRA_EXTRAS" && rm "$ELYRA_PACKAGE"
-
-# Install custom requirements
-RUN python3 -m pip install --upgrade -r requirements.txt && rm requirements.txt
 
 # Install component examples catalogs
 #  - this wail fail if the 'kfp-examples' pip extra is not installed
