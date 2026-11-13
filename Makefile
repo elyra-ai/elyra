@@ -23,7 +23,7 @@
 .PHONY: test-dependencies copy-tests-to-package pytest clean-tests-from-package test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
 .PHONY: elyra-image elyra-image-env elyra-image-context publish-elyra-image kf-notebook-image kf-notebook-image-context publish-kf-notebook-image
-.PHONY: container-images publish-container-images validate-elyra-image validate-runtime-image validate-runtime-images
+.PHONY: container-images publish-container-images validate-elyra-image validate-kf-notebook-image validate-runtime-image validate-runtime-images
 
 SHELL:=/bin/bash
 
@@ -353,6 +353,23 @@ validate-elyra-image: ## Validate the Elyra image (override with image=<name>)
 	$(CONTAINER_EXEC) run --rm -i \
 		--mount type=tmpfs,destination=/home/jovyan,tmpfs-mode=1777 \
 		"$$image" bash -s -- empty-home < $$script || rc=1 ; \
+	exit $$rc
+
+# Starts the image with its own entrypoint, as built and with an empty tmpfs on
+# the home directory (like a new Kubeflow workspace volume), and runs
+# etc/docker/kubeflow/validate-image.py against the server inside it.
+validate-kf-notebook-image: ## Validate the Kubeflow notebook image (override with image=<name>)
+	@image="$(or $(image),$(KF_NOTEBOOK_IMAGE))" ; \
+	script=etc/docker/kubeflow/validate-image.py ; \
+	echo "Validating container image $$image" ; \
+	rc=0 ; \
+	for mode in built empty-home ; do \
+		mount="" ; \
+		if [ "$$mode" = empty-home ]; then mount="--mount type=tmpfs,destination=/home/jovyan,tmpfs-mode=1777" ; fi ; \
+		cid=$$($(CONTAINER_EXEC) run -d $$mount "$$image") || { rc=1 ; continue ; } ; \
+		$(CONTAINER_EXEC) exec -i "$$cid" python3 - "$$mode" < $$script || rc=1 ; \
+		$(CONTAINER_EXEC) rm -f "$$cid" > /dev/null ; \
+	done ; \
 	exit $$rc
 
 validate-runtime-images: # Validates delivered runtime-images meet minimum criteria

@@ -31,3 +31,12 @@ To build a custom version of this container image:
    - (Option 1) Build from official distributables: In the repository root directory run `make kf-notebook-image TAG=3.X.X` to create an image using the 3.X.X release from PyPI.
    - (Option 2) Build from local source: In the repository root directory run `make kf-notebook-image TAG=dev` _after_ running `make install-prod` to build Elyra locally.
 3. The container image is automatically tagged with `elyra/kf-notebook:$TAG` and `quay.io/elyra/kf-notebook:$TAG`
+4. Validate the image with `make validate-kf-notebook-image TAG=$TAG` (or `image=<name>` for any other image).
+   This starts the image as built, and with an empty volume mounted on the home directory as a
+   new Kubeflow workspace volume would be, and checks that only the Kubeflow Pipelines runtime
+   is enabled and that the examples component catalog is available.
+
+The image's Elyra configuration (`jupyter_elyra_config.py`) and the examples component catalog
+are installed in the conda environment, not in `$HOME`. Kubeflow mounts the workspace volume on
+the home directory, so anything a derived image writes to `$HOME` is hidden at runtime. Users can
+still override the configuration in `~/.jupyter`.
