@@ -16,7 +16,8 @@
 #
 # Validates that Elyra is installed in the image's system environment, so it
 # survives a volume mounted over the user's home directory (as JupyterHub user
-# storage does). See https://github.com/elyra-ai/elyra/issues/3453.
+# storage does), and that the image's default command starts a Jupyter server.
+# See https://github.com/elyra-ai/elyra/issues/3453.
 #
 # This script runs *inside* the image. `make validate-elyra-image` pipes it in
 # over stdin, once per mode:
@@ -67,6 +68,43 @@ no_user_site_packages() {
     [[ ! -e "$(python3 -m site --user-site)" ]]
 }
 
+# Run the image's start script (its default command) and wait for the server
+# to answer, printing the tail of the server log if it never does.
+start_script_serves_jupyter() {
+    python3 - <<'EOF'
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.request
+
+START_SCRIPT = "/usr/local/bin/start-elyra.sh"
+API_URL = "http://127.0.0.1:8888/api"  # answers without a token
+
+# Log to a file rather than a pipe: an unread pipe can fill up and stall the server.
+with tempfile.TemporaryFile(mode="w+") as log:
+    server = subprocess.Popen([START_SCRIPT], stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT)
+    ready = False
+    deadline = time.monotonic() + 90
+    while not ready and server.poll() is None and time.monotonic() < deadline:
+        try:
+            with urllib.request.urlopen(API_URL, timeout=2):
+                ready = True
+        except OSError:
+            time.sleep(1)
+    if server.poll() is None:
+        server.terminate()
+        try:
+            server.wait(timeout=30)
+        except subprocess.TimeoutExpired:
+            server.kill()
+    if not ready:
+        log.seek(0)
+        print("".join(log.readlines()[-5:]), end="", file=sys.stderr)
+sys.exit(0 if ready else 1)
+EOF
+}
+
 no_root_owned_files_in_home() {
     [[ -z "$(find "$HOME" -user root -print -quit 2>/dev/null)" ]]
 }
@@ -89,6 +127,7 @@ esac
 check "elyra is importable from the system prefix" elyra_in_system_prefix
 check "@elyra lab extensions are enabled" elyra_labextension_enabled
 check "elyra server extension is enabled" elyra_server_extension_enabled
+check "default command starts a Jupyter server" start_script_serves_jupyter
 
 if ((failures > 0)); then
     echo "$failures check(s) failed in '$mode' mode"
