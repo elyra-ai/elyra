@@ -34,7 +34,8 @@ To build a custom version of this container image:
 1. Validate the image with `make validate-elyra-image TAG=$TAG` (or `image=<name>` for any other image).
    This checks that Elyra, its lab extensions and its server extension are installed in the
    image's system environment, and still load when an empty volume is mounted on the home
-   directory, as JupyterHub user storage does.
+   directory, as JupyterHub user storage does. It also checks that the image's default
+   command starts a Jupyter server.
 
 Packages are installed as `root`, so they go into the image's system environment. Installed as
 `jovyan`, pip falls back to `~/.local`, which a home directory volume hides
