@@ -114,7 +114,36 @@ packages required by your workloads, or any other customizations needed.
 ```dockerfile
 FROM elyra/elyra:dev
 
-...
-
-
+# Install as root so packages land in the image's system environment.
+# Installed as the jovyan user, pip falls back to ~/.local, which a
+# persistent home directory volume hides when the server starts.
+USER root
+RUN python3 -m pip install --no-cache-dir --root-user-action=ignore <your-packages>
+USER jovyan
 ```
+
+## Upgrading from Elyra 4.1.x and 4.2.0 images
+
+The `elyra/elyra` images for 4.1.x and 4.2.0 installed Elyra and its dependencies in the
+user's home directory (`~/.local`) instead of the image's system environment
+([#3453](https://github.com/elyra-ai/elyra/issues/3453)), so a volume mounted on the home
+directory hid them. Newer images install into the system environment.
+
+A home directory volume can still hold a copy from those images, for example a Docker named
+volume, which is seeded from the image the first time it is mounted. That copy takes
+precedence over the one in the image. To check where Elyra is loaded from, run this in a
+terminal in JupyterLab:
+
+```bash
+python3 -c "import elyra; print(elyra.__file__)"
+```
+
+If the path is under `~/.local`, uninstall the packages in the user's home directory.
+If you installed packages there yourself, reinstall them afterwards.
+
+```bash
+python3 -m pip freeze --user > /tmp/user-packages.txt
+python3 -m pip uninstall -y -r /tmp/user-packages.txt
+```
+
+Restart the server afterwards.

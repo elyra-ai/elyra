@@ -27,7 +27,16 @@ See [Deploying Elyra and JupyterHub in a Kubernetes environment](https://elyra.r
 To build a custom version of this container image:
 1. Clone this repository.
 1. [Optional] Add custom Python package requirements to `requirements.txt` in the `etc/docker/elyra` directory.
-1. Build the image using the `Dockerfile` or `Dockerfile.dev`:
+1. Build the image using the `Dockerfile`:
   - (Option 1) In the repository root directory run `make elyra-image TAG=3.X.X` to build with Elyra version `3.X.X`
   - (Option 2) In the repository root directory run `make elyra-image TAG=dev` to build with Elyra from your local source
 1. The container image is automatically tagged with `elyra/elyra:$TAG` and `quay.io/elyra/elyra:$TAG`
+1. Validate the image with `make validate-elyra-image TAG=$TAG` (or `image=<name>` for any other image).
+   This checks that Elyra, its lab extensions and its server extension are installed in the
+   image's system environment, and still load when an empty volume is mounted on the home
+   directory, as JupyterHub user storage does.
+
+Packages are installed as `root`, so they go into the image's system environment. Installed as
+`jovyan`, pip falls back to `~/.local`, which a home directory volume hides
+([#3453](https://github.com/elyra-ai/elyra/issues/3453)). Follow the same pattern when adding
+packages to a derived image.

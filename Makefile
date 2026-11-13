@@ -23,7 +23,7 @@
 .PHONY: test-dependencies copy-tests-to-package pytest clean-tests-from-package test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
 .PHONY: elyra-image elyra-image-env elyra-image-context publish-elyra-image kf-notebook-image kf-notebook-image-context publish-kf-notebook-image
-.PHONY: container-images publish-container-images validate-runtime-image validate-runtime-images
+.PHONY: container-images publish-container-images validate-elyra-image validate-runtime-image validate-runtime-images
 
 SHELL:=/bin/bash
 
@@ -339,6 +339,21 @@ container-images: elyra-image kf-notebook-image ## Build all container images
 	$(CONTAINER_EXEC) images quay.io/$(KF_NOTEBOOK_IMAGE)
 
 publish-container-images: publish-elyra-image publish-kf-notebook-image ## Publish all container images
+
+# Runs etc/docker/elyra/validate-image.sh inside the image twice: as built, and
+# with an empty tmpfs on the home directory to mimic a fresh JupyterHub user
+# volume. tmpfs (rather than a named volume) matters: a new named volume is
+# seeded with the image's home directory, which would hide the failure.
+validate-elyra-image: ## Validate the Elyra image (override with image=<name>)
+	@image="$(or $(image),$(ELYRA_IMAGE))" ; \
+	script=etc/docker/elyra/validate-image.sh ; \
+	echo "Validating container image $$image" ; \
+	rc=0 ; \
+	$(CONTAINER_EXEC) run --rm -i "$$image" bash -s -- built < $$script || rc=1 ; \
+	$(CONTAINER_EXEC) run --rm -i \
+		--mount type=tmpfs,destination=/home/jovyan,tmpfs-mode=1777 \
+		"$$image" bash -s -- empty-home < $$script || rc=1 ; \
+	exit $$rc
 
 validate-runtime-images: # Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
