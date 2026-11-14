@@ -108,7 +108,12 @@ class FileOpBase(ABC):
             )
 
         # get minio client
-        self.cos_client = minio.Minio(self.cos_endpoint.netloc, secure=self.secure, credentials=cred_provider)
+        self.cos_client = minio.Minio(
+            self.cos_endpoint.netloc,
+            secure=self.secure,
+            region=self.input_params.get("cos-region"),
+            credentials=cred_provider,
+        )
 
     @abstractmethod
     def execute(self) -> None:
@@ -535,6 +540,12 @@ class OpUtil(object):
         )
         parser.add_argument(
             "-b", "--cos-bucket", dest="cos-bucket", help="Cloud object storage bucket to use", required=True
+        )
+        parser.add_argument(
+            "--cos-region",
+            dest="cos-region",
+            help="Cloud object storage region; determined by querying object storage if not specified",
+            required=False,
         )
         parser.add_argument(
             "-d",

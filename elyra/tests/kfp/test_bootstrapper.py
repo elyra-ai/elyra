@@ -776,8 +776,52 @@ def test_parse_arguments():
     assert args_dict["filepath"] == "test-notebook.ipynb"
     assert args_dict["user-volume-path"] == "/tmp/lib"
     assert args_dict["pipeline-name"] == "test-pipeline"
+    assert not args_dict["cos-region"]
     assert not args_dict["inputs"]
     assert not args_dict["outputs"]
+
+
+def test_parse_arguments_with_cos_region():
+    test_args = [
+        "-e",
+        "http://test.me.now",
+        "-d",
+        "test-directory",
+        "-t",
+        "test-archive.tgz",
+        "-f",
+        "test-notebook.ipynb",
+        "-b",
+        "test-bucket",
+        "-n",
+        "test-pipeline",
+        "--cos-region",
+        "us-east-1",
+    ]
+    args_dict = bootstrapper.OpUtil.parse_arguments(test_args)
+
+    assert args_dict["cos-region"] == "us-east-1"
+
+
+@pytest.mark.parametrize("cos_region", [None, "us-east-1"])
+def test_cos_client_region(monkeypatch, cos_region):
+    """Verify that the object storage client uses the specified region, if any"""
+    minio_client = mock.Mock()
+    monkeypatch.setattr(minio, "Minio", minio_client)
+
+    bootstrapper.NotebookFileOp(
+        **{
+            "filepath": "test-notebook.ipynb",
+            "cos-endpoint": "http://test.me.now",
+            "cos-bucket": "test-bucket",
+            "cos-user": "test-user",
+            "cos-password": "test-password",
+            "cos-region": cos_region,
+        }
+    )
+
+    minio_client.assert_called_once()
+    assert minio_client.call_args.kwargs["region"] == cos_region
 
 
 def test_fail_missing_notebook_parse_arguments():

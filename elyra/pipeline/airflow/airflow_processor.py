@@ -296,6 +296,7 @@ be fully qualified (i.e., prefixed with their package names).
         cos_password = runtime_configuration.metadata.get("cos_password")
         cos_secret = runtime_configuration.metadata.get("cos_secret")
         cos_bucket = runtime_configuration.metadata.get("cos_bucket")
+        cos_region = runtime_configuration.metadata.get("cos_region")
 
         pipeline_instance_id = pipeline_instance_id or pipeline_name
         artifact_object_prefix = join_paths(
@@ -376,6 +377,7 @@ be fully qualified (i.e., prefixed with their package names).
                     cos_dependencies_archive=operation_artifact_archive,
                     inputs=operation.inputs,
                     outputs=operation.outputs,
+                    cos_region=cos_region,
                 )
 
                 target_op = {

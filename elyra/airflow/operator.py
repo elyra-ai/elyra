@@ -56,6 +56,7 @@ class BootscriptBuilder(object):
         cos_dependencies_archive: str,
         inputs: Optional[List[str]] = None,
         outputs: Optional[List[str]] = None,
+        cos_region: Optional[str] = None,
     ):
         """
         This helper builder constructs the bootstrapping arguments to be used as the driver for
@@ -68,10 +69,12 @@ class BootscriptBuilder(object):
         :param :cos_dependencies_archive: archive file name to get from object storage bucket e.g archive1.tar.gz
         :param inputs: comma delimited list of files to be consumed/are required by the filename
         :param outputs: comma delimited list of files produced by the filename
+        :param cos_region: object storage region e.g. us-east-1; determined by querying object storage if None
         """
         self.arguments = []
         self.cos_endpoint = cos_endpoint
         self.cos_bucket = cos_bucket
+        self.cos_region = cos_region
         self.cos_directory = cos_directory
         self.cos_dependencies_archive = cos_dependencies_archive
         self.filename = filename
@@ -106,6 +109,9 @@ class BootscriptBuilder(object):
             f"--cos-dependencies-archive '{self.cos_dependencies_archive}' "
             f"--file '{self.filename}' "
         ]
+
+        if self.cos_region:
+            self.arguments.append(f"--cos-region '{self.cos_region}' ")
 
         if self.inputs:
             inputs_str = self._artifact_list_to_str(self.inputs)
