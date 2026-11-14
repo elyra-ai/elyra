@@ -95,6 +95,9 @@ node_modules
 .yarn/cache
 .yarn/install-state.gz
 
+# Nx cache and workspace data (lerna runs tasks through Nx)
+.nx/
+
 labextensions/**/labextension/*
 
 rebuild.ps1

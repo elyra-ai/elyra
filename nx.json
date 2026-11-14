@@ -1,0 +1,10 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "useDaemonProcess": false,
+  "pluginsConfig": {
+    "@nx/js": {
+      "analyzeLockfile": false,
+      "analyzeSourceFiles": false
+    }
+  }
+}
