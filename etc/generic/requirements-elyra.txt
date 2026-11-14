@@ -19,7 +19,7 @@ papermill==2.6.0
 pyzmq==27.1.0
 prompt-toolkit==3.0.52
 requests==2.33.0
-tornado==6.5.9
+tornado==6.6.1
 traitlets==5.14.3
 urllib3==2.8.0
 #
