@@ -273,7 +273,15 @@ jobs:
         python-version: ${{ fromJSON(github.event_name == 'pull_request' && '["3.13"]' || '["3.11", "3.12", "3.13"]') }}
     steps:
       - uses: actions/checkout@v4
+      # ubuntu-26.04 runner images no longer ship conda, which the
+      # elyra-image-env target requires. Miniforge keeps us on conda-forge.
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          auto-activate-base: false
       - name: Validate image environment
+        # Login shell so the conda init from setup-miniconda is sourced
+        shell: bash -el {0}
         run: make PYTHON_VERSION=${{ matrix.python-version }} elyra-image-env
 
   validate-images:

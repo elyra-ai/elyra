@@ -17,7 +17,6 @@ import json
 import os
 import sys
 from typing import Dict
-from typing import List
 
 from jsonschema import ValidationError
 
@@ -175,13 +174,13 @@ class SchemaspaceCreate(SchemaspaceBase):
         "Can be used to bypass individual property arguments.",
     )
     # 'create' options
-    options: List[Option] = [file_option, json_option]  # defer name option until after schema
+    options: list[Option] = [file_option, json_option]  # defer name option until after schema
 
     update_mode = False
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.complex_properties: List[str] = []
+        self.complex_properties: list[str] = []
         self.metadata_manager = MetadataManager(schemaspace=self.schemaspace)
 
         # First, process the schema_name option so we can then load the appropriate schema
@@ -313,7 +312,7 @@ class SchemaspaceCreate(SchemaspaceBase):
         # else, neither is set so metadata stanza will be considered
         return bulk_metadata
 
-    def _schema_to_options(self, schema: Dict, relax_required: bool = False) -> List[Option]:
+    def _schema_to_options(self, schema: Dict, relax_required: bool = False) -> list[Option]:
         """Takes a JSON schema and builds a list of SchemaProperty instances corresponding to each
         property in the schema.  There are two sections of properties, one that includes
         schema_name and display_name and another within the metadata container - which
@@ -437,7 +436,7 @@ class SchemaspaceExport(SchemaspaceBase):
     )
 
     # 'Export' flags
-    options: List[Option] = [schema_name_option, include_invalid_flag, clean_flag, directory_option]
+    options: list[Option] = [schema_name_option, include_invalid_flag, clean_flag, directory_option]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -540,7 +539,7 @@ class SchemaspaceImport(SchemaspaceBase):
     )
 
     # 'Import' flags
-    options: List[Option] = [directory_option, overwrite_flag]
+    options: list[Option] = [directory_option, overwrite_flag]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
