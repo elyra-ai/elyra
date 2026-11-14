@@ -383,6 +383,12 @@ class SchemaspaceCreate(SchemaspaceBase):
 class SchemaspaceUpdate(SchemaspaceCreate):
     """Handles the 'update' subcommand functionality for a specific schemaspace."""
 
+    # Unlike on create, the name can't be derived from the display name since it identifies
+    # the existing instance.
+    name_option = CliOption(
+        "--name", name="name", description="The name of the metadata instance to update.", required=True
+    )
+
     update_mode = True
 
 
