@@ -179,6 +179,17 @@ ignore-vcs = true
 
 [tool.hatch.build.targets.wheel]
 core-metadata-version = "2.3"
+# The labextensions are installed through the shared-data mappings below, so
+# keep their source tree out of site-packages (it would duplicate every built
+# asset and add stub modules). The leading "/" anchors the pattern to the
+# project root: hatchling also applies excludes to shared-data target paths,
+# and an unanchored pattern would drop share/jupyter/labextensions as well.
+# This overrides [tool.hatch.build] exclude, so elyra/tests is repeated here.
+# The sdist still ships the tree (artifacts).
+exclude = [
+    "elyra/tests",
+    "/labextensions",
+]
 
 # Include data files with dist
 [tool.hatch.build.targets.wheel.shared-data]

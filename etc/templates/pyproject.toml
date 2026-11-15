@@ -47,5 +47,11 @@ file = "LICENSE"
 [tool.hatch.build]
 include = ["labextensions/**/*", "elyra/**/*"]
 
+[tool.hatch.build.targets.wheel]
+# The labextensions are installed through shared-data; keep their source tree
+# out of site-packages, where it would duplicate every built asset. The leading
+# "/" keeps the pattern from also matching share/jupyter/labextensions.
+exclude = ["/labextensions"]
+
 [tool.hatch.build.targets.wheel.shared-data]
 {{shared-data}}
