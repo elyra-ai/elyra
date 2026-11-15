@@ -592,6 +592,27 @@ def checkout_code() -> None:
     print("")
 
 
+def verify_labextensions_built() -> None:
+    """Fail the release if any JupyterLab extension in the source tree was not built.
+
+    Every labextensions/elyra_* package must contain its built labextension/package.json,
+    which the wheels ship through shared-data and the individual extension packages copy.
+    Without this check, a UI build that ran somewhere else (for example, when Nx resolved
+    an enclosing checkout as its workspace root) yields packages without any UI while
+    every build step still reports success.
+
+    Raises:
+        RuntimeError: if no labextension packages are found or any of them was not built.
+    """
+    labextensions_dir = Path(config.source_dir) / "labextensions"
+    packages = sorted(p for p in labextensions_dir.glob("elyra_*") if p.is_dir())
+    missing = [p.name for p in packages if not (p / "labextension" / "package.json").is_file()]
+    if not packages or missing:
+        details = ", ".join(missing) if packages else "no labextension packages found"
+        raise RuntimeError(f"JupyterLab extensions were not built in {labextensions_dir}: {details}")
+    print(f">>> Verified {len(packages)} built labextensions in {labextensions_dir}")
+
+
 def build_release():
     global config
 
@@ -602,6 +623,7 @@ def build_release():
     # Build wheels and source packages
     print(f">>> Building release in {config.source_dir}")
     check_run(["make", "release"], cwd=config.source_dir, capture_output=False)
+    verify_labextensions_built()
 
     if not config.pre_release:
         # Build container images from tagged release

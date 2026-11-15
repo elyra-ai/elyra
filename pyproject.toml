@@ -329,3 +329,9 @@ filterwarnings = [
   'ignore:HTTPResponse.getheader\(\) is deprecated and will be removed in urllib3 v2.1.0.:DeprecationWarning',
   'ignore:HTTPResponse.getheaders\(\) is deprecated and will be removed in urllib3 v2.1.0.:DeprecationWarning',
 ]
+
+[tool.coverage.run]
+# create-release.py is maintainer tooling that ships in no package. Its unit
+# tests import it, so without this the whole script, including release steps
+# that no unit test can run, would count against the project coverage total.
+omit = ["create-release.py"]
