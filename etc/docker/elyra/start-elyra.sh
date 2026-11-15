@@ -17,7 +17,6 @@
 
 export NB_IP=${NB_IP:-0.0.0.0}
 export NB_PORT=${NB_PORT:-8888}
-export JUPYTER_ENABLE_LAB=true
 export KERNEL_USERNAME=${KERNEL_USERNAME:-${NB_USER}}
 
 echo "Kernel user: " ${KERNEL_USERNAME}
@@ -27,4 +26,11 @@ echo "Gateway URL: " ${JUPYTER_GATEWAY_URL}
 
 echo "${@: -1}"
 
-exec /usr/local/bin/start-notebook.sh --port=${NB_PORT} --ip=${NB_IP}  $*
+# The base image (jupyterhub/k8s-singleuser-sample) doesn't include the
+# docker-stacks start-notebook.sh, so start the server directly. A JupyterHub
+# spawner that uses the image's default command sets JUPYTERHUB_API_TOKEN;
+# start the single-user server then, which gets its address from the Hub.
+if [[ -n "${JUPYTERHUB_API_TOKEN:-}" ]]; then
+    exec jupyterhub-singleuser "$@"
+fi
+exec jupyter lab --no-browser --ip="${NB_IP}" --port="${NB_PORT}" "$@"
