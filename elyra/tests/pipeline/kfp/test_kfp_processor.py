@@ -133,8 +133,23 @@ def test_compose_container_command_args(processor: KfpPipelineProcessor):
     assert f"--cos-dependencies-archive '{cos_dependencies_archive}'" in command_args
     assert f"--file '{filename}'" in command_args
 
+    assert "--cos-region" not in command_args
     assert "--inputs" not in command_args
     assert "--outputs" not in command_args
+
+    # verify that the object storage region is passed to the bootstrapper if one is specified
+    cos_region = "us-east-1"
+    command_args = processor._compose_container_command_args(
+        pipeline_name=pipeline_name,
+        cos_endpoint=cos_endpoint,
+        cos_bucket=cos_bucket,
+        cos_directory=cos_directory,
+        cos_dependencies_archive=cos_dependencies_archive,
+        filename=filename,
+        cos_region=cos_region,
+    )
+    command_args = "".join(command_args)
+    assert f"--cos-region '{cos_region}'" in command_args
 
     # verify correct handling of file dependencies and file outputs
     for file_dependency in [[], ["input_file.txt"], ["input_file.txt", "input_file_2.txt"]]:
@@ -660,6 +675,16 @@ def test_disable_node_caching_on_compiled_pipeline(
             / "kfp-one-node-generic.pipeline",
             "workflow_engine": WorkflowEngineType.ARGO,
         },
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
+            "cos_region": "us-east-1",
+        },
     ],
     indirect=True,
 )
@@ -674,6 +699,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
      - the Argo workflow engine
      - runtime configurations that use cloud storage authentication types KUBERNETES_SECRET
        and USER_CREDENTIALS (the generated code varies depending on the selected type)
+     - runtime configurations with and without a cloud storage region
 
     Other tests cover the scenarios where the user defined optional properties,
     such as environment variables, Kubernetes labels, or data volumes.
@@ -759,6 +785,11 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     assert f"--cos-endpoint '{runtime_config.metadata['cos_endpoint']}'" in node_template["container"]["args"][0]
     #    - the object storage bucket name that this node uses for file I/O
     assert f"--cos-bucket '{runtime_config.metadata['cos_bucket']}'" in node_template["container"]["args"][0]
+    #    - the object storage region, if one is configured
+    if runtime_config.metadata.get("cos_region"):
+        assert f"--cos-region '{runtime_config.metadata['cos_region']}'" in node_template["container"]["args"][0]
+    else:
+        assert "--cos-region" not in node_template["container"]["args"][0]
     #    - the directory within that object storage bucket
     assert f"--cos-directory '{pipeline_instance_id}" in node_template["container"]["args"][0]
     #  - the name of the archive in that directory

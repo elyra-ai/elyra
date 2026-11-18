@@ -106,3 +106,30 @@ def test_build_cmd_with_inputs_and_outputs():
             assert arg_value == f"'{';'.join(pipeline_outputs)}'"
         if "inputs" in arg:
             assert arg_value == f"'{';'.join(pipeline_inputs)}'"
+
+
+def test_build_cmd_with_cos_region():
+    boot_build = BootscriptBuilder(
+        filename="test_notebook.ipynb",
+        pipeline_name="test-pipeline",
+        cos_endpoint="http://testserver:32525",
+        cos_bucket="test_bucket",
+        cos_directory="test_directory",
+        cos_dependencies_archive="test_archive.tgz",
+        cos_region="us-east-1",
+    )
+
+    assert "--cos-region 'us-east-1' " in boot_build.container_cmd
+
+
+def test_build_cmd_without_cos_region():
+    boot_build = BootscriptBuilder(
+        filename="test_notebook.ipynb",
+        pipeline_name="test-pipeline",
+        cos_endpoint="http://testserver:32525",
+        cos_bucket="test_bucket",
+        cos_directory="test_directory",
+        cos_dependencies_archive="test_archive.tgz",
+    )
+
+    assert "--cos-region" not in boot_build.container_cmd
