@@ -82,7 +82,7 @@ run `make test-integration-debug`. This will open an interactive UI tool for wri
 
 Elyra's integration tests automatically start JupyterLab and visit / interact with pages through cypress API calls.
 The tests use the cypress API to check for the existence of various buttons and visual elements.
-Refer to the [cypress API](https://docs.cypress.io/api/api/table-of-contents.html) for more details.
+Refer to the [cypress API](https://docs.cypress.io/api/table-of-contents) for more details.
 
 New integration tests can be added to `cypress/tests`.
 
