@@ -91,7 +91,7 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
             For CPU-intensive workloads, you can request more than 1 CPU (e.g.
             1.5, this is optional).
           </div>
-          <input id="cpu" type="number" name="cpu" />
+          <input id="cpu" type="number" name="cpu" step="any" />
         </div>
         <div className="elyra-resourceInput">
           <label htmlFor="cpu_limit"> CPU limit:</label>
@@ -102,7 +102,7 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
             The maximum CPU that can be allocated to this node. This should be
             equal or higher than the request
           </div>
-          <input id="cpu_limit" type="number" name="cpu_limit" />
+          <input id="cpu_limit" type="number" name="cpu_limit" step="any" />
         </div>
         <div className="elyra-resourceInput">
           <label htmlFor="gpu"> GPU:</label>
@@ -120,7 +120,7 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
           >
             The total amount of RAM requested (optional).
           </div>
-          <input id="memory" type="number" name="memory" />
+          <input id="memory" type="number" name="memory" step="any" />
         </div>
         <div className="elyra-resourceInput">
           <label htmlFor="memory_limit"> RAM limit (GB):</label>
@@ -131,7 +131,12 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
             The maximum amount of RAM allowed. This should be equal or higher
             than the request
           </div>
-          <input id="memory_limit" type="number" name="memory_limit" />
+          <input
+            id="memory_limit"
+            type="number"
+            name="memory_limit"
+            step="any"
+          />
         </div>
       </div>
       <br />
